@@ -1,0 +1,1085 @@
+﻿<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Górka & Kulka — Dashboard Właściciela</title>
+  <style>
+:root {
+  --bg: #f5f6f3;
+  --surface: #fff;
+  --line: #d9ded6;
+  --text: #1d2522;
+  --muted: #65706a;
+  --green: #2f6f58;
+  --green-dark: #245845;
+  --green-soft: #eef4ef;
+  --blue: #315f7d;
+  --red: #ad3d3d;
+  --amber: #b07a10;
+  --amber-soft: #fef3dc;
+  --red-soft: #fdf0f0;
+  --shadow: 0 2px 12px rgba(30,40,34,.07);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+}
+button, input, select { font: inherit; }
+button { border: 0; cursor: pointer; }
+
+/* LAYOUT */
+.shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+.sidebar {
+  background: #18221f;
+  color: #fff;
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-icon {
+  width: 40px; height: 40px;
+  background: #e5c778; color: #18221f;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  font-weight: 900; font-size: 15px;
+}
+.brand strong { display: block; font-size: 15px; }
+.brand small { display: block; color: #b9c8c0; font-size: 11px; margin-top: 1px; }
+nav { display: grid; gap: 2px; }
+nav a {
+  color: #e9f1ed;
+  text-decoration: none;
+  padding: 9px 10px;
+  border-radius: 7px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+nav a:hover, nav a.active { background: rgba(255,255,255,.1); }
+.nav-section {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #7a9188;
+  padding: 10px 10px 4px;
+  font-weight: 700;
+}
+.sync-box {
+  margin-top: auto;
+  background: rgba(255,255,255,.07);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.sync-box small { color: #9ab5ac; font-size: 11px; display: block; margin-top: 2px; }
+.sync-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #4caf7d;
+  display: inline-block; margin-right: 5px;
+}
+.sync-dot.off { background: #888; }
+
+main { min-width: 0; padding: 24px 28px; }
+
+/* TOP BAR */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.topbar h1 { margin: 0; font-size: 22px; font-weight: 700; }
+.topbar-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+/* RANGE TABS */
+.range-tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 3px; }
+.range-tabs button {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  background: transparent;
+}
+.range-tabs button.active {
+  background: var(--green);
+  color: #fff;
+}
+
+/* STAT GRID */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+}
+.stat-card .label { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+.stat-card .value { font-size: 26px; font-weight: 800; line-height: 1; }
+.stat-card .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.stat-card.green .value { color: var(--green); }
+.stat-card.amber .value { color: var(--amber); }
+.stat-card.red .value { color: var(--red); }
+.stat-card.blue .value { color: var(--blue); }
+
+/* SECTION */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  gap: 12px;
+}
+.section-header h2 { margin: 0; font-size: 14px; font-weight: 700; }
+.section-body { padding: 16px 18px; }
+
+/* POINTS TABLE */
+.points-table { width: 100%; border-collapse: collapse; }
+.points-table th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  font-weight: 700;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.points-table th.right { text-align: right; }
+.points-table td { padding: 10px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.points-table tr:last-child td { border-bottom: 0; }
+.points-table td.right { text-align: right; font-variant-numeric: tabular-nums; }
+.points-table td.mono { font-family: ui-monospace, monospace; font-size: 13px; }
+.points-table tr:hover td { background: var(--bg); }
+.point-name { font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.point-type {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+}
+.type-year { background: #dff0e8; color: #1a5e40; }
+.type-season { background: #ddeef7; color: #1a4b6b; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.status-dot.ok { background: #4caf7d; }
+.status-dot.warn { background: #e8a020; }
+.status-dot.off { background: #ccc; }
+.diff-pos { color: var(--green); font-weight: 700; }
+.diff-neg { color: var(--red); font-weight: 700; }
+.diff-zero { color: var(--muted); }
+
+/* BAR */
+.mini-bar-wrap { width: 80px; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; }
+.mini-bar { height: 100%; background: var(--green); border-radius: 3px; transition: width .3s; }
+.mini-bar.warn { background: #e8a020; }
+.mini-bar.danger { background: var(--red); }
+
+/* ISSUES */
+.issue-list { display: grid; gap: 8px; }
+.issue-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bg);
+  border-left: 3px solid var(--line);
+}
+.issue-item.critical { border-left-color: var(--red); background: var(--red-soft); }
+.issue-item.warn { border-left-color: #e8a020; background: var(--amber-soft); }
+.issue-item.info { border-left-color: var(--blue); }
+.issue-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.issue-point { font-size: 11px; font-weight: 700; color: var(--green); }
+
+/* HISTORY */
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+.history-day {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--bg);
+}
+.history-day .hdate { font-size: 11px; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+.history-day .hvalue { font-size: 16px; font-weight: 800; color: var(--green); }
+.history-day .hpoint { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+/* ICE */
+.ice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+}
+.ice-item {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--bg);
+}
+.ice-item .flavor { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+.ice-item .ice-meta { font-size: 11px; color: var(--muted); }
+.ice-item.low { border-color: #e8a020; background: var(--amber-soft); }
+.ice-item.out { border-color: var(--red); background: var(--red-soft); }
+
+/* HOURS */
+.hours-table { width: 100%; border-collapse: collapse; }
+.hours-table th {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--muted); font-weight: 700;
+  padding: 6px 10px; border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+.hours-table th.right { text-align: right; }
+.hours-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.hours-table td.right { text-align: right; font-variant-numeric: tabular-nums; }
+.hours-table tr:last-child td { border-bottom: 0; }
+.approve-btn {
+  padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;
+  background: var(--green-soft); color: var(--green); border: 1px solid #b5d6c5;
+}
+.approve-btn:hover { background: #d4ecdf; }
+.reject-btn {
+  padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;
+  background: var(--red-soft); color: var(--red); border: 1px solid #f0c0c0;
+}
+
+/* REFRESH BTN */
+.refresh-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 7px 13px; border-radius: 7px; font-size: 12px; font-weight: 700;
+  background: var(--green-soft); color: var(--green); border: 1px solid #b5d6c5;
+}
+.refresh-btn:hover { background: #d4ecdf; }
+
+/* EMPTY */
+.empty { color: var(--muted); font-size: 13px; padding: 16px 0; text-align: center; }
+
+/* LOGIN */
+.login-overlay {
+  position: fixed; inset: 0;
+  background: rgba(24,34,31,.85);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+}
+.login-box {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 28px 24px;
+  width: min(360px, 92vw);
+  display: grid; gap: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+.login-box h2 { margin: 0; font-size: 20px; }
+.login-box input, .login-box select {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--line);
+  border-radius: 8px; font-size: 14px;
+}
+.login-box button.primary {
+  background: var(--green); color: #fff;
+  padding: 11px; border-radius: 8px; font-weight: 800; font-size: 14px;
+}
+.login-box .login-err { color: var(--red); font-size: 12px; }
+
+/* TOAST */
+.toast {
+  position: fixed; right: 20px; bottom: 20px;
+  background: #18221f; color: #fff;
+  padding: 11px 15px; border-radius: 8px;
+  font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  max-width: 320px; z-index: 200;
+}
+
+/* PILL badge */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 99px;
+  font-size: 11px; font-weight: 700;
+}
+.pill.green { background: #dff0e8; color: #1a5e40; }
+.pill.amber { background: #fef3dc; color: #7a520a; }
+.pill.red { background: #fdf0f0; color: #8c2d2d; }
+.pill.blue { background: #ddeef7; color: #1a4b6b; }
+
+/* REPORT */
+#owner-report {
+  font-family: ui-monospace, monospace;
+  font-size: 12px; line-height: 1.6;
+  width: 100%; border: 1px solid var(--line);
+  border-radius: 8px; padding: 12px;
+  background: var(--bg); color: var(--text);
+  resize: vertical;
+}
+
+/* RESPONSIVE */
+@media (max-width: 860px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { position: relative; height: auto; flex-direction: row; flex-wrap: wrap; padding: 10px 12px; gap: 10px; }
+  .brand-icon { width: 32px; height: 32px; font-size: 12px; }
+  nav { grid-auto-flow: column; overflow-x: auto; }
+  .nav-section { display: none; }
+  .sync-box { margin-top: 0; }
+  main { padding: 14px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div id="login-overlay" class="login-overlay">
+  <div class="login-box">
+    <div class="brand" style="margin-bottom:4px">
+      <div class="brand-icon">GK</div>
+      <div>
+        <strong>Górka & Kulka</strong>
+        <small>Dashboard właściciela</small>
+      </div>
+    </div>
+    <h2>Zaloguj się</h2>
+    <select id="login-user"></select>
+    <input id="login-pin" type="password" inputmode="numeric" placeholder="PIN" maxlength="8">
+    <button class="primary" id="login-btn">Zaloguj</button>
+    <div id="login-err" class="login-err" hidden></div>
+  </div>
+</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">GK</div>
+      <div>
+        <strong>Górka & Kulka</strong>
+        <small>Dashboard właściciela</small>
+      </div>
+    </div>
+    <nav>
+      <div class="nav-section">Widoki</div>
+      <a href="#overview" class="active">📊 Przegląd</a>
+      <a href="#points">📍 Punkty</a>
+      <a href="#ice">🍦 Lody</a>
+      <a href="#hours">⏱ Godziny</a>
+      <a href="#issues">⚠️ Sprawy</a>
+      <a href="#history">📅 Historia</a>
+      <a href="#report">📋 Raport</a>
+    </nav>
+    <div class="sync-box">
+      <span><span class="sync-dot" id="sync-dot"></span><span id="sync-label">Łączenie...</span></span>
+      <small id="sync-note">Supabase</small>
+      <small id="last-refresh">—</small>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div>
+        <h1>Przegląd sieci</h1>
+        <div class="topbar-sub" id="topbar-date">—</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <div class="range-tabs" id="range-tabs">
+          <button data-range="today" class="active">Dziś</button>
+          <button data-range="week">7 dni</button>
+          <button data-range="month">Miesiąc</button>
+          <button data-range="all">Wszystko</button>
+        </div>
+        <button class="refresh-btn" id="refresh-btn">↻ Odśwież</button>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stat-grid" id="stat-grid">
+      <div class="stat-card green">
+        <div class="label">Utarg łączny</div>
+        <div class="value" id="stat-revenue">—</div>
+        <div class="sub" id="stat-revenue-sub">wszystkie punkty</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="label">Gotówka</div>
+        <div class="value" id="stat-cash">—</div>
+        <div class="sub">łącznie</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="label">Karta</div>
+        <div class="value" id="stat-card-val">—</div>
+        <div class="sub">łącznie</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Aktywne punkty</div>
+        <div class="value" id="stat-active">—</div>
+        <div class="sub" id="stat-active-sub">z 7 punktów</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="label">Koszt pracy</div>
+        <div class="value" id="stat-labor">—</div>
+        <div class="sub" id="stat-labor-pct">% obrotu</div>
+      </div>
+      <div class="stat-card red">
+        <div class="label">Otwarte sprawy</div>
+        <div class="value" id="stat-issues">—</div>
+        <div class="sub">usterki + braki</div>
+      </div>
+    </div>
+
+    <!-- PUNKTY -->
+    <div class="section" id="points">
+      <div class="section-header">
+        <h2>Wyniki per punkt</h2>
+        <span class="pill green" id="points-count">—</span>
+      </div>
+      <div class="section-body" style="padding:0">
+        <div style="overflow-x:auto">
+          <table class="points-table" id="points-table">
+            <thead>
+              <tr>
+                <th>Punkt</th>
+                <th class="right">Utarg</th>
+                <th class="right">Gotówka</th>
+                <th class="right">Karta</th>
+                <th class="right">Pyszne</th>
+                <th class="right">Różnica</th>
+                <th class="right">Udział</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="points-tbody">
+              <tr><td colspan="8" class="empty">Ładowanie danych...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- LODY -->
+    <div class="section" id="ice">
+      <div class="section-header">
+        <h2>Stan lodów w punktach</h2>
+        <span class="pill blue" id="ice-count">—</span>
+      </div>
+      <div class="section-body">
+        <div class="ice-grid" id="ice-grid">
+          <div class="empty">Ładowanie...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GODZINY -->
+    <div class="section" id="hours">
+      <div class="section-header">
+        <h2>Godziny pracy — do zatwierdzenia</h2>
+        <span class="pill amber" id="hours-pending-count">—</span>
+      </div>
+      <div class="section-body" style="padding:0">
+        <div style="overflow-x:auto">
+          <table class="hours-table">
+            <thead>
+              <tr>
+                <th>Osoba</th>
+                <th>Punkt</th>
+                <th>Data</th>
+                <th>Godziny</th>
+                <th class="right">Czas</th>
+                <th class="right">Akcja</th>
+              </tr>
+            </thead>
+            <tbody id="hours-tbody">
+              <tr><td colspan="6" class="empty">Brak wpisów do zatwierdzenia.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SPRAWY -->
+    <div class="section" id="issues">
+      <div class="section-header">
+        <h2>Usterki i braki ze wszystkich punktów</h2>
+        <span class="pill red" id="issues-count">—</span>
+      </div>
+      <div class="section-body">
+        <div class="issue-list" id="issue-list">
+          <div class="empty">Brak otwartych spraw.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORIA -->
+    <div class="section" id="history">
+      <div class="section-header">
+        <h2>Historia utargów</h2>
+        <span id="history-count" class="pill blue">—</span>
+      </div>
+      <div class="section-body">
+        <div class="history-grid" id="history-grid">
+          <div class="empty">Brak historii.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RAPORT -->
+    <div class="section" id="report">
+      <div class="section-header">
+        <h2>Raport tekstowy</h2>
+        <button class="refresh-btn" id="copy-report-btn">📋 Kopiuj</button>
+      </div>
+      <div class="section-body">
+        <textarea id="owner-report" rows="24" readonly></textarea>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script>
+const CONFIG = {
+  supabaseUrl: "https://umbnsxhainqtjzmcbugw.supabase.co",
+  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtYm5zeGhhaW5xdGp6bWNidWd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMjAzNDIsImV4cCI6MjA5NDc5NjM0Mn0.iPpJ203l6crGj67fWAg3_7EhaaPZy-7CUqmxcjZlerQ",
+  pointName: "Dashboard"
+};
+
+const POINTS = [
+  { key: "Kawiarnia centrum",    label: "Kawiarnia centrum",    type: "year"   },
+  { key: "Kawiarnia CH Nova Park", label: "CH Nova Park",       type: "year"   },
+  { key: "Park Górczyński",      label: "Park Górczyński",      type: "season" },
+  { key: "Osiedle Europejskie",  label: "Os. Europejskie",      type: "season" },
+  { key: "Santok Promenada",     label: "Santok Promenada",     type: "season" },
+  { key: "Osiedle Słoneczne",    label: "Os. Słoneczne",        type: "season" },
+  { key: "Jezioro Kłodawa",      label: "Jezioro Kłodawa",      type: "season" },
+];
+
+const OWNER_KEYS = ["pawel", "magda"];
+
+let state = {
+  user: null,
+  range: "today",
+  allShifts: [],
+  lastRefresh: null,
+};
+
+function money(v) {
+  const n = Number(String(v ?? "").replace(",", "."));
+  return isFinite(n) ? n : 0;
+}
+function fmt(v) {
+  return money(v).toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " zł";
+}
+function fmtH(h) {
+  return Number(h || 0).toFixed(2).replace(".", ",") + " h";
+}
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+function rangeStart(range) {
+  const d = new Date();
+  if (range === "today") return todayStr();
+  if (range === "week") { d.setDate(d.getDate() - 6); return d.toISOString().slice(0, 10); }
+  if (range === "month") { d.setDate(1); return d.toISOString().slice(0, 10); }
+  return "2000-01-01";
+}
+
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.hidden = false;
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { el.hidden = true; }, 3500);
+}
+
+async function supabaseFetch(path, opts = {}) {
+  const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/${path}`, {
+    ...opts,
+    headers: {
+      apikey: CONFIG.supabaseAnonKey,
+      Authorization: `Bearer ${CONFIG.supabaseAnonKey}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+      ...(opts.headers || {}),
+    },
+  });
+  if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+const FALLBACK_USERS = [
+  { user_key: "pawel", name: "Paweł", role: "owner", pin_code: "1111" },
+  { user_key: "magda", name: "Magda", role: "owner", pin_code: "2222" },
+  { user_key: "justyna", name: "Justyna", role: "manager", pin_code: "3333" },
+  { user_key: "wiktoria", name: "Wiktoria", role: "manager", pin_code: "4444" },
+];
+
+async function loadUsers() {
+  try {
+    const rows = await supabaseFetch("app_users?select=user_key,name,role,pin_code,active&order=name.asc");
+    const remote = (rows || []).filter(u => u.active !== false);
+    return remote.length ? remote : FALLBACK_USERS;
+  } catch {
+    return FALLBACK_USERS;
+  }
+}
+
+async function loadShifts(range) {
+  const from = rangeStart(range);
+  const rows = await supabaseFetch(
+    `shift_states?work_date=gte.${from}&select=*&order=work_date.desc,updated_at.desc&limit=500`
+  );
+  return rows || [];
+}
+
+function getFinance(row) {
+  const p = row.payload || {};
+  return row.finance || p.finance || p.snapshot || {};
+}
+
+function getPayload(row) {
+  return row.payload || {};
+}
+
+function filterByRange(shifts, range) {
+  const from = rangeStart(range);
+  return shifts.filter(s => (s.work_date || "") >= from);
+}
+
+function latestPerPoint(shifts) {
+  const map = {};
+  for (const s of shifts) {
+    const p = s.point_name;
+    if (!p || p === "Dashboard") continue;
+    if (!map[p] || s.work_date > map[p].work_date || s.updated_at > map[p].updated_at) {
+      map[p] = s;
+    }
+  }
+  return map;
+}
+
+function sumByPoint(shifts) {
+  const map = {};
+  for (const s of shifts) {
+    const p = s.point_name;
+    if (!p || p === "Dashboard") continue;
+    if (!map[p]) map[p] = { revenue: 0, cash: 0, card: 0, pyszne: 0, diff: 0, days: 0 };
+    const fin = getFinance(s);
+    map[p].revenue += money(fin.revenue);
+    map[p].cash    += money(fin.cash);
+    map[p].card    += money(fin.card);
+    map[p].pyszne  += money(fin.pyszne);
+    map[p].diff    += money(fin.totalDiff);
+    map[p].days++;
+  }
+  return map;
+}
+
+function collectIce(latestMap) {
+  const items = [];
+  for (const [point, row] of Object.entries(latestMap)) {
+    const stock = getPayload(row).iceStock || [];
+    for (const ice of stock) {
+      if (ice.flavor) {
+        items.push({ point, flavor: ice.flavor, net: ice.net, date: ice.date });
+      }
+    }
+  }
+  return items;
+}
+
+function collectIssues(latestMap) {
+  const issues = [];
+  for (const [point, row] of Object.entries(latestMap)) {
+    const p = getPayload(row);
+    for (const f of (p.faults || [])) {
+      if (f.status !== "Naprawione") issues.push({ point, type: "fault", ...f });
+    }
+    for (const n of (p.needs || [])) {
+      if (n.status !== "Załatwione") issues.push({ point, type: "need", ...n });
+    }
+  }
+  return issues;
+}
+
+function collectPendingHours(shifts) {
+  const entries = [];
+  const seen = new Set();
+  for (const row of shifts) {
+    const p = getPayload(row);
+    for (const e of (p.timeEntries || [])) {
+      if (!seen.has(e.id) && e.status === "Do zatwierdzenia") {
+        seen.add(e.id);
+        entries.push({ ...e, _point: row.point_name, _shiftId: row.id });
+      }
+    }
+  }
+  return entries;
+}
+
+function collectLaborCost(shifts, range) {
+  const from = rangeStart(range);
+  let total = 0;
+  for (const row of shifts) {
+    const p = getPayload(row);
+    const rates = p.hourlyRates || {};
+    for (const e of (p.timeEntries || [])) {
+      if (e.status === "Zatwierdzone" && (e.date || "") >= from) {
+        total += Number(e.hours || 0) * money(rates[e.userKey]);
+      }
+    }
+  }
+  return total;
+}
+
+function render() {
+  const shifts = filterByRange(state.allShifts, state.range);
+  const latestMap = latestPerPoint(shifts);
+  const sumMap = sumByPoint(shifts);
+
+  const totalRevenue = Object.values(sumMap).reduce((s, v) => s + v.revenue, 0);
+  const totalCash    = Object.values(sumMap).reduce((s, v) => s + v.cash, 0);
+  const totalCard    = Object.values(sumMap).reduce((s, v) => s + v.card, 0);
+  const activeCount  = Object.keys(latestMap).length;
+  const laborCost    = collectLaborCost(state.allShifts, state.range);
+  const laborPct     = totalRevenue > 0 ? (laborCost / totalRevenue * 100) : 0;
+  const allIssues    = collectIssues(latestMap);
+  const pendingHours = collectPendingHours(state.allShifts);
+
+  // STATS
+  document.getElementById("stat-revenue").textContent = fmt(totalRevenue);
+  document.getElementById("stat-revenue-sub").textContent = `${activeCount} punkt${activeCount === 1 ? "" : "ów"} raportowało`;
+  document.getElementById("stat-cash").textContent = fmt(totalCash);
+  document.getElementById("stat-card-val").textContent = fmt(totalCard);
+  document.getElementById("stat-active").textContent = activeCount;
+  document.getElementById("stat-labor").textContent = fmt(laborCost);
+  document.getElementById("stat-labor-pct").textContent = laborPct.toFixed(1).replace(".", ",") + "% obrotu";
+  document.getElementById("stat-issues").textContent = allIssues.length;
+
+  // POINTS TABLE
+  document.getElementById("points-count").textContent = `${activeCount} aktywnych`;
+  const tbody = document.getElementById("points-tbody");
+  if (POINTS.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty">Brak danych.</td></tr>`;
+  } else {
+    const rows = POINTS.map(pt => {
+      const sum = sumMap[pt.key];
+      const latest = latestMap[pt.key];
+      const isActive = !!latest;
+      const share = totalRevenue > 0 && sum ? (sum.revenue / totalRevenue * 100) : 0;
+      const barW = Math.min(100, share).toFixed(0);
+      const dotClass = isActive ? "ok" : "off";
+      const diffClass = !sum ? "diff-zero" : sum.diff > 0.5 ? "diff-pos" : sum.diff < -0.5 ? "diff-neg" : "diff-zero";
+      const diffTxt = !sum ? "—" : (sum.diff >= 0 ? "+" : "") + fmt(sum.diff);
+      return `<tr>
+        <td>
+          <div class="point-name">
+            <span class="status-dot ${dotClass}"></span>
+            ${escHtml(pt.label)}
+          </div>
+          <span class="point-type type-${pt.type}">${pt.type === "year" ? "całoroczny" : "sezonowy"}</span>
+        </td>
+        <td class="right mono">${sum ? fmt(sum.revenue) : "—"}</td>
+        <td class="right mono">${sum ? fmt(sum.cash) : "—"}</td>
+        <td class="right mono">${sum ? fmt(sum.card) : "—"}</td>
+        <td class="right mono">${sum ? fmt(sum.pyszne) : "—"}</td>
+        <td class="right mono ${diffClass}">${diffTxt}</td>
+        <td class="right">
+          <div style="display:flex;align-items:center;gap:7px;justify-content:flex-end">
+            <span style="font-size:11px;color:var(--muted)">${share.toFixed(0)}%</span>
+            <div class="mini-bar-wrap"><div class="mini-bar" style="width:${barW}%"></div></div>
+          </div>
+        </td>
+        <td>${isActive ? `<span class="pill green">Aktywny</span>` : `<span class="pill" style="background:#f0f0ee;color:#888">Brak raportu</span>`}</td>
+      </tr>`;
+    });
+    const totRow = `<tr style="background:#f5f6f3;font-weight:800">
+      <td>SUMA</td>
+      <td class="right mono">${fmt(totalRevenue)}</td>
+      <td class="right mono">${fmt(totalCash)}</td>
+      <td class="right mono">${fmt(totalCard)}</td>
+      <td class="right mono">${fmt(Object.values(sumMap).reduce((s,v)=>s+v.pyszne,0))}</td>
+      <td class="right mono">—</td>
+      <td colspan="2"></td>
+    </tr>`;
+    tbody.innerHTML = rows.join("") + totRow;
+  }
+
+  // ICE
+  const iceItems = collectIce(latestMap);
+  const iceGrid = document.getElementById("ice-grid");
+  document.getElementById("ice-count").textContent = `${iceItems.length} wpisów`;
+  if (iceItems.length === 0) {
+    iceGrid.innerHTML = `<div class="empty">Brak wpisów o stanach lodów.</div>`;
+  } else {
+    iceGrid.innerHTML = iceItems.map(ice => {
+      const netG = money(ice.net);
+      const cls = netG < 200 && netG > 0 ? "out" : netG < 500 && netG > 0 ? "low" : "";
+      return `<div class="ice-item ${cls}">
+        <div class="flavor">${escHtml(ice.flavor)}</div>
+        <div class="ice-meta">${escHtml(ice.point)}</div>
+        <div class="ice-meta">${netG > 0 ? netG.toFixed(0) + " g" : "brak wagi"}</div>
+      </div>`;
+    }).join("");
+  }
+
+  // HOURS
+  document.getElementById("hours-pending-count").textContent = `${pendingHours.length} oczekujących`;
+  const hoursTbody = document.getElementById("hours-tbody");
+  if (pendingHours.length === 0) {
+    hoursTbody.innerHTML = `<tr><td colspan="6" class="empty">Brak wpisów do zatwierdzenia.</td></tr>`;
+  } else {
+    hoursTbody.innerHTML = pendingHours.map((e, i) => `<tr>
+      <td>${escHtml(e.userName || "")}</td>
+      <td>${escHtml(e._point || "")}</td>
+      <td>${escHtml(e.date || "")}</td>
+      <td>${escHtml(e.start || "")}–${escHtml(e.end || "")}</td>
+      <td class="right">${fmtH(e.hours)}</td>
+      <td class="right" style="display:flex;gap:5px;justify-content:flex-end">
+        <button class="approve-btn" data-approve="${i}">✓ Zatwierdź</button>
+        <button class="reject-btn" data-reject="${i}">✗</button>
+      </td>
+    </tr>`).join("");
+
+    hoursTbody.querySelectorAll("[data-approve]").forEach(btn => {
+      btn.addEventListener("click", () => approveHours(pendingHours[+btn.dataset.approve], "Zatwierdzone"));
+    });
+    hoursTbody.querySelectorAll("[data-reject]").forEach(btn => {
+      btn.addEventListener("click", () => approveHours(pendingHours[+btn.dataset.reject], "Odrzucone"));
+    });
+  }
+
+  // ISSUES
+  document.getElementById("issues-count").textContent = `${allIssues.length} otwartych`;
+  const issueList = document.getElementById("issue-list");
+  if (allIssues.length === 0) {
+    issueList.innerHTML = `<div class="empty">Brak otwartych spraw.</div>`;
+  } else {
+    issueList.innerHTML = allIssues.map(iss => {
+      const isCritical = iss.priority === "Krytyczny";
+      const isWarn = iss.priority === "Pilny";
+      const cls = isCritical ? "critical" : isWarn ? "warn" : "info";
+      return `<div class="issue-item ${cls}">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:13px">${escHtml(iss.label || iss.description || iss.area || "")}</div>
+          <div class="issue-meta">${escHtml(iss.description || "")}</div>
+          <div class="issue-meta">
+            <span class="issue-point">${escHtml(iss.point)}</span>
+            · ${escHtml(iss.status || "")}
+            ${iss.priority ? `· ${escHtml(iss.priority)}` : ""}
+            ${iss.createdAt ? `· ${escHtml(iss.createdAt)}` : ""}
+          </div>
+        </div>
+        ${isCritical ? `<span class="pill red">Krytyczne</span>` : isWarn ? `<span class="pill amber">Pilne</span>` : ""}
+      </div>`;
+    }).join("");
+  }
+
+  // HISTORY
+  const histItems = [...shifts]
+    .filter(s => s.point_name && s.point_name !== "Dashboard")
+    .sort((a, b) => b.work_date?.localeCompare(a.work_date));
+  const histGrid = document.getElementById("history-grid");
+  document.getElementById("history-count").textContent = `${histItems.length} wpisów`;
+  if (histItems.length === 0) {
+    histGrid.innerHTML = `<div class="empty">Brak historii w tym zakresie.</div>`;
+  } else {
+    histGrid.innerHTML = histItems.slice(0, 42).map(s => {
+      const fin = getFinance(s);
+      const rev = money(fin.revenue || getPayload(s).fields?.["cash.revenue"]);
+      return `<div class="history-day">
+        <div class="hdate">${escHtml(s.work_date || "")}</div>
+        <div class="hvalue">${fmt(rev)}</div>
+        <div class="hpoint">${escHtml(s.point_name || "")} · ${escHtml(s.user_name || "")}</div>
+      </div>`;
+    }).join("");
+  }
+
+  // REPORT
+  buildReport(shifts, latestMap, sumMap, totalRevenue, laborCost, laborPct, allIssues, pendingHours);
+}
+
+function buildReport(shifts, latestMap, sumMap, totalRevenue, laborCost, laborPct, allIssues, pendingHours) {
+  const now = new Date().toLocaleString("pl-PL");
+  const rangeLabel = { today: "Dziś", week: "Ostatnie 7 dni", month: "Bieżący miesiąc", all: "Całość" }[state.range] || state.range;
+  const lines = [
+    `RAPORT SIECI — GÓRKA & KULKA`,
+    `Wygenerowano: ${now}`,
+    `Zakres: ${rangeLabel}`,
+    `Zalogowany: ${state.user?.name || "brak"}`,
+    "",
+    "═══ UTARGI PER PUNKT ═══",
+  ];
+  for (const pt of POINTS) {
+    const sum = sumMap[pt.key];
+    lines.push(`${pt.label}: ${sum ? fmt(sum.revenue) : "brak raportu"}`);
+  }
+  lines.push(`SUMA: ${fmt(totalRevenue)}`);
+  lines.push("");
+  lines.push("═══ KOSZTY PRACY ═══");
+  lines.push(`Koszt pracy: ${fmt(laborCost)} (${laborPct.toFixed(1).replace(".", ",")}% obrotu)`);
+  lines.push("");
+  lines.push(`═══ OTWARTE SPRAWY (${allIssues.length}) ═══`);
+  if (allIssues.length) {
+    for (const iss of allIssues) {
+      lines.push(`[${iss.point}] ${iss.label || iss.description || iss.area}: ${iss.status}${iss.priority ? ` (${iss.priority})` : ""}`);
+    }
+  } else {
+    lines.push("Brak otwartych spraw.");
+  }
+  lines.push("");
+  lines.push(`═══ GODZINY DO ZATWIERDZENIA (${pendingHours.length}) ═══`);
+  if (pendingHours.length) {
+    for (const e of pendingHours) {
+      lines.push(`[${e._point}] ${e.userName}: ${e.date} ${e.start}–${e.end} ${fmtH(e.hours)}`);
+    }
+  } else {
+    lines.push("Brak oczekujących.");
+  }
+  lines.push("");
+  lines.push("═══ STANY LODÓW ═══");
+  const iceItems = collectIce(latestMap);
+  if (iceItems.length) {
+    for (const ice of iceItems) {
+      lines.push(`[${ice.point}] ${ice.flavor}: ${money(ice.net) > 0 ? ice.net + " g" : "brak wagi"}`);
+    }
+  } else {
+    lines.push("Brak wpisów.");
+  }
+  document.getElementById("owner-report").value = lines.join("\n");
+}
+
+async function approveHours(entry, status) {
+  const row = state.allShifts.find(s => s.id === entry._shiftId);
+  if (!row) { toast("Nie znaleziono zmiany w pamięci."); return; }
+  const payload = JSON.parse(JSON.stringify(row.payload || {}));
+  const e = (payload.timeEntries || []).find(x => x.id === entry.id);
+  if (e) {
+    e.status = status;
+    e.approvedBy = state.user?.name || "dashboard";
+    e.approvedAt = new Date().toLocaleString("pl-PL");
+  }
+  try {
+    await supabaseFetch(`shift_states?id=eq.${encodeURIComponent(row.id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ payload, updated_at: new Date().toISOString() }),
+    });
+    row.payload = payload;
+    toast(status === "Zatwierdzone" ? "Godziny zatwierdzone." : "Wpis odrzucony.");
+    render();
+  } catch (err) {
+    toast("Błąd zapisu: " + err.message);
+  }
+}
+
+async function refresh() {
+  const btn = document.getElementById("refresh-btn");
+  btn.textContent = "↻ Ładowanie...";
+  btn.disabled = true;
+  try {
+    state.allShifts = await loadShifts(state.range);
+    state.lastRefresh = new Date();
+    document.getElementById("sync-label").textContent = "Online";
+    document.getElementById("sync-dot").className = "sync-dot ok";
+    document.getElementById("last-refresh").textContent = "Odświeżono: " + state.lastRefresh.toLocaleTimeString("pl-PL");
+    render();
+  } catch (err) {
+    state.allShifts = [];
+    document.getElementById("sync-label").textContent = "Błąd CORS — skonfiguruj Supabase";
+    document.getElementById("sync-dot").className = "sync-dot off";
+    document.getElementById("last-refresh").textContent = "Brak połączenia z bazą";
+    render();
+  } finally {
+    btn.textContent = "↻ Odśwież";
+    btn.disabled = false;
+  }
+}
+
+function escHtml(v) {
+  return String(v ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+async function init() {
+  document.getElementById("topbar-date").textContent = new Date().toLocaleDateString("pl-PL", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric"
+  });
+
+  const sel = document.getElementById("login-user");
+  sel.innerHTML = FALLBACK_USERS.map(u => `<option value="${u.user_key}">${escHtml(u.name)}</option>`).join("");
+
+  document.getElementById("login-btn").addEventListener("click", () => {
+    const key = sel.value;
+    const pin = document.getElementById("login-pin").value.trim();
+    const user = FALLBACK_USERS.find(u => u.user_key === key && u.pin_code === pin);
+    if (!user) {
+      document.getElementById("login-err").hidden = false;
+      document.getElementById("login-err").textContent = "Nieprawidłowy PIN.";
+      return;
+    }
+    if (!["owner", "manager"].includes(user.role)) {
+      document.getElementById("login-err").hidden = false;
+      document.getElementById("login-err").textContent = "Dostęp tylko dla właściciela i menadżera.";
+      return;
+    }
+    state.user = user;
+    document.getElementById("login-overlay").hidden = true;
+    refresh();
+  });
+
+  document.getElementById("login-pin").addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("login-btn").click();
+  });
+
+  document.getElementById("refresh-btn").addEventListener("click", refresh);
+
+  document.getElementById("range-tabs").addEventListener("click", e => {
+    const btn = e.target.closest("[data-range]");
+    if (!btn) return;
+    state.range = btn.dataset.range;
+    document.querySelectorAll("#range-tabs button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    refresh();
+  });
+
+  document.getElementById("copy-report-btn").addEventListener("click", () => {
+    const ta = document.getElementById("owner-report");
+    navigator.clipboard.writeText(ta.value).then(() => toast("Raport skopiowany.")).catch(() => {
+      ta.select();
+      document.execCommand("copy");
+      toast("Raport skopiowany.");
+    });
+  });
+
+  setInterval(() => { if (state.user) refresh(); }, 5 * 60 * 1000);
+}
+
+init();
+</script>
+</body>
+</html>
