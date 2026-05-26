@@ -1,0 +1,1135 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Górka & Kulka — Kierowca</title>
+  <style>
+:root {
+  --bg: #f5f6f3;
+  --surface: #fff;
+  --line: #d9ded6;
+  --text: #1d2522;
+  --muted: #65706a;
+  --green: #2f6f58;
+  --green-dark: #245845;
+  --green-soft: #eef4ef;
+  --blue: #315f7d;
+  --blue-soft: #e8f0f5;
+  --red: #ad3d3d;
+  --red-soft: #fdf0f0;
+  --amber: #b07a10;
+  --amber-soft: #fef3dc;
+  --shadow: 0 2px 12px rgba(30,40,34,.07);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+}
+button, input, select, textarea { font: inherit; }
+button { border: 0; cursor: pointer; }
+button:disabled { opacity: .5; cursor: default; }
+
+/* LOGIN */
+.login-overlay {
+  position: fixed; inset: 0;
+  background: #18221f;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+}
+.login-box {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 28px 24px;
+  width: min(360px, 92vw);
+  display: grid; gap: 12px;
+}
+.login-logo {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 4px;
+}
+.login-logo-icon {
+  width: 44px; height: 44px;
+  background: #e5c778; color: #18221f;
+  border-radius: 10px;
+  display: grid; place-items: center;
+  font-weight: 900; font-size: 16px;
+}
+.login-box h2 { margin: 0; font-size: 22px; }
+.login-box select, .login-box input {
+  width: 100%; padding: 12px 14px;
+  border: 1px solid var(--line); border-radius: 9px;
+  font-size: 16px; background: var(--bg);
+}
+.btn-primary {
+  background: var(--green); color: #fff;
+  padding: 13px; border-radius: 9px;
+  font-weight: 800; font-size: 16px; width: 100%;
+}
+.btn-primary:hover { background: var(--green-dark); }
+.login-err { color: var(--red); font-size: 13px; }
+
+/* HEADER */
+.header {
+  background: #18221f;
+  color: #fff;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 10;
+}
+.header-brand { display: flex; align-items: center; gap: 10px; }
+.header-icon {
+  width: 36px; height: 36px;
+  background: #e5c778; color: #18221f;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  font-weight: 900; font-size: 13px;
+}
+.header-title { font-weight: 700; font-size: 15px; }
+.header-sub { font-size: 11px; color: #9ab5ac; }
+.header-user { font-size: 13px; color: #b9c8c0; }
+
+/* TABS */
+.tabs {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: sticky; top: 64px; z-index: 9;
+}
+.tabs button {
+  flex: 0 0 auto;
+  padding: 13px 18px;
+  font-size: 13px; font-weight: 700;
+  color: var(--muted);
+  background: transparent;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+}
+.tabs button.active {
+  color: var(--green);
+  border-bottom-color: var(--green);
+}
+
+/* MAIN */
+main { padding: 16px; max-width: 680px; margin: 0 auto; }
+
+/* CARDS */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.card-header h2 { margin: 0; font-size: 15px; font-weight: 700; }
+.card-body { padding: 14px 16px; }
+
+/* ROUTE */
+.route-list { display: grid; gap: 10px; }
+.route-item {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.route-item.done { opacity: .6; }
+.route-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 14px;
+  cursor: pointer;
+  background: var(--bg);
+}
+.route-num {
+  width: 30px; height: 30px;
+  background: var(--green); color: #fff;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-weight: 800; font-size: 13px;
+  flex-shrink: 0;
+}
+.route-num.done-num { background: #aaa; }
+.route-name { font-weight: 700; font-size: 14px; flex: 1; }
+.route-meta { font-size: 12px; color: var(--muted); }
+.route-badge {
+  font-size: 11px; font-weight: 700;
+  padding: 3px 9px; border-radius: 99px;
+}
+.badge-pending { background: var(--amber-soft); color: var(--amber); }
+.badge-done { background: var(--green-soft); color: var(--green); }
+.badge-partial { background: var(--blue-soft); color: var(--blue); }
+
+.route-detail {
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+  display: grid; gap: 10px;
+}
+.detail-section { font-size: 12px; }
+.detail-section strong { display: block; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+.detail-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+  gap: 10px;
+}
+.detail-row:last-child { border-bottom: 0; }
+.detail-row span { font-size: 13px; }
+.detail-row input {
+  width: 80px; padding: 6px 8px;
+  border: 1px solid var(--line); border-radius: 7px;
+  text-align: center; font-size: 14px; font-weight: 700;
+}
+.tub-input {
+  width: 70px; padding: 6px 8px;
+  border: 1px solid var(--line); border-radius: 7px;
+  text-align: center; font-size: 14px; font-weight: 700;
+  background: var(--amber-soft);
+}
+.route-actions { display: flex; gap: 8px; padding-top: 4px; }
+.btn-done {
+  flex: 1; padding: 11px;
+  background: var(--green); color: #fff;
+  border-radius: 9px; font-weight: 800; font-size: 14px;
+}
+.btn-partial {
+  padding: 11px 16px;
+  background: var(--blue-soft); color: var(--blue);
+  border-radius: 9px; font-weight: 800; font-size: 14px;
+}
+.btn-nav {
+  padding: 11px 16px;
+  background: var(--bg); color: var(--text);
+  border-radius: 9px; font-weight: 700; font-size: 13px;
+  border: 1px solid var(--line);
+  text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+}
+
+/* ORDERS */
+.order-list { display: grid; gap: 8px; }
+.order-item {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--bg);
+}
+.order-item.manual { border-left: 3px solid var(--blue); }
+.order-item.from-point { border-left: 3px solid var(--green); }
+.order-point { font-size: 11px; font-weight: 700; color: var(--green); margin-bottom: 4px; }
+.order-point.manual-tag { color: var(--blue); }
+.order-desc { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+.order-meta { font-size: 12px; color: var(--muted); }
+
+/* FORM */
+.form-grid { display: grid; gap: 10px; }
+label { display: grid; gap: 5px; font-size: 12px; font-weight: 700; color: var(--muted); }
+label input, label select, label textarea {
+  padding: 11px 12px;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface); font-size: 14px; color: var(--text);
+}
+label textarea { resize: vertical; }
+.full { grid-column: 1 / -1; }
+.form-2 { grid-template-columns: 1fr 1fr; }
+
+/* TUBS SUMMARY */
+.tubs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+.tub-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--bg);
+  text-align: center;
+}
+.tub-card .tub-point { font-size: 11px; color: var(--muted); font-weight: 700; margin-bottom: 6px; }
+.tub-card .tub-count { font-size: 28px; font-weight: 800; color: var(--green); }
+.tub-card .tub-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* SUMMARY STATS */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.stat-box {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  text-align: center;
+}
+.stat-box .sv { font-size: 24px; font-weight: 800; color: var(--green); }
+.stat-box .sl { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+/* REPORT */
+#driver-report {
+  font-family: ui-monospace, monospace;
+  font-size: 12px; line-height: 1.6;
+  width: 100%; border: 1px solid var(--line);
+  border-radius: 8px; padding: 12px;
+  background: var(--bg); resize: vertical;
+}
+
+/* TOAST */
+.toast {
+  position: fixed; left: 50%; bottom: 24px;
+  transform: translateX(-50%);
+  background: #18221f; color: #fff;
+  padding: 11px 20px; border-radius: 99px;
+  font-size: 13px; font-weight: 600;
+  box-shadow: 0 4px 20px rgba(0,0,0,.25);
+  z-index: 200; white-space: nowrap;
+}
+
+/* PILL */
+.pill {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 99px;
+  font-size: 11px; font-weight: 700;
+}
+.pill-green { background: var(--green-soft); color: var(--green); }
+.pill-amber { background: var(--amber-soft); color: var(--amber); }
+.pill-blue { background: var(--blue-soft); color: var(--blue); }
+
+.empty { color: var(--muted); font-size: 13px; padding: 20px 0; text-align: center; }
+.btn-secondary {
+  padding: 10px 16px; border-radius: 9px;
+  background: var(--green-soft); color: var(--green);
+  font-weight: 700; font-size: 13px;
+  border: 1px solid #b5d6c5;
+}
+.btn-danger {
+  padding: 10px 16px; border-radius: 9px;
+  background: var(--red-soft); color: var(--red);
+  font-weight: 700; font-size: 13px;
+  border: 1px solid #f0c0c0;
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-overlay" class="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">GK</div>
+      <div>
+        <strong style="display:block">Górka & Kulka</strong>
+        <small style="color:#888">Panel kierowcy</small>
+      </div>
+    </div>
+    <h2>Zaloguj się</h2>
+    <select id="login-user"></select>
+    <input id="login-pin" type="password" inputmode="numeric" placeholder="PIN" maxlength="8">
+    <button class="btn-primary" id="login-btn">Zaloguj</button>
+    <div id="login-err" class="login-err" hidden></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header" id="app-header" hidden>
+  <div class="header-brand">
+    <div class="header-icon">GK</div>
+    <div>
+      <div class="header-title">Kierowca</div>
+      <div class="header-sub" id="header-date"></div>
+    </div>
+  </div>
+  <div class="header-user" id="header-user"></div>
+</div>
+
+<!-- TABS -->
+<div class="tabs" id="app-tabs" hidden>
+  <button class="active" data-tab="route">🗺️ Trasa</button>
+  <button data-tab="orders">📦 Zamówienia</button>
+  <button data-tab="tubs">🪣 Kuwety</button>
+  <button data-tab="purchases">🛒 Zakupy</button>
+  <button data-tab="report">📋 Raport</button>
+</div>
+
+<main id="app-main" hidden>
+
+  <!-- TRASA -->
+  <div id="tab-route">
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="sv" id="stat-points">0</div>
+        <div class="sl">punktów dziś</div>
+      </div>
+      <div class="stat-box">
+        <div class="sv" id="stat-done">0</div>
+        <div class="sl">odwiedzonych</div>
+      </div>
+      <div class="stat-box">
+        <div class="sv" id="stat-tubs">0</div>
+        <div class="sl">puste kuwety</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>🗺️ Trasa dnia</h2>
+        <span class="pill pill-green" id="route-progress">0/0</span>
+      </div>
+      <div class="card-body">
+        <div class="route-list" id="route-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ZAMÓWIENIA -->
+  <div id="tab-orders" hidden>
+    <div class="card">
+      <div class="card-header">
+        <h2>📦 Zamówienia z punktów</h2>
+        <span class="pill pill-green" id="orders-from-points-count">0</span>
+      </div>
+      <div class="card-body">
+        <div id="orders-from-points" class="order-list">
+          <div class="empty">Brak zamówień z punktów.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>✏️ Dodaj zamówienie ręcznie</h2>
+      </div>
+      <div class="card-body">
+        <div class="form-grid form-2">
+          <label class="full">Punkt
+            <select id="manual-point">
+              <option value="">— wybierz punkt —</option>
+              <option>Kawiarnia centrum</option>
+              <option>Kawiarnia CH Nova Park</option>
+              <option>Park Górczyński</option>
+              <option>Osiedle Europejskie</option>
+              <option>Santok Promenada</option>
+              <option>Osiedle Słoneczne</option>
+              <option>Jezioro Kłodawa</option>
+              <option>Produkcja</option>
+            </select>
+          </label>
+          <label class="full">Co dostarczyć / odebrać
+            <input id="manual-desc" placeholder="np. 3 kuwety śmietanka, ciasto tiramisu">
+          </label>
+          <label>Ilość
+            <input id="manual-qty" placeholder="np. 3 szt." inputmode="decimal">
+          </label>
+          <label>Pilność
+            <select id="manual-urgency">
+              <option>Normalny</option>
+              <option>Na jutro</option>
+              <option>Pilne</option>
+            </select>
+          </label>
+          <label class="full">Uwagi
+            <textarea id="manual-note" rows="2" placeholder="Opcjonalnie..."></textarea>
+          </label>
+        </div>
+        <button class="btn-primary" id="add-manual-order" style="margin-top:10px">Dodaj zamówienie</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>📝 Moje zamówienia ręczne</h2>
+        <span class="pill pill-blue" id="manual-orders-count">0</span>
+      </div>
+      <div class="card-body">
+        <div id="manual-orders-list" class="order-list">
+          <div class="empty">Brak zamówień.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KUWETY -->
+  <div id="tab-tubs" hidden>
+    <div class="card">
+      <div class="card-header">
+        <h2>🪣 Odbiór pustych kuwet</h2>
+        <span class="pill pill-amber" id="tubs-total-badge">0 łącznie</span>
+      </div>
+      <div class="card-body">
+        <p style="font-size:13px;color:var(--muted);margin:0 0 14px">Wpisz ile pustych kuwet odebrałeś z każdego punktu.</p>
+        <div id="tubs-form" class="form-grid"></div>
+        <button class="btn-primary" id="save-tubs" style="margin-top:12px">Zapisz kuwety</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>📊 Podsumowanie kuwet</h2>
+      </div>
+      <div class="card-body">
+        <div class="tubs-grid" id="tubs-summary"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ZAKUPY -->
+  <div id="tab-purchases" hidden>
+    <div class="card">
+      <div class="card-header">
+        <h2>🛒 Lista zakupów na dziś</h2>
+        <span class="pill pill-amber" id="purchases-count">0</span>
+      </div>
+      <div class="card-body">
+        <div id="purchases-list" class="order-list">
+          <div class="empty">Brak zakupów na dziś.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>➕ Dodaj zakup</h2>
+      </div>
+      <div class="card-body">
+        <div class="form-grid form-2">
+          <label class="full">Co kupić
+            <input id="purchase-item" placeholder="np. mleko 3,2% — 20 litrów">
+          </label>
+          <label>Sklep / dostawca
+            <input id="purchase-shop" placeholder="np. Makro">
+          </label>
+          <label>Szacunkowy koszt
+            <input id="purchase-cost" inputmode="decimal" placeholder="0,00 zł">
+          </label>
+          <label class="full">Dla kogo
+            <select id="purchase-for">
+              <option value="">— dla całej firmy —</option>
+              <option>Kawiarnia centrum</option>
+              <option>Kawiarnia CH Nova Park</option>
+              <option>Produkcja</option>
+              <option>Wszystkie punkty</option>
+            </select>
+          </label>
+        </div>
+        <button class="btn-primary" id="add-purchase" style="margin-top:10px">Dodaj do listy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RAPORT -->
+  <div id="tab-report" hidden>
+    <div class="card">
+      <div class="card-header">
+        <h2>📋 Raport dnia kierowcy</h2>
+        <button class="btn-secondary" id="copy-report">Kopiuj</button>
+      </div>
+      <div class="card-body">
+        <textarea id="driver-report" rows="22" readonly></textarea>
+      </div>
+    </div>
+    <button class="btn-primary" id="save-day-btn" style="width:100%;margin-bottom:14px">
+      ✅ Zapisz i zakończ dzień
+    </button>
+  </div>
+
+</main>
+
+<div id="toast" class="toast" hidden></div>
+
+<script>
+const SUPABASE_URL = "https://umbnsxhainqtjzmcbugw.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtYm5zeGhhaW5xdGp6bWNidWd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMjAzNDIsImV4cCI6MjA5NDc5NjM0Mn0.iPpJ203l6crGj67fWAg3_7EhaaPZy-7CUqmxcjZlerQ";
+
+const POINTS = [
+  { name: "Kawiarnia centrum",     type: "year",   address: "ul. Centrum, Gorzów Wlkp." },
+  { name: "Kawiarnia CH Nova Park",type: "year",   address: "CH Nova Park, Gorzów Wlkp." },
+  { name: "Park Górczyński",       type: "season", address: "Park Górczyński, Gorzów Wlkp." },
+  { name: "Osiedle Europejskie",   type: "season", address: "Os. Europejskie, Gorzów Wlkp." },
+  { name: "Santok Promenada",      type: "season", address: "Santok Promenada" },
+  { name: "Osiedle Słoneczne",     type: "season", address: "Os. Słoneczne, Gorzów Wlkp." },
+  { name: "Jezioro Kłodawa",       type: "season", address: "Jezioro Kłodawa" },
+];
+
+const FALLBACK_USERS = [
+  { user_key: "pawel",    name: "Paweł",    role: "owner",  pin_code: "1111" },
+  { user_key: "magda",    name: "Magda",    role: "owner",  pin_code: "2222" },
+  { user_key: "kierowca", name: "Kierowca", role: "driver", pin_code: "6666" },
+  { user_key: "justyna",  name: "Justyna",  role: "manager",pin_code: "3333" },
+];
+
+const STORAGE_KEY = "gk-driver-state";
+
+let state = loadState();
+let currentUser = null;
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    const today = todayStr();
+    if (s.date !== today) {
+      // Reset daily state but keep tubs history
+      return {
+        date: today,
+        route: POINTS.map(p => ({
+          name: p.name,
+          status: "pending", // pending | done | partial
+          tubsCollected: 0,
+          iceCreamDelivered: [],
+          note: "",
+          expanded: false,
+        })),
+        manualOrders: [],
+        purchases: [],
+        tubsByPoint: {},
+        savedToSupabase: false,
+      };
+    }
+    return s;
+  } catch {
+    return defaultState();
+  }
+}
+
+function defaultState() {
+  return {
+    date: todayStr(),
+    route: POINTS.map(p => ({
+      name: p.name, status: "pending",
+      tubsCollected: 0, iceCreamDelivered: [], note: "", expanded: false,
+    })),
+    manualOrders: [],
+    purchases: [],
+    tubsByPoint: {},
+    savedToSupabase: false,
+  };
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function nowLabel() {
+  return new Date().toLocaleString("pl-PL", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit"
+  });
+}
+
+function esc(v) {
+  return String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.hidden = false;
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { el.hidden = true; }, 3000);
+}
+
+async function sbFetch(path, opts = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...opts,
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+      ...(opts.headers || {}),
+    },
+  });
+  if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+// Load orders from all points in Supabase
+async function loadPointOrders() {
+  try {
+    const today = todayStr();
+    const rows = await sbFetch(
+      `shift_states?work_date=eq.${today}&select=point_name,payload&order=updated_at.desc`
+    );
+    const orders = [];
+    const seen = new Set();
+    for (const row of (rows || [])) {
+      const payload = row.payload || {};
+      const iceOrders = payload.iceOrders || [];
+      for (const order of iceOrders) {
+        if (order.status === "Zamówione" && !seen.has(order.createdAt + row.point_name)) {
+          seen.add(order.createdAt + row.point_name);
+          orders.push({
+            point: row.point_name,
+            rows: order.rows || [],
+            createdAt: order.createdAt,
+            author: order.author,
+          });
+        }
+      }
+      // Also collect needs with category "Kierowca"
+      const needs = payload.needs || [];
+      for (const need of needs) {
+        if (need.area === "Kierowca" && need.status !== "Załatwione") {
+          orders.push({
+            point: row.point_name,
+            isNeed: true,
+            desc: need.description,
+            urgency: need.urgency,
+            createdAt: need.createdAt,
+          });
+        }
+      }
+    }
+    return orders;
+  } catch {
+    return [];
+  }
+}
+
+// Suggested route order — year-round first, then seasonal by proximity
+function buildSuggestedRoute() {
+  const yearRound = state.route.filter(r => {
+    const p = POINTS.find(p => p.name === r.name);
+    return p?.type === "year";
+  });
+  const seasonal = state.route.filter(r => {
+    const p = POINTS.find(p => p.name === r.name);
+    return p?.type === "season";
+  });
+  return [...yearRound, ...seasonal];
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+
+async function renderRoute() {
+  const route = buildSuggestedRoute();
+  const pointOrders = await loadPointOrders();
+
+  const doneCount = state.route.filter(r => r.status === "done").length;
+  const totalTubs = Object.values(state.tubsByPoint).reduce((s, v) => s + Number(v || 0), 0);
+
+  document.getElementById("stat-points").textContent = route.length;
+  document.getElementById("stat-done").textContent = doneCount;
+  document.getElementById("stat-tubs").textContent = totalTubs;
+  document.getElementById("route-progress").textContent = `${doneCount}/${route.length}`;
+
+  const list = document.getElementById("route-list");
+  list.innerHTML = route.map((stop, i) => {
+    const ptOrders = pointOrders.filter(o => o.point === stop.name);
+    const pt = POINTS.find(p => p.name === stop.name);
+    const isDone = stop.status === "done";
+    const isPartial = stop.status === "partial";
+
+    const badgeCls = isDone ? "badge-done" : isPartial ? "badge-partial" : "badge-pending";
+    const badgeTxt = isDone ? "✓ Odwiedzony" : isPartial ? "Częściowo" : "Do zrobienia";
+
+    const ordersHtml = ptOrders.length
+      ? ptOrders.map(o => {
+          if (o.isNeed) return `<div class="detail-row"><span>📋 ${esc(o.desc)} <em style="color:var(--amber)">${esc(o.urgency)}</em></span></div>`;
+          return o.rows.map(r => `<div class="detail-row"><span>🍦 ${esc(r.flavor)}: <strong>${esc(r.tubs || 0)} kuw.</strong></span></div>`).join("");
+        }).join("")
+      : `<div style="font-size:12px;color:var(--muted);padding:6px 0">Brak zamówień na dziś</div>`;
+
+    return `
+      <div class="route-item ${isDone ? "done" : ""}" id="stop-${i}">
+        <div class="route-header" onclick="toggleStop(${i})">
+          <div class="route-num ${isDone ? "done-num" : ""}">${isDone ? "✓" : i + 1}</div>
+          <div style="flex:1;min-width:0">
+            <div class="route-name">${esc(stop.name)}</div>
+            <div class="route-meta">${esc(pt?.address || "")} · ${pt?.type === "year" ? "całoroczny" : "sezonowy"}</div>
+          </div>
+          <span class="route-badge ${badgeCls}">${badgeTxt}</span>
+        </div>
+        ${stop.expanded ? `
+        <div class="route-detail">
+          <div class="detail-section">
+            <strong>Zamówienia lodów</strong>
+            ${ordersHtml}
+          </div>
+          <div class="detail-section">
+            <strong>Puste kuwety do odebrania</strong>
+            <div class="detail-row">
+              <span>Ile pustych kuwet?</span>
+              <input class="tub-input" type="number" min="0" value="${state.tubsByPoint[stop.name] || 0}"
+                onchange="updateTubs('${stop.name}', this.value)">
+            </div>
+          </div>
+          <div class="detail-section">
+            <strong>Uwaga / notatka</strong>
+            <textarea rows="2" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:7px;font-size:13px"
+              onchange="updateStopNote(${i}, this.value)">${esc(stop.note)}</textarea>
+          </div>
+          <div class="route-actions">
+            <a class="btn-nav" href="https://maps.google.com/?q=${encodeURIComponent(pt?.address || stop.name)}" target="_blank">
+              🗺️ Nawiguj
+            </a>
+            <button class="btn-partial" onclick="markStop(${i}, 'partial')">Częściowo</button>
+            <button class="btn-done" onclick="markStop(${i}, 'done')">✓ Gotowe</button>
+          </div>
+        </div>
+        ` : ""}
+      </div>
+    `;
+  }).join("");
+}
+
+function toggleStop(i) {
+  const route = buildSuggestedRoute();
+  const stopName = route[i].name;
+  const stateStop = state.route.find(r => r.name === stopName);
+  if (stateStop) stateStop.expanded = !stateStop.expanded;
+  saveState();
+  renderRoute();
+}
+
+function markStop(i, status) {
+  const route = buildSuggestedRoute();
+  const stopName = route[i].name;
+  const stateStop = state.route.find(r => r.name === stopName);
+  if (stateStop) { stateStop.status = status; stateStop.expanded = false; }
+  saveState();
+  renderRoute();
+  toast(status === "done" ? "✓ Punkt zaliczony!" : "Punkt częściowo obsłużony");
+}
+
+function updateTubs(pointName, value) {
+  state.tubsByPoint[pointName] = Number(value) || 0;
+  const stateStop = state.route.find(r => r.name === pointName);
+  if (stateStop) stateStop.tubsCollected = Number(value) || 0;
+  saveState();
+  renderTubsSummary();
+  // Update stats
+  const totalTubs = Object.values(state.tubsByPoint).reduce((s, v) => s + Number(v || 0), 0);
+  document.getElementById("stat-tubs").textContent = totalTubs;
+  document.getElementById("tubs-total-badge").textContent = `${totalTubs} łącznie`;
+}
+
+function updateStopNote(i, value) {
+  const route = buildSuggestedRoute();
+  const stopName = route[i].name;
+  const stateStop = state.route.find(r => r.name === stopName);
+  if (stateStop) stateStop.note = value;
+  saveState();
+}
+
+async function renderOrders() {
+  const pointOrders = await loadPointOrders();
+  const el = document.getElementById("orders-from-points");
+  document.getElementById("orders-from-points-count").textContent = pointOrders.length;
+
+  if (pointOrders.length === 0) {
+    el.innerHTML = `<div class="empty">Brak zamówień z punktów na dziś.</div>`;
+  } else {
+    el.innerHTML = pointOrders.map(o => {
+      if (o.isNeed) return `
+        <div class="order-item from-point">
+          <div class="order-point">📍 ${esc(o.point)}</div>
+          <div class="order-desc">📋 ${esc(o.desc)}</div>
+          <div class="order-meta">Pilność: ${esc(o.urgency)} · ${esc(o.createdAt || "")}</div>
+        </div>`;
+      return `
+        <div class="order-item from-point">
+          <div class="order-point">📍 ${esc(o.point)}</div>
+          <div class="order-desc">🍦 ${o.rows.map(r => `${esc(r.flavor)}: ${r.tubs || 0} kuw.`).join(", ")}</div>
+          <div class="order-meta">${esc(o.author || "")} · ${esc(o.createdAt || "")}</div>
+        </div>`;
+    }).join("");
+  }
+
+  // Manual orders
+  const manList = document.getElementById("manual-orders-list");
+  document.getElementById("manual-orders-count").textContent = state.manualOrders.length;
+  if (state.manualOrders.length === 0) {
+    manList.innerHTML = `<div class="empty">Brak zamówień ręcznych.</div>`;
+  } else {
+    manList.innerHTML = state.manualOrders.map((o, i) => `
+      <div class="order-item manual">
+        <div class="order-point manual-tag">✏️ ${esc(o.point)}</div>
+        <div class="order-desc">${esc(o.desc)}${o.qty ? ` — ${esc(o.qty)}` : ""}</div>
+        <div class="order-meta">${esc(o.urgency)} · ${esc(o.createdAt)}</div>
+        <div style="margin-top:8px">
+          <button class="btn-danger" style="font-size:11px;padding:5px 10px" onclick="removeManualOrder(${i})">Usuń</button>
+        </div>
+      </div>
+    `).join("");
+  }
+}
+
+function removeManualOrder(i) {
+  state.manualOrders.splice(i, 1);
+  saveState();
+  renderOrders();
+}
+
+function renderTubsForm() {
+  const form = document.getElementById("tubs-form");
+  form.innerHTML = POINTS.map(pt => `
+    <label>${esc(pt.name)}
+      <input type="number" min="0" value="${state.tubsByPoint[pt.name] || 0}"
+        onchange="updateTubs('${pt.name}', this.value)"
+        style="background:var(--amber-soft)">
+    </label>
+  `).join("");
+  renderTubsSummary();
+}
+
+function renderTubsSummary() {
+  const summary = document.getElementById("tubs-summary");
+  const total = Object.values(state.tubsByPoint).reduce((s, v) => s + Number(v || 0), 0);
+  document.getElementById("tubs-total-badge").textContent = `${total} łącznie`;
+
+  const items = POINTS.map(pt => {
+    const count = state.tubsByPoint[pt.name] || 0;
+    return `<div class="tub-card">
+      <div class="tub-point">${esc(pt.name)}</div>
+      <div class="tub-count">${count}</div>
+      <div class="tub-label">pustych kuwet</div>
+    </div>`;
+  });
+  items.push(`<div class="tub-card" style="border-color:var(--green)">
+    <div class="tub-point" style="color:var(--green)">RAZEM</div>
+    <div class="tub-count" style="font-size:32px">${total}</div>
+    <div class="tub-label">wszystkie punkty</div>
+  </div>`);
+  summary.innerHTML = items.join("");
+}
+
+function renderPurchases() {
+  const list = document.getElementById("purchases-list");
+  document.getElementById("purchases-count").textContent = state.purchases.length;
+  if (state.purchases.length === 0) {
+    list.innerHTML = `<div class="empty">Brak zakupów na dziś.</div>`;
+    return;
+  }
+  list.innerHTML = state.purchases.map((p, i) => `
+    <div class="order-item" style="border-left:3px solid var(--amber)">
+      <div class="order-point" style="color:var(--amber)">🛒 ${esc(p.forPoint || "firma")}</div>
+      <div class="order-desc">${esc(p.item)}</div>
+      <div class="order-meta">${esc(p.shop || "")}${p.cost ? ` · ~${esc(p.cost)} zł` : ""}</div>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="btn-secondary" style="font-size:11px;padding:5px 10px" onclick="markPurchaseDone(${i})">
+          ${p.done ? "✓ Kupione" : "Oznacz jako kupione"}
+        </button>
+        <button class="btn-danger" style="font-size:11px;padding:5px 10px" onclick="removePurchase(${i})">Usuń</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function markPurchaseDone(i) {
+  state.purchases[i].done = !state.purchases[i].done;
+  saveState();
+  renderPurchases();
+}
+
+function removePurchase(i) {
+  state.purchases.splice(i, 1);
+  saveState();
+  renderPurchases();
+}
+
+function buildReport() {
+  const totalTubs = Object.values(state.tubsByPoint).reduce((s, v) => s + Number(v || 0), 0);
+  const done = state.route.filter(r => r.status === "done").length;
+  const lines = [
+    `RAPORT KIEROWCY — ${state.date}`,
+    `Kierowca: ${currentUser?.name || "brak"}`,
+    "",
+    `═══ TRASA (${done}/${state.route.length} punktów) ═══`,
+  ];
+  buildSuggestedRoute().forEach((stop, i) => {
+    const status = stop.status === "done" ? "✓" : stop.status === "partial" ? "~" : "○";
+    const tubs = state.tubsByPoint[stop.name] || 0;
+    lines.push(`${status} ${stop.name}${tubs > 0 ? ` | kuwety: ${tubs}` : ""}${stop.note ? ` | ${stop.note}` : ""}`);
+  });
+  lines.push("");
+  lines.push(`═══ PUSTE KUWETY (łącznie: ${totalTubs}) ═══`);
+  POINTS.forEach(pt => {
+    const count = state.tubsByPoint[pt.name] || 0;
+    if (count > 0) lines.push(`${pt.name}: ${count} szt.`);
+  });
+  lines.push("");
+  lines.push(`═══ ZAMÓWIENIA RĘCZNE (${state.manualOrders.length}) ═══`);
+  state.manualOrders.forEach(o => {
+    lines.push(`[${o.point}] ${o.desc}${o.qty ? ` — ${o.qty}` : ""} (${o.urgency})`);
+  });
+  lines.push("");
+  lines.push(`═══ ZAKUPY (${state.purchases.length}) ═══`);
+  state.purchases.forEach(p => {
+    lines.push(`${p.done ? "✓" : "○"} ${p.item}${p.shop ? ` @ ${p.shop}` : ""}${p.cost ? ` ~${p.cost} zł` : ""}`);
+  });
+  return lines.join("\n");
+}
+
+async function saveDay() {
+  const report = buildReport();
+  try {
+    await sbFetch("shift_states", {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+      body: JSON.stringify({
+        id: `driver-${state.date}`,
+        point_name: "Kierowca",
+        work_date: state.date,
+        user_key: currentUser?.user_key || "kierowca",
+        user_name: currentUser?.name || "Kierowca",
+        status: "closed",
+        payload: { ...state, report },
+        updated_at: new Date().toISOString(),
+      }),
+    });
+    state.savedToSupabase = true;
+    saveState();
+    toast("✅ Dzień zapisany w bazie!");
+  } catch (err) {
+    saveState();
+    toast("Zapisano lokalnie. Baza: " + err.message);
+  }
+}
+
+// ============================================================
+// TABS
+// ============================================================
+
+function showTab(name) {
+  ["route", "orders", "tubs", "purchases", "report"].forEach(t => {
+    document.getElementById(`tab-${t}`).hidden = t !== name;
+  });
+  document.querySelectorAll(".tabs button").forEach(b => {
+    b.classList.toggle("active", b.dataset.tab === name);
+  });
+  if (name === "route") renderRoute();
+  if (name === "orders") renderOrders();
+  if (name === "tubs") renderTubsForm();
+  if (name === "purchases") renderPurchases();
+  if (name === "report") {
+    document.getElementById("driver-report").value = buildReport();
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+
+async function loadUsers() {
+  try {
+    const rows = await sbFetch("app_users?select=user_key,name,role,pin_code,active&order=name.asc");
+    const remote = (rows || []).filter(u => u.active !== false);
+    return remote.length ? remote : FALLBACK_USERS;
+  } catch {
+    return FALLBACK_USERS;
+  }
+}
+
+async function init() {
+  document.getElementById("header-date").textContent = new Date().toLocaleDateString("pl-PL", {
+    weekday: "long", day: "numeric", month: "long"
+  });
+
+  const users = await loadUsers().catch(() => FALLBACK_USERS);
+  const sel = document.getElementById("login-user");
+  sel.innerHTML = users.map(u => `<option value="${u.user_key}">${esc(u.name)}</option>`).join("");
+
+  document.getElementById("login-btn").addEventListener("click", () => {
+    const key = sel.value;
+    const pin = document.getElementById("login-pin").value.trim();
+    const user = users.find(u => u.user_key === key && u.pin_code === pin);
+    if (!user) {
+      document.getElementById("login-err").hidden = false;
+      document.getElementById("login-err").textContent = "Nieprawidłowy PIN.";
+      return;
+    }
+    currentUser = user;
+    document.getElementById("login-overlay").hidden = true;
+    document.getElementById("app-header").hidden = false;
+    document.getElementById("app-tabs").hidden = false;
+    document.getElementById("app-main").hidden = false;
+    document.getElementById("header-user").textContent = user.name;
+    showTab("route");
+  });
+
+  document.getElementById("login-pin").addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("login-btn").click();
+  });
+
+  document.querySelectorAll(".tabs button").forEach(btn => {
+    btn.addEventListener("click", () => showTab(btn.dataset.tab));
+  });
+
+  document.getElementById("add-manual-order").addEventListener("click", () => {
+    const point = document.getElementById("manual-point").value;
+    const desc = document.getElementById("manual-desc").value.trim();
+    if (!point || !desc) { toast("Wybierz punkt i opisz zamówienie."); return; }
+    state.manualOrders.push({
+      point,
+      desc,
+      qty: document.getElementById("manual-qty").value.trim(),
+      urgency: document.getElementById("manual-urgency").value,
+      note: document.getElementById("manual-note").value.trim(),
+      createdAt: nowLabel(),
+      addedBy: currentUser?.name || "kierowca",
+    });
+    document.getElementById("manual-desc").value = "";
+    document.getElementById("manual-qty").value = "";
+    document.getElementById("manual-note").value = "";
+    saveState();
+    renderOrders();
+    toast("Zamówienie dodane.");
+  });
+
+  document.getElementById("save-tubs").addEventListener("click", () => {
+    saveState();
+    toast("Kuwety zapisane.");
+  });
+
+  document.getElementById("add-purchase").addEventListener("click", () => {
+    const item = document.getElementById("purchase-item").value.trim();
+    if (!item) { toast("Wpisz co kupić."); return; }
+    state.purchases.push({
+      item,
+      shop: document.getElementById("purchase-shop").value.trim(),
+      cost: document.getElementById("purchase-cost").value.trim(),
+      forPoint: document.getElementById("purchase-for").value,
+      done: false,
+      createdAt: nowLabel(),
+    });
+    document.getElementById("purchase-item").value = "";
+    document.getElementById("purchase-shop").value = "";
+    document.getElementById("purchase-cost").value = "";
+    saveState();
+    renderPurchases();
+    toast("Zakup dodany.");
+  });
+
+  document.getElementById("copy-report").addEventListener("click", () => {
+    const ta = document.getElementById("driver-report");
+    ta.value = buildReport();
+    navigator.clipboard.writeText(ta.value).then(() => toast("Raport skopiowany.")).catch(() => {
+      ta.select(); document.execCommand("copy"); toast("Skopiowano.");
+    });
+  });
+
+  document.getElementById("save-day-btn").addEventListener("click", saveDay);
+}
+
+init();
+</script>
+</body>
+</html>
