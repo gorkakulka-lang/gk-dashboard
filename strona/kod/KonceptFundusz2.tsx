@@ -730,7 +730,7 @@ const CSS_A = [
     ".gk2-status { margin-top: 20px; max-width: 30em; }",
     ".gk2-status-m { display: none; }",
     ".gk2-ilu { position: absolute; right: 5vw; bottom: calc(var(--vh) * 3); height: var(--ih); aspect-ratio: 952 / 636; pointer-events: none; transform-origin: 50% 100%; will-change: transform; }",
-    ".gk2-ilu i { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; background-color: #D0D0D0; background-repeat: no-repeat; background-size: 100% 100%; background-blend-mode: multiply, normal; }",
+    ".gk2-ilu i { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; background-color: #D0D0D0; background-repeat: no-repeat; background-size: calc(100% - 4px) calc(100% - 4px), 100% 100%; background-position: 2px 2px, 0 0; background-blend-mode: multiply, normal; }",
     ".gk2-kolor .gk2-ilu i { background-color: var(--roz); }",
     ".gk2-ilu i + i { opacity: 0; transition: opacity .32s ease; }",
     ".gk2-ryc { position: absolute; left: var(--m); bottom: calc(var(--vh) * 5); display: grid; gap: 4px; z-index: 2; max-width: calc(95vw - var(--m) - var(--ih) * 1.497 - 16px); }",
