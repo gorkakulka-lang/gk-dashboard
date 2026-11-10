@@ -803,6 +803,7 @@ const CSS_B = [
     ".gk2-fakty div { display: grid; grid-template-columns: 9em 1fr; gap: 12px; padding: 11px 0; border-bottom: 1.5px solid var(--tusz); }",
     ".gk2-fakty dt { opacity: .6; }",
     ".gk2-fakty dd span { display: block; }",
+    ".gk2-fakty dd b { font-weight: 400; white-space: nowrap; }",
     ".gk2-wypieki { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.8vw; align-items: start; }",
     ".gk2-wypiek { display: grid; gap: 8px; align-content: start; }",
     ".gk2-wypiek-foto { position: relative; display: block; aspect-ratio: 1 / 1.14; border-radius: 22px; background-color: #FDFBF6; overflow: hidden; transition: background-color .35s ease; }",
@@ -1015,12 +1016,12 @@ const CSS_B = [
     "  .gk2-sklep-tekst { display: contents; }",
     "  .gk2-sklep-tekst > .gk2-e { order: 1; }",
     "  .gk2-h2-sklep { order: 2; font-size: 14.6vw; margin-top: 12px; }",
-    "  .gk2-sklep .gk2-lead { order: 3; margin-top: 12px; }",
+    "  .gk2-sklep .gk2-lead { order: 3; margin-top: 20px; }",
     "  .gk2-wypieki { order: 4; margin-top: 18px; grid-template-columns: minmax(0, 1fr); gap: 12px; }",
     "  .gk2-fakty { order: 5; margin: 18px 0 0; font-size: 11px; }",
     "  .gk2-fakty div { grid-template-columns: 7.2em 1fr; padding: 8px 0; }",
     "  .gk2-sklep-tekst > .gk2-przycisk { order: 6; margin-top: 18px; align-self: flex-start; }",
-    "  .gk2-wypiek { grid-template-columns: 26vw minmax(0, 1fr); column-gap: 14px; row-gap: 3px; align-items: start; }",
+    "  .gk2-wypiek { grid-template-columns: 26vw minmax(0, 1fr); column-gap: 14px; row-gap: 5px; align-items: start; }",
     "  .gk2-wypiek-foto { grid-row: 1 / span 4; border-radius: 14px; }",
     "  .gk2-wypiek-nr { margin-top: 2px; }",
     "  .gk2-wypiek-nazwa { font-size: 7.2vw; }",
@@ -1036,7 +1037,7 @@ const CSS_B = [
     "  .gk2-firmy-foto { justify-self: center; width: 78vw; margin: 14vw 0 10px; }",
     "  .gk2-firmy-tresc .gk2-lead { margin-top: 22px; }",
     "  .gk2-trojka { grid-template-columns: minmax(0, 1fr); margin-top: 26px; }",
-    "  .gk2-trojka li { padding: 14px 0; gap: 6px; }",
+    "  .gk2-trojka li { padding: 15px 0; gap: 9px; }",
     "  .gk2-trojka li + li { padding-left: 0; border-left: 0; border-top: 1.5px solid var(--tusz); }",
     "  .gk2-trojka b { font-size: 8vw; }",
     "  .gk2-zapytanie { grid-template-columns: minmax(0, 1fr); margin-top: 28px; }",
@@ -1852,7 +1853,9 @@ export default function KonceptFundusz2(props: Props) {
                                     <dt>Odbiór</dt>
                                     <dd>
                                         <span>{"Kawiarnia Centrum, ul.\u00a0Sikorskiego\u00a0126"}</span>
-                                        <span>{"23\u00a0grudnia 10–19 · 24\u00a0grudnia 10–12"}</span>
+                                        <span>
+                                            <b>23 grudnia 10–19</b> · <b>24 grudnia 10–12</b>
+                                        </span>
                                     </dd>
                                 </div>
                                 <div>
