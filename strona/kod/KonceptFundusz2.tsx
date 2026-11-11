@@ -92,41 +92,69 @@ const RYCINY = [
 ]
 
 // Od podstaw: skąd bierzemy mleko, śmietankę i jajka.
-// Żywy obrazek łąki: LAKA_TLO to rysunek bez ogonów, łbów i kęp trawy; te części leżą na arkuszu LAKA_CZESCI.
-// Wiersz opisu: rodzaj (o = ogon, g = łeb skubiący trawę, n = łeb kiwający, k = kępa trawy, p = kępa przed postaciami), x, y, szer., wys. na rysunku,
-// x, y na arkuszu, punkt obrotu x, y, wychylenie w stopniach, długość cyklu i przesunięcie startu w sekundach.
-const LAKA_TLO = obraz("HtfGc28Cs1n5NHgiLXzTzKTw.webp")
-const LAKA_CZESCI = obraz("we6L7ocXymNFJFqBhgVmLFSca7Q.webp")
+// Żywy obrazek łąki. LAKA_TLO to rysunek bez ogonów, łbów i kęp trawy; te części leżą na arkuszu LAKA_CZESCI.
+// LAKA_POSTACI to arkusz części Górki i Kulki z plików marki: bez żadnego wypełnienia, wnętrza kreski są przezroczyste.
+const LAKA_TLO = obraz("XMzNJrpzWFFU7U5oqRAqU19G1jQ.webp")
+const LAKA_CZESCI = obraz("V5OsQGCvGCiZa61xIPaff10WBU.webp")
+const LAKA_POSTACI = obraz("0lD8aMkcNdioFNBvmmh3xhiuZlg.webp")
 const LAKA_W = 1448
 const LAKA_H = 1086
-const ARKUSZ_W = 760
-const ARKUSZ_H = 415
+const ARK_C = [760, 383]
+const ARK_P = [720, 452]
+// Części krów i trawy: rodzaj (o = ogniwo ogona, g = łeb skubiący, n = łeb kiwający, k = kępa trawy, p = kępa przed postaciami),
+// x, y, szer., wys. na rysunku, x i y na arkuszu, przegub x i y, wychylenie w stopniach, rytm i start w sekundach, numer ogona, numer ogniwa.
 const LAKA_OPIS: (string | number)[][] = [
-    ["n", 292, 340, 170, 117, 450, 8, 342.0, 438.0, -1.3, 7.5, -3.3], // g1
-    ["g", 627, 764, 168, 235, 8, 8, 653.0, 825.0, -2.2, 3.6, -0.8], // g2
-    ["g", 653, 484, 83, 114, 628, 8, 674.0, 512.0, -3.0, 3.0, -1.9], // g3
-    ["g", 1008, 664, 117, 158, 271, 8, 1111.0, 706.0, 2.6, 4.2, -2.7], // g5
-    ["g", 1189, 459, 65, 91, 255, 251, 1243.0, 488.0, 3.4, 3.3, -0.3], // g6
-    ["k", 161, 752, 78, 53, 668, 251, 195.4, 800.0, 7, 3.4, -0.5], // k1
-    ["k", 77, 786, 73, 67, 516, 251, 115.2, 848.0, 8, 2.9, -1.7], // k2
-    ["p", 159, 934, 63, 62, 597, 251, 185.5, 991.0, 7, 3.8, -2.4], // k3
-    ["p", 833, 888, 90, 102, 109, 251, 874.4, 985.0, 6, 3.2, -0.9], // k4
-    ["p", 1196, 889, 103, 75, 405, 251, 1243.4, 959.0, 6, 3.6, -3.1], // k5
-    ["k", 409, 570, 47, 36, 207, 363, 431.4, 601.0, 8, 2.7, -1.1], // k6
-    ["k", 740, 582, 80, 40, 119, 363, 783.2, 617.0, 8, 3.1, -2.0], // k7
-    ["k", 826, 705, 70, 44, 8, 363, 860.1, 744.0, 7, 3.5, -0.2], // k8
-    ["k", 1321, 785, 69, 76, 328, 251, 1354.8, 856.0, 7, 3.0, -2.8], // k9
-    ["o", 61, 469, 46, 152, 396, 8, 94.0, 470.0, 7, 5.6, -1.2], // o1
-    ["o", 268, 706, 79, 199, 184, 8, 335.0, 712.0, 6, 6.4, -3.0], // o2
-    ["o", 466, 463, 40, 93, 207, 251, 495.0, 467.0, 9, 4.6, -0.4], // o3
-    ["o", 1097, 495, 43, 102, 58, 251, 1107.0, 500.0, 8, 5.0, -2.1], // o4
-    ["o", 1329, 641, 42, 104, 8, 251, 1339.0, 644.0, 8, 6.0, -4.4], // o5
-    ["o", 1354, 483, 25, 42, 86, 363, 1360.0, 485.0, 11, 4.2, -2.6], // o6
+    ["n", 292, 340, 170, 117, 309, 8, 342.5, 438.5, 1.3, 7.5, -3.3, 0, 0], // g1
+    ["g", 627, 764, 168, 235, 8, 8, 653.5, 825.5, 2.2, 3.6, -0.8, 0, 0], // g2
+    ["g", 653, 484, 83, 114, 487, 8, 674.5, 512.5, 3, 3, -1.9, 0, 0], // g3
+    ["g", 1008, 664, 117, 158, 184, 8, 1111.5, 706.5, 2.6, 4.2, -2.7, 0, 0], // g5
+    ["g", 1189, 459, 65, 91, 676, 8, 1243.5, 488.5, 3.4, 3.3, -0.3, 0, 0], // g6
+    ["p", 1041, 942, 78, 53, 447, 251, 1075.9, 990, 7, 3.4, -0.5, 0, 0], // k1
+    ["k", 77, 786, 73, 67, 252, 251, 115.7, 848, 8, 2.9, -1.7, 0, 0], // k2
+    ["p", 159, 934, 63, 62, 333, 251, 186, 991, 7, 3.8, -2.4, 0, 0], // k3
+    ["p", 833, 888, 90, 102, 578, 8, 874.9, 985, 6, 3.2, -0.9, 0, 0], // k4
+    ["p", 1196, 889, 103, 75, 85, 251, 1243.9, 959, 6, 3.6, -3.1, 0, 0], // k5
+    ["k", 409, 570, 47, 36, 275, 335, 431.9, 601, 8, 2.7, -1.1, 0, 0], // k6
+    ["k", 740, 582, 80, 40, 112, 335, 783.7, 617, 8, 3.1, -2, 0, 0], // k7
+    ["k", 1321, 785, 69, 76, 8, 251, 1355.3, 856, 7, 3, -2.8, 0, 0], // k9
+    ["o", 80, 469, 27, 36, 200, 335, 94.5, 470.5, 7, 5.6, -1.2, 1, 0], // o1.0
+    ["o", 78, 498, 22, 40, 8, 335, 90, 503, 7, 5.6, -1.2, 1, 1], // o1.1
+    ["o", 63, 531, 34, 40, 38, 335, 87.4, 536, 7, 5.6, -1.2, 1, 2], // o1.2
+    ["o", 61, 564, 35, 56, 404, 251, 78.3, 569, 7, 5.6, -1.2, 1, 3], // o1.3
+    ["o", 315, 706, 32, 50, 533, 251, 335.5, 712.5, 6, 6.4, -3, 2, 0], // o2.0
+    ["o", 305, 749, 32, 48, 625, 251, 325.9, 754, 6, 6.4, -3, 2, 1], // o2.1
+    ["o", 282, 790, 44, 49, 573, 251, 315.1, 795, 6, 6.4, -3, 2, 2], // o2.2
+    ["o", 268, 832, 48, 72, 196, 251, 299, 837, 6, 6.4, -3, 2, 3], // o2.3
+    ["o", 483, 463, 23, 35, 330, 335, 495.5, 467.5, 9, 4.6, -0.4, 3, 0], // o3.0
+    ["o", 469, 491, 32, 36, 235, 335, 491.5, 496, 9, 4.6, -0.4, 3, 1], // o3.1
+    ["o", 466, 520, 29, 35, 361, 335, 481.9, 525, 9, 4.6, -0.4, 3, 2], // o3.2
+    ["o", 1097, 495, 27, 35, 398, 335, 1107.5, 500.5, 8, 5, -2.1, 4, 0], // o4.0
+    ["o", 1098, 523, 35, 35, 433, 335, 1112.8, 528, 8, 5, -2.1, 4, 1], // o4.1
+    ["o", 1109, 551, 31, 45, 665, 251, 1121.9, 556, 8, 5, -2.1, 4, 2], // o4.2
+    ["o", 1329, 641, 24, 40, 80, 335, 1339.5, 644.5, 8, 6, -4.4, 5, 0], // o5.0
+    ["o", 1334, 674, 31, 42, 704, 251, 1343.9, 679, 8, 6, -4.4, 5, 1], // o5.1
+    ["o", 1336, 709, 35, 35, 476, 335, 1350.6, 714, 8, 6, -4.4, 5, 2], // o5.2
+    ["o", 1354, 483, 25, 26, 519, 335, 1360.5, 485.5, 11, 4.2, -2.6, 6, 0], // o6.0
+    ["o", 1355, 502, 24, 22, 552, 335, 1367, 507, 11, 4.2, -2.6, 6, 1], // o6.1
 ]
-// Górka i Kulka z plików marki, w układzie jak na ich wspólnym rysunku: Górka z lewej patrzy w prawo, Kulka z prawej w lewo.
-// Mają papierowe wypełnienie, żeby krowy nie prześwitywały przez twarze. Wchodzą z dwóch stron razem z przewijaniem.
-const LAKA_GORKA = obraz("oUMfAKuICZffM2R12ErUd0kgAyA.webp")
-const LAKA_KULKA = obraz("yarZX9KjS82VMqekzSpb0FU7iEs.webp")
+// Górka i Kulka: ramka na rysunku (x, y, skala), rozmiar ramki w pikselach źródła, zwrot (1 = w prawo), liczba kroków wejścia, czas kroku,
+// uniesienie stopy, wysokość podskoku, sprężystość tułowia; osie obrotu nóg, tułowia i głowy; nogi (przednia, tylna): kąt, promień, kierunek podeszwy, kostka;
+// części w kolejności: noga tylna, stopa tylna, noga przednia, stopa przednia, podkład głowy (albo null), tułów, głowa: x, y, szer., wys. w ramce, potem x, y, szer., wys. na arkuszu.
+type LakaPostac = { x: number; y: number; s: number; w: number; h: number; dir: number; kroki: number; takt: number; unos: number; skok: number; zgniot: number; osNog: number[]; osTulowia: number[]; osGlowy: number[]; nogi: number[][]; cz: (number[] | null)[] }
+const LAKA_POSTACIE: LakaPostac[] = [
+    {
+        x: 58, y: 682, s: 0.40146, w: 453, h: 822, dir: 1, kroki: 3, takt: 0.54, unos: 22, skok: 50, zgniot: 0.012,
+        osNog: [222.5, 166.5], osTulowia: [226.5, 330.5], osGlowy: [249.5, 182.5],
+        nogi: [[10.26, 629.1, -40.5, 334.5, 785.5], [-14.5, 631.1, 34.2, 64.5, 777.5]],
+        cz: [[38.88, 405.31, 148.47, 382.3, 270, 6, 84, 216], [44.19, 761.05, 81.3, 61.95, 596, 253, 46, 35], [226.23, 440.7, 116.65, 366.37, 360, 6, 66, 207], [318.14, 727.43, 95.44, 88.49, 480, 253, 54, 50], null, [0, 153.98, 456, 426.54, 6, 6, 258, 241], [102.51, 0, 226.23, 200, 346, 253, 128, 113]],
+    }, // Górka
+    {
+        x: 792, y: 630, s: 0.50734, w: 326, h: 749, dir: -1, kroki: 7, takt: 0.5, unos: 15, skok: 56, zgniot: 0.022,
+        osNog: [172.5, 323.5], osTulowia: [165.5, 340.5], osGlowy: [173.5, 190.5],
+        nogi: [[-15.26, 410.5, -142, 64.5, 719.5], [13.38, 401.9, 146.9, 265.5, 714.5]],
+        cz: [[186.85, 445.53, 95.03, 264.73, 103, 253, 59, 164], [217.45, 697.34, 69.26, 51.66, 648, 253, 43, 32], [28.99, 427.77, 146.58, 311.55, 6, 253, 91, 193], [0, 669.9, 80.54, 74.25, 540, 253, 50, 46], [77.32, 0, 135.3, 203.39, 168, 253, 84, 126], [0, 175.95, 330.21, 329.3, 432, 6, 205, 204], [77.32, 0, 132.08, 201.78, 258, 253, 82, 125]],
+    }, // Kulka
+]
 // Prawdziwe krowy: film gospodarstwa na YouTubie, od ujęć z pastwiska.
 const JUCHOWO_FILM = "https://www.youtube.com/watch?v=MCZsIUALDIY&t=22s"
 type Zrodlo = { co: string; skad: string; opis: string; link?: string[] }
@@ -678,92 +706,465 @@ function procent(v: number) {
     return (Math.round(v * 100000) / 1000).toString() + "%"
 }
 
-function czescStyl(c: (string | number)[]): any {
-    const x = c[1] as number, y = c[2] as number, w = c[3] as number, h = c[4] as number
-    const ax = c[5] as number, ay = c[6] as number, ox = c[7] as number, oy = c[8] as number
+// Styl kawałka wyciętego z arkusza: położenie w ramce rodzica (pw x ph), wycinek arkusza (ark), punkt obrotu.
+function sprajt(x: number, y: number, w: number, h: number, ax: number, ay: number, aw: number, ah: number, ox: number, oy: number, pw: number, ph: number, ark: number[]): any {
     return {
-        left: procent(x / LAKA_W),
-        top: procent(y / LAKA_H),
-        width: procent(w / LAKA_W),
-        height: procent(h / LAKA_H),
-        backgroundSize: procent(ARKUSZ_W / w) + " " + procent(ARKUSZ_H / h),
-        backgroundPosition: procent(ax / (ARKUSZ_W - w)) + " " + procent(ay / (ARKUSZ_H - h)),
+        left: procent(x / pw),
+        top: procent(y / ph),
+        width: procent(w / pw),
+        height: procent(h / ph),
+        backgroundSize: procent(ark[0] / aw) + " " + procent(ark[1] / ah),
+        backgroundPosition: procent(ax / (ark[0] - aw)) + " " + procent(ay / (ark[1] - ah)),
         transformOrigin: procent((ox - x) / w) + " " + procent((oy - y) / h),
-        animationDuration: c[10] + "s",
-        animationDelay: c[11] + "s",
-        ["--k" as any]: c[9] + "deg",
     }
 }
 
-function Laka(props: { oknoRef: (el: HTMLDivElement | null) => void; kulkaRef: (el: HTMLSpanElement | null) => void; gorkaRef: (el: HTMLSpanElement | null) => void }) {
+function czescStyl(c: (string | number)[]): any {
+    const x = c[1] as number, y = c[2] as number, w = c[3] as number, h = c[4] as number
+    return sprajt(x, y, w, h, c[5] as number, c[6] as number, w, h, c[7] as number, c[8] as number, LAKA_W, LAKA_H, ARK_C)
+}
+
+// Punkt obrotu kawałka postaci: nogi kręcą się wokół wspólnej osi, stopy w kostkach, tułów wokół środka, głowa u nasady szyi.
+function kawalekOs(p: LakaPostac, j: number): number[] {
+    if (j === 0 || j === 2) return p.osNog
+    if (j === 1) return [p.nogi[1][3], p.nogi[1][4]]
+    if (j === 3) return [p.nogi[0][3], p.nogi[0][4]]
+    if (j === 5) return p.osTulowia
+    return p.osGlowy
+}
+
+function kawalekStyl(p: LakaPostac, j: number): any {
+    const c = p.cz[j] as number[]
+    const os = kawalekOs(p, j)
+    return sprajt(c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], os[0], os[1], p.w, p.h, ARK_P)
+}
+
+// Ruch na łące. Wszystko liczy się na czas, klatka po klatce, niezależnie od przewijania:
+// krowy machają giętkimi ogonami i skubią trawę, trawa faluje z wiatrem, a Górka i Kulka wchodzą krokami
+// (stopa stoi na ziemi, ciało przechodzi nad nią), podskakują na powitanie i zostają. Zwraca funkcję sprzątającą.
+function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
+    const okno = (laka.parentElement || laka) as HTMLElement
+    const RAD = Math.PI / 180
+    const DWA_PI = Math.PI * 2
+    const sin = Math.sin
+    const cos = Math.cos
+    const gl = (v: number) => {
+        const x = clamp(v, 0, 1)
+        return x * x * (3 - 2 * x)
+    }
+    const los = (x: number) => {
+        const v = sin(x * 12.9898) * 43758.5453
+        return v - Math.floor(v)
+    }
+    const pr = (v: number) => v.toFixed(2) + "%"
+    const kat180 = (v: number) => ((((v + 180) % 360) + 360) % 360) - 180
+
+    // Części krów i trawy
+    const cz: Array<HTMLElement | null> = LAKA_OPIS.map(() => null)
+    const lista = laka.querySelectorAll("[data-cz]")
+    for (let i = 0; i < lista.length; i++) {
+        const e = lista[i] as HTMLElement
+        cz[parseInt(e.getAttribute("data-cz") || "0", 10)] = e
+    }
+    const ogony: number[][] = []
+    for (let i = 0; i < LAKA_OPIS.length; i++) {
+        const c = LAKA_OPIS[i]
+        if (c[0] !== "o") continue
+        const n = c[12] as number
+        if (!ogony[n]) ogony[n] = []
+        ogony[n][c[13] as number] = i
+    }
+
+    // Postaci: model chodu wynika z rysunku. Obie nogi kręcą się wokół jednej osi, w spoczynku stoją w rozkroku +-alf.
+    const postaci = LAKA_POSTACIE.map((p, k) => {
+        const box = laka.querySelector('[data-postac="' + k + '"]') as HTMLElement | null
+        const kaw: Array<HTMLElement | null> = [null, null, null, null, null, null, null]
+        if (box) {
+            const l = box.querySelectorAll("[data-kaw]")
+            for (let i = 0; i < l.length; i++) {
+                const e = l[i] as HTMLElement
+                kaw[parseInt(e.getAttribute("data-kaw") || "0", 10)] = e
+            }
+        }
+        const cien = box ? (box.querySelector("[data-cien]") as HTMLElement | null) : null
+        const F = p.nogi[0]
+        const B = p.nogi[1]
+        const alf = Math.abs(F[0] - B[0]) / 2
+        const r = (F[1] + B[1]) / 2
+        // nachylenie podeszwy: dodatnie = czubek buta w górze
+        const nach = (ks: number) => kat180(p.dir > 0 ? -ks : ks - 180)
+        return { p, box, kaw, cien, gam: (F[0] + B[0]) / 2, alf, r, krok: 2 * r * sin(alf * RAD), uderz: nach(F[2]), odbij: nach(B[2]), czas: (p.kroki + 0.5) * p.takt, start: 0, faza: k * 2.4 + 0.7, zwloka: k === 0 ? 0.1 : 0, pod: -1 }
+    })
+    let najdl = 0
+    for (const f of postaci) najdl = Math.max(najdl, f.czas)
+    for (const f of postaci) f.start = f.czas < najdl ? Math.max(0, najdl - f.czas - 0.15) : 0
+    const T_SKOK = najdl + 0.45 // wspólny podskok na powitanie
+    const T_ZYCIE = T_SKOK + 1.0 // odtąd postaci stoją i żyją
+    const POD_OD = 840 // podkład pod głową Kulki gaśnie między tymi pozycjami (piksele rysunku): dalej w lewo jest już sama łąka
+    const POD_DO = 913
+
+    const ustaw = (f: (typeof postaci)[number], tw: number) => {
+        const p = f.p
+        const box = f.box
+        if (!box) return
+        const F = p.nogi[0]
+        const B = p.nogi[1]
+        const tau = tw < 0 ? -1 : tw - f.start
+        // d: ile kroków już za postacią. Ostatni krok zwalnia aż do zatrzymania.
+        let d = 0
+        if (tau >= 0) {
+            const n1 = (p.kroki - 1) * p.takt
+            if (tau < n1) d = tau / p.takt
+            else if (tau < f.czas) d = p.kroki - 1 + (1 - Math.pow(1 - (tau - n1) / (1.5 * p.takt), 1.5))
+            else d = p.kroki
+        }
+        let fiF = f.alf, fiB = -f.alf, kF = 1, kB = 1, nF = f.uderz, nB = f.odbij
+        let by = 0, rho = 0, eta = 0, zg = 0, skok = 0
+        let wyrown = 0 // w marszu obie nogi liczą się jak równej długości; przy zatrzymaniu wracają do długości z rysunku
+        if (d < p.kroki) {
+            const n = Math.min(Math.floor(d), p.kroki - 1)
+            const u = d - n
+            const u2 = u * u
+            const u3 = u2 * u
+            // noga podporowa: kostka stoi w miejscu, więc kąt wynika z drogi ciała
+            const fiSt = Math.asin(sin(f.alf * RAD) * (1 - 2 * u)) / RAD
+            // noga w locie: od tyłu do przodu, z rozpędem zgranym z ziemią na obu końcach
+            const m = -Math.tan(f.alf * RAD) / RAD
+            const fiSw = (2 * u3 - 3 * u2 + 1) * -f.alf + (u3 - 2 * u2 + u) * m + (-2 * u3 + 3 * u2) * f.alf + (u3 - u2) * m
+            const lot = Math.pow(sin(Math.PI * u), 1.3)
+            const kSw = 1 - (p.unos / f.r) * lot
+            // stopa podporowa: pięta, cała podeszwa, palce; stopa w locie: od odbicia do pięty
+            const nSt = u < 0.22 ? f.uderz * (1 - gl(u / 0.22)) : u > 0.6 ? f.odbij * gl((u - 0.6) / 0.4) : 0
+            const nSw = f.odbij + (f.uderz - f.odbij) * gl(u)
+            // ciało unosi się, gdy przechodzi nad nogą podporową: łagodnym łukiem, bez twardego stuknięcia przy stawianiu stopy.
+            // Noga podporowa ugina się o ułamek procenta, żeby kostka mimo to została dokładnie na ziemi.
+            by = -1.35 * f.r * (1 - cos(f.alf * RAD)) * Math.pow(sin(Math.PI * u), 2)
+            const kSt = (f.r * cos(f.alf * RAD) - by) / (f.r * cos(fiSt * RAD))
+            if ((p.kroki - n) % 2 === 1) {
+                fiF = fiSw
+                kF = kSw
+                nF = nSw
+                fiB = fiSt
+                kB = kSt
+                nB = nSt
+            } else {
+                fiB = fiSw
+                kB = kSw
+                nB = nSw
+                fiF = fiSt
+                kF = kSt
+                nF = nSt
+            }
+            const gasnie = p.kroki - n === 1 ? gl(u) : 0
+            wyrown = 1 - gasnie
+            rho = p.dir * (2.2 + 0.8 * sin(DWA_PI * u)) * (1 - gasnie)
+            eta = -p.dir * 1.8 * sin(DWA_PI * (u - 0.15)) * (1 - 0.6 * gasnie)
+            zg = u < 0.3 ? p.zgniot * Math.pow(sin((Math.PI * u) / 0.3), 2) : 0
+        }
+        if (tau >= f.czas) {
+            // zatrzymanie: tułów i głowa jeszcze chwilę się bujają
+            const s1 = tau - f.czas
+            rho += p.dir * 1.3 * Math.exp(-3.2 * s1) * sin(DWA_PI * 1.5 * s1)
+            eta -= p.dir * 2.4 * Math.exp(-2.6 * s1) * sin(DWA_PI * 1.2 * s1)
+        }
+        if (tw >= T_SKOK + f.zwloka) {
+            const x = tw - T_SKOK - f.zwloka
+            if (x < 0.16) zg += 0.05 * gl(x / 0.16)
+            else if (x < 0.5) {
+                const v = (x - 0.16) / 0.34
+                skok = -p.skok * 4 * v * (1 - v)
+                zg += 0.05 * (1 - gl(v / 0.25)) - 0.03 * sin(Math.PI * v)
+            } else if (x < 0.74) {
+                const a = (x - 0.5) / 0.24
+                zg += 0.04 * sin(Math.PI * a) * (1 - 0.4 * a)
+            }
+        }
+        if (tw >= T_ZYCIE) {
+            const s2 = tw - T_ZYCIE
+            const b = gl(s2 / 1.2)
+            rho += b * 0.7 * sin((DWA_PI * s2) / 5.3 + f.faza)
+            eta += b * (1.5 * sin((DWA_PI * s2) / 6.1 + 2 * f.faza) + 0.6 * sin((DWA_PI * s2) / 2.7 + f.faza))
+            zg += b * 0.005 * sin((DWA_PI * s2) / 3.4 + f.faza)
+            // co kilka sekund dwa stuknięcia czubkiem buta
+            const xt = (s2 + f.faza * 1.9) % (6.3 + f.faza * 0.7)
+            const st = xt < 0.24 ? Math.pow(sin((Math.PI * xt) / 0.24), 2) : xt > 0.32 && xt < 0.56 ? Math.pow(sin((Math.PI * (xt - 0.32)) / 0.24), 2) : 0
+            nF -= 20 * st
+            // i krótki przysiad z radości
+            const xb = (s2 + f.faza * 2.6) % 11.4
+            if (xb < 0.5) zg += 0.03 * Math.pow(sin((Math.PI * xb) / 0.5), 2)
+        }
+
+        // Droga do miejsca. Ziemia pod stopami z rysunku nie jest idealnie pozioma (pięta przedniej stopy stoi odrobinę niżej),
+        // więc ciało idzie po tej samej, lekko pochyłej linii: wtedy stopa podporowa nie drga ani w poziomie, ani w pionie.
+        const zostalo = (p.kroki - d) * f.krok
+        const bx = -p.dir * zostalo * cos(f.gam * RAD)
+        const nadZiemia = by + skok // o tyle ciało jest teraz wyżej, niż stoi ziemia (ujemne = w górze)
+        by += p.dir * zostalo * sin(f.gam * RAD)
+        box.style.transform = "translate3d(" + pr((bx / p.w) * 100) + "," + pr(((by + skok) / p.h) * 100) + ",0)"
+        // cień zostaje na ziemi, a w podskoku robi się mniejszy
+        if (f.cien) f.cien.style.transform = "translate(0," + pr((-nadZiemia / (p.h * 0.056)) * 100) + ") scale(" + (1 + (skok / p.skok) * 0.22).toFixed(3) + ")"
+        const noga = (e: HTMLElement | null, st: HTMLElement | null, g: number[], fi: number, k0: number, nachyl: number, c: number[] | null) => {
+            // kąt nogi od pionu po obrocie i jej długość (skalowanie dokładnie wzdłuż osi nogi)
+            const cel = f.gam + p.dir * fi
+            const k = k0 * (1 + (f.r / g[1] - 1) * wyrown)
+            if (e) e.style.transform = "rotate(" + (-cel).toFixed(2) + "deg) scaleY(" + k.toFixed(4) + ") rotate(" + g[0].toFixed(2) + "deg)"
+            if (st && c) {
+                // stopa: kostka jedzie razem z nogą, a podeszwa trzyma własny kąt względem ziemi
+                const dx = k * g[1] * sin(cel * RAD) - (g[3] - p.osNog[0])
+                const dy = k * g[1] * cos(cel * RAD) - (g[4] - p.osNog[1])
+                const obr = kat180((p.dir > 0 ? 0 : 180) - p.dir * nachyl - g[2])
+                st.style.transform = "translate(" + pr((dx / c[2]) * 100) + "," + pr((dy / c[3]) * 100) + ") rotate(" + obr.toFixed(2) + "deg)"
+            }
+        }
+        noga(f.kaw[0], f.kaw[1], B, fiB, kB, nB, p.cz[1])
+        noga(f.kaw[2], f.kaw[3], F, fiF, kF, nF, p.cz[3])
+        // tułów: sprężynuje i przysiada; głowa siedzi na nim i kiwa się z opóźnieniem
+        const sx = 1 + zg * 0.55
+        const sy = 1 - zg
+        const siad = zg * p.h * 0.22
+        const tul = f.kaw[5]
+        const ct = p.cz[5]
+        if (tul && ct) tul.style.transform = "translate(0," + pr((siad / ct[3]) * 100) + ") rotate(" + rho.toFixed(2) + "deg) scale(" + sx.toFixed(4) + "," + sy.toFixed(4) + ")"
+        const wx = p.osGlowy[0] - p.osTulowia[0]
+        const wy = p.osGlowy[1] - p.osTulowia[1]
+        const cr = cos(rho * RAD)
+        const sr = sin(rho * RAD)
+        const gx = cr * wx * sx - sr * wy * sy - wx
+        const gy = sr * wx * sx + cr * wy * sy - wy + siad
+        const obrot = ") rotate(" + (rho + eta).toFixed(2) + "deg)"
+        const glo = f.kaw[6]
+        const cg = p.cz[6]
+        if (glo && cg) glo.style.transform = "translate(" + pr((gx / cg[2]) * 100) + "," + pr((gy / cg[3]) * 100) + obrot
+        const pod = f.kaw[4]
+        const cp = p.cz[4]
+        if (pod && cp) {
+            // Kulka przechodzi przed krową: wtedy wnętrze jego głowy dostaje kolor łąki, żeby krowa nie prześwitywała przez twarz.
+            // Na otwartej łące podkład znika i głowa jest znów przezroczysta.
+            pod.style.transform = "translate(" + pr((gx / cp[2]) * 100) + "," + pr((gy / cp[3]) * 100) + obrot
+            const o = Math.round(gl((p.x + bx * p.s - POD_OD) / (POD_DO - POD_OD)) * 100)
+            if (o !== f.pod) {
+                f.pod = o
+                pod.style.opacity = (o / 100).toString()
+            }
+        }
+    }
+
+    const krowy = (t: number, tw: number) => {
+        for (let i = 0; i < LAKA_OPIS.length; i++) {
+            const c = LAKA_OPIS[i]
+            const e = cz[i]
+            if (!e || c[0] === "o") continue
+            const kat = c[9] as number
+            const rytm = c[10] as number
+            const st = c[11] as number
+            if (c[0] === "g") {
+                // skubanie: powolne kołysanie łba, a co jakiś czas seria krótkich szarpnięć
+                const f = t - st * 3
+                const seria = Math.pow(Math.max(0, sin((DWA_PI * f) / (rytm * 2.6))), 2)
+                const a = kat * (0.55 * sin((DWA_PI * f) / rytm) + 0.25 * sin((DWA_PI * f) / (rytm * 0.41) + 1.3) + 0.45 * seria * sin(DWA_PI * f * 2.3))
+                e.style.transform = "rotate(" + a.toFixed(2) + "deg)"
+            } else if (c[0] === "n") {
+                // krowa z łbem w górze rozgląda się powoli, a na powitanie postaci kiwa łbem
+                const f = t - st
+                let a = kat * (0.8 * sin((DWA_PI * f) / rytm) + 0.35 * sin((DWA_PI * f) / (rytm * 0.37) + 0.8))
+                const x = tw - T_SKOK - 0.1
+                if (x > 0 && x < 1.6) a += 2.4 * Math.pow(sin((Math.PI * x) / 1.6), 2)
+                e.style.transform = "rotate(" + a.toFixed(2) + "deg)"
+            } else {
+                // trawa: wiatr idzie przez łąkę od lewej do prawej, raz mocniej, raz słabiej
+                const x = c[7] as number
+                const w = 0.55 * sin(DWA_PI * (t / 3.4 - x / 900)) + 0.3 * sin(DWA_PI * (t / 1.9 - x / 520) + 1.3) + 0.15 * sin(DWA_PI * (t / 0.83 - x / 300) + 2.1)
+                const powiew = 0.62 + 0.38 * sin(DWA_PI * (t / 7.7 - x / 2000))
+                e.style.transform = "skewX(" + (kat * w * powiew).toFixed(2) + "deg)"
+            }
+        }
+        // ogony: łańcuch ogniw. Machnięcie zaczyna się u nasady i z opóźnieniem dochodzi do kity.
+        for (let o = 0; o < ogony.length; o++) {
+            const lanc = ogony[o]
+            if (!lanc) continue
+            const c0 = LAKA_OPIS[lanc[0]]
+            const kat = c0[9] as number
+            const st = c0[11] as number
+            const okres = (c0[10] as number) * 1.3
+            const f = t - st * 2
+            const n0 = Math.floor(f / okres)
+            let A = 0
+            let jx = c0[7] as number
+            let jy = c0[8] as number
+            let px = jx
+            let py = jy
+            for (let i = 0; i < lanc.length; i++) {
+                const c = LAKA_OPIS[lanc[i]]
+                const ox = c[7] as number
+                const oy = c[8] as number
+                if (i > 0) {
+                    const ca = cos(A * RAD)
+                    const sa = sin(A * RAD)
+                    const dx = ox - px
+                    const dy = oy - py
+                    jx += ca * dx - sa * dy
+                    jy += sa * dx + ca * dy
+                }
+                let a = kat * 0.1 * sin((DWA_PI * f) / (okres * 0.83) - 0.7 * i + st)
+                // machnięcia: bierzemy też następne (mogło zacząć się odrobinę przed czasem) i poprzednie (jeszcze wygasa)
+                for (let k = -1; k < 2; k++) {
+                    const n = n0 - k
+                    const u = f - (n * okres + (los(n * 7.13 + st) - 0.5) * okres * 0.35) - i * 0.085 - (i === lanc.length - 1 ? 0.03 : 0)
+                    if (u > 0) {
+                        const moc = (0.55 + 0.75 * los(n * 3.7 + st * 1.9)) * (los(n * 1.31 + st) > 0.5 ? 1 : -1)
+                        a += kat * (i === 0 ? 0.75 : 0.5) * moc * sin(DWA_PI * 1.25 * u) * Math.exp(-u / 0.8) * (1 - Math.exp(-u / 0.07))
+                    }
+                }
+                A += a
+                const e = cz[lanc[i]]
+                if (e) e.style.transform = "translate(" + pr(((jx - ox) / (c[3] as number)) * 100) + "," + pr(((jy - oy) / (c[4] as number)) * 100) + ") rotate(" + A.toFixed(2) + "deg)"
+                px = ox
+                py = oy
+            }
+        }
+    }
+
+    let raf = 0
+    let dziala = true
+    let widac = false
+    let ost = 0
+    let tz = 0 // czas łąki
+    let tw = -1 // czas od początku wejścia postaci; -1 = jeszcze nie weszły
+    let pokazane = false
+    const klatka = (teraz: number) => {
+        raf = 0
+        if (!dziala || !widac) return
+        const dt = ost ? Math.min(0.1, Math.max(0, (teraz - ost) / 1000)) : 0
+        ost = teraz
+        tz += dt
+        if (tw >= 0) tw += dt
+        else if (gotowa()) {
+            // Wejście rusza samo, gdy kadr jest już otwarty po brzegi, którymi wchodzą postaci, a ich miejsce widać na ekranie.
+            const r = okno.getBoundingClientRect()
+            const vh = window.innerHeight
+            const klip = okno.style.clipPath
+            let otwarte = !klip || klip === "none"
+            if (!otwarte) {
+                const m = /circle\(([0-9.]+)px/.exec(klip)
+                otwarte = !!m && parseFloat(m[1]) >= Math.hypot(r.width * 0.56, r.height * 0.22)
+            }
+            if (otwarte && r.top <= vh - r.height * 0.75 && r.top >= -r.height * 0.62) tw = 0
+        }
+        krowy(tz, tw)
+        for (const f of postaci) ustaw(f, tw)
+        if (!pokazane) {
+            pokazane = true
+            okno.classList.add("gk2-laka-ruch")
+        }
+        raf = requestAnimationFrame(klatka)
+    }
+    const zmiana = (jest: boolean) => {
+        if (jest === widac) return
+        widac = jest
+        if (widac) {
+            ost = 0
+            if (!raf) raf = requestAnimationFrame(klatka)
+        } else {
+            // Rysunek zjechał z ekranu: postaci wracają za kadr i przy powrocie wejdą jeszcze raz.
+            tw = -1
+            for (const f of postaci) ustaw(f, tw)
+        }
+    }
+    let io: IntersectionObserver | null = null
+    if (typeof IntersectionObserver === "undefined") zmiana(true)
+    else {
+        io = new IntersectionObserver(
+            (wpisy) => {
+                for (const w of wpisy) zmiana(w.isIntersecting)
+            },
+            { rootMargin: "80px 0px" }
+        )
+        io.observe(okno)
+    }
+    return () => {
+        dziala = false
+        if (raf) cancelAnimationFrame(raf)
+        if (io) io.disconnect()
+    }
+}
+
+function Laka(props: { oknoRef: (el: HTMLDivElement | null) => void }) {
     const [gotowa, ustawGotowa] = useState(false)
-    const [zywa, ustawZywa] = useState(false)
+    const [blisko, ustawBlisko] = useState(false)
+    const gotowaRef = useRef(false)
     const lakaRef = useRef<HTMLDivElement>(null)
     const tloRef = useRef<HTMLImageElement>(null)
     useEffect(() => {
-        // Obrazek pokazujemy dopiero, gdy są oba pliki: bez arkusza części krowy stałyby bez łbów.
+        // Obrazek pokazujemy dopiero, gdy są wszystkie trzy pliki: bez arkuszy krowy stałyby bez łbów, a postaci bez nóg.
         let anulowane = false
         let ile = 0
         const jest = () => {
             ile += 1
-            if (ile >= 2 && !anulowane) {
+            if (ile >= 3 && !anulowane) {
+                gotowaRef.current = true
                 ustawGotowa(true)
-                // Postaci ładują się zaraz po rysunku, żeby nie wskakiwały w połowie marszu.
-                for (const src of [LAKA_GORKA, LAKA_KULKA]) {
-                    const im = new Image()
-                    im.src = src
-                }
             }
         }
-        const arkusz = new Image()
-        arkusz.onload = jest
-        arkusz.src = LAKA_CZESCI
         const tlo = tloRef.current
         if (tlo && tlo.complete && tlo.naturalWidth > 0) jest()
         else if (tlo) tlo.addEventListener("load", jest, { once: true })
+        // Arkusze części ściągamy dopiero, gdy rysunek jest blisko ekranu (tak jak leniwie ładowane tło).
+        const arkusze: HTMLImageElement[] = []
+        const sciagnij = () => {
+            if (arkusze.length) return
+            ustawBlisko(true)
+            for (const src of [LAKA_CZESCI, LAKA_POSTACI]) {
+                const im = new Image()
+                im.onload = jest
+                im.src = src
+                arkusze.push(im)
+            }
+        }
+        let czujka: IntersectionObserver | null = null
+        const laka = lakaRef.current
+        if (!laka || typeof IntersectionObserver === "undefined" || naKanwie()) sciagnij()
+        else {
+            czujka = new IntersectionObserver(
+                (wpisy) => {
+                    for (const w of wpisy) if (w.isIntersecting) sciagnij()
+                },
+                { rootMargin: "1400px 0px" }
+            )
+            czujka.observe(laka)
+        }
         return () => {
             anulowane = true
-            arkusz.onload = null
+            if (czujka) czujka.disconnect()
+            for (const im of arkusze) im.onload = null
             if (tlo) tlo.removeEventListener("load", jest)
         }
     }, [])
     useEffect(() => {
-        // Ruch tylko wtedy, gdy obrazek jest na ekranie.
-        const el = lakaRef.current
-        if (!el || typeof IntersectionObserver === "undefined") {
-            ustawZywa(true)
+        const laka = lakaRef.current
+        // W edytorze Framera rysunek jest nieruchomy: postaci stoją na miejscach.
+        if (!laka || naKanwie()) return
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            // Bez animacji: postaci stoją od razu na swoich miejscach, w pozie z rysunku marki.
+            if (laka.parentElement) laka.parentElement.classList.add("gk2-laka-ruch")
             return
         }
-        const io = new IntersectionObserver(
-            (wpisy) => {
-                for (const w of wpisy) ustawZywa(w.isIntersecting)
-            },
-            { rootMargin: "60px 0px" }
-        )
-        io.observe(el)
-        return () => io.disconnect()
+        return lakaRuch(laka, () => gotowaRef.current)
     }, [])
     return (
         <div className="gk2-farma-okno" ref={props.oknoRef}>
-            <div
-                ref={lakaRef}
-                className={"gk2-laka" + (gotowa ? " gk2-laka-gotowa" : "") + (zywa ? " gk2-laka-zywa" : "")}
-                role="img"
-                aria-label="Rysunek: Górka i Kulka z rożkami stoją na łące wśród pasących się szarobrązowych krów."
-            >
+            <noscript>
+                <style>{".gk2-laka-cz{background-image:url(" + LAKA_CZESCI + ")}.gk2-laka-kaw{background-image:url(" + LAKA_POSTACI + ")}"}</style>
+            </noscript>
+            <div ref={lakaRef} className={"gk2-laka" + (gotowa ? " gk2-laka-gotowa" : "") + (blisko ? " gk2-laka-blisko" : "")} role="img" aria-label="Rysunek: Górka i Kulka z rożkami wchodzą na łąkę, na której pasą się szarobrązowe krowy.">
                 <img ref={tloRef} className="gk2-laka-tlo" src={LAKA_TLO} alt="" loading="lazy" decoding="async" draggable={false} />
-                {LAKA_OPIS.map((c, i) => (c[0] === "p" ? null : <i key={i} className={"gk2-laka-cz gk2-laka-" + c[0]} style={czescStyl(c)} aria-hidden="true" />))}
-                <span className="gk2-laka-postac" ref={props.gorkaRef} style={{ left: "4.69%", top: "65.56%", width: "11.37%" }} aria-hidden="true">
-                    <span className="gk2-laka-hop">
-                        <img src={LAKA_GORKA} width={318} height={568} alt="" loading="lazy" decoding="async" draggable={false} />
+                {LAKA_OPIS.map((c, i) => (c[0] === "p" ? null : <i key={i} data-cz={i} className="gk2-laka-cz" style={czescStyl(c)} aria-hidden="true" />))}
+                {LAKA_POSTACIE.map((p, k) => (
+                    <span key={k} data-postac={k} className="gk2-laka-postac" style={{ left: procent(p.x / LAKA_W), top: procent(p.y / LAKA_H), width: procent((p.w * p.s) / LAKA_W), aspectRatio: p.w + " / " + p.h }} aria-hidden="true">
+                        <i className="gk2-laka-cien" data-cien="1" />
+                        {p.cz.map((c, j) => (c ? <i key={j} data-kaw={j} className={"gk2-laka-kaw" + (j === 4 ? " gk2-laka-pod" : "")} style={kawalekStyl(p, j)} /> : null))}
                     </span>
-                </span>
-                <span className="gk2-laka-postac" ref={props.kulkaRef} style={{ left: "54.81%", top: "61.57%", width: "16.07%" }} aria-hidden="true">
-                    <span className="gk2-laka-hop">
-                        <img src={LAKA_KULKA} width={389} height={568} alt="" loading="lazy" decoding="async" draggable={false} />
-                    </span>
-                </span>
-                {LAKA_OPIS.map((c, i) => (c[0] === "p" ? <i key={i} className="gk2-laka-cz gk2-laka-k" style={czescStyl(c)} aria-hidden="true" /> : null))}
+                ))}
+                {LAKA_OPIS.map((c, i) => (c[0] === "p" ? <i key={i} data-cz={i} className="gk2-laka-cz" style={czescStyl(c)} aria-hidden="true" /> : null))}
             </div>
         </div>
     )
@@ -997,20 +1398,19 @@ const CSS_B = [
     ".gk2-js .gk2-laka { opacity: 0; transition: opacity .6s ease; }",
     ".gk2-js .gk2-laka-gotowa { opacity: 1; }",
     ".gk2-laka-tlo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }",
-    ".gk2-laka-cz { position: absolute; display: block; background-repeat: no-repeat; background-image: url(" + LAKA_CZESCI + "); will-change: transform; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-play-state: paused; }",
-    ".gk2-laka-zywa .gk2-laka-cz { animation-play-state: running; }",
-    ".gk2-laka-o { animation-name: gk2-laka-ogon; }",
-    ".gk2-laka-g { animation-name: gk2-laka-skub; }",
-    ".gk2-laka-n { animation-name: gk2-laka-kiwa; animation-direction: alternate; }",
-    ".gk2-laka-k { animation-name: gk2-laka-trawa; animation-direction: alternate; }",
-    "/* Górka i Kulka: zewnętrzny element przesuwa silnik (marsz), środkowy podskakuje po dojściu, sam rysunek lekko się kołysze */",
-    ".gk2-laka-postac { position: absolute; display: block; transform-origin: 50% 96%; will-change: transform; }",
-    ".gk2-laka-hop { display: block; }",
-    ".gk2-laka-postac img { display: block; width: 100%; height: auto; transform-origin: 50% 97%; animation: gk2-laka-stoi 4.8s ease-in-out infinite alternate; animation-play-state: paused; }",
-    ".gk2-laka-postac + .gk2-laka-postac img { animation-duration: 5.6s; animation-delay: -1.4s; }",
-    ".gk2-laka-zywa .gk2-laka-postac img { animation-play-state: running; }",
-    ".gk2-laka-razem .gk2-laka-hop { animation: gk2-laka-hop .75s cubic-bezier(.3,.7,.4,1) 1; }",
-    ".gk2-laka-razem .gk2-laka-postac + .gk2-laka-postac .gk2-laka-hop { animation-delay: .14s; }",
+    // Arkusze części (tła CSS) ściągają się dopiero, gdy rysunek jest blisko ekranu: wtedy Laka dodaje klasę gk2-laka-blisko.
+    ".gk2-laka-cz { position: absolute; display: block; background-repeat: no-repeat; will-change: transform; }",
+    ".gk2-laka-blisko .gk2-laka-cz { background-image: url(" + LAKA_CZESCI + "); }",
+    // Górka i Kulka: każda część (nogi, stopy, tułów, głowa) to osobny kawałek arkusza; ruch nadaje im pętla w lakaRuch().
+    ".gk2-laka-postac { position: absolute; display: block; will-change: transform; }",
+    ".gk2-laka-kaw { position: absolute; display: block; background-repeat: no-repeat; will-change: transform; }",
+    ".gk2-laka-blisko .gk2-laka-kaw { background-image: url(" + LAKA_POSTACI + "); }",
+    ".gk2-laka-pod { opacity: 0; }",
+    // Cień pod stopami, w kolorze cieni pod krowami: bez niego postaci wyglądałyby na doklejone.
+    ".gk2-laka-cien { position: absolute; display: block; left: -9%; width: 118%; top: 96.2%; height: 5.6%; background: radial-gradient(ellipse at 50% 50%, rgba(123,120,61,.34) 0%, rgba(123,120,61,.22) 38%, rgba(123,120,61,0) 70%); will-change: transform; }",
+    // Dopóki pętla nie ustawi postaci poza kadrem, nie pokazujemy ich (bez JS stoją od razu na miejscu).
+    ".gk2-js .gk2-laka-postac { visibility: hidden; }",
+    ".gk2-js .gk2-laka-ruch .gk2-laka-postac { visibility: visible; }",
     ".gk2-farma figcaption { margin-top: 14px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 20px; }",
     ".gk2-farma figcaption .gk2-zrodla-link { margin-top: 0; }",
     ".gk2-zrodla-lista { display: flex; flex-direction: column; border-top: 1.5px solid var(--tusz); }",
@@ -1113,12 +1513,6 @@ const CSS_B = [
     "@keyframes gk2-obrot { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }",
     "@keyframes gk2-kolys { 0%, 100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.8deg); } }",
     "@keyframes gk2-kokarda { 0%, 100% { transform: rotate(-1.1deg); } 50% { transform: rotate(1.1deg); } }",
-    "@keyframes gk2-laka-ogon { 0%, 44%, 92%, 100% { transform: rotate(0deg); } 53% { transform: rotate(var(--k)); } 62% { transform: rotate(calc(var(--k) * -.75)); } 71% { transform: rotate(calc(var(--k) * .5)); } 81% { transform: rotate(calc(var(--k) * -.25)); } }",
-    "@keyframes gk2-laka-skub { 0%, 62%, 100% { transform: rotate(0deg); } 11% { transform: rotate(var(--k)); } 23% { transform: rotate(calc(var(--k) * -.3)); } 35% { transform: rotate(calc(var(--k) * .8)); } 48% { transform: rotate(calc(var(--k) * -.2)); } }",
-    "@keyframes gk2-laka-kiwa { from { transform: rotate(calc(var(--k) * -.6)); } to { transform: rotate(var(--k)); } }",
-    "@keyframes gk2-laka-stoi { from { transform: rotate(-.8deg); } to { transform: rotate(.8deg); } }",
-    "@keyframes gk2-laka-hop { 0%, 100% { transform: translate3d(0, 0, 0); } 32% { transform: translate3d(0, -7%, 0); } 58% { transform: translate3d(0, 0, 0); } 76% { transform: translate3d(0, -2.4%, 0); } }",
-    "@keyframes gk2-laka-trawa { from { transform: skewX(calc(var(--k) * -1)); } to { transform: skewX(var(--k)); } }",
     "@keyframes gk2-puls { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }",
     "@keyframes gk2-tasma { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(calc(var(--tw) * -1), 0, 0); } }",
     "@keyframes gk2-napis { from { opacity: 0; transform: translate3d(0, 12px, 0); } to { opacity: 1; transform: none; } }",
@@ -1265,7 +1659,8 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
         otwarte: false,
         smak: -1,
         farma: "",
-        lakaRazem: false,
+        farmaSam: 0,
+        farmaT: 0,
     }
     const geo = { vw: 0, vh: 0, il: 0, it: 0, iw: 0, ih: 0, pw: 150, p1w: 0, p1h: 0, dpr: 1 }
     const wygl: Record<string, number> = {}
@@ -1584,7 +1979,12 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
             const r = farma.getBoundingClientRect()
             if (r.bottom > -80 && r.top < vh + 80) {
                 // Środek kulki leży na krowie z pierwszego planu (44% szerokości, 60% wysokości), nie na środku ekranu.
-                const p = clamp((vh - r.top - r.height * 0.15) / (vh * 0.55), 0, 1)
+                let p = clamp((vh - r.top - r.height * 0.15) / (vh * 0.55), 0, 1)
+                // Gdy większość rysunku jest już na ekranie, kadr otwiera się do końca sam, na czas: nie czeka na dalsze przewijanie.
+                const naEkranie = (Math.min(vh, r.bottom) - Math.max(0, r.top)) / Math.max(1, r.height)
+                if (naEkranie >= 0.7) s.farmaSam = Math.min(1, s.farmaSam + clamp(t - s.farmaT, 0, 0.1) / 0.8)
+                s.farmaT = t
+                p = Math.max(p, easeInOut(s.farmaSam))
                 // Kulka rośnie coraz szybciej, żeby ostatnie rogi rysunku nie wisiały przycięte.
                 const R = lerp(Math.min(r.width, r.height) * 0.3, Math.hypot(r.width * 0.56, r.height * 0.6) + 2, Math.pow(p, 1.5))
                 const klip = p >= 1 ? "none" : "circle(" + R.toFixed(1) + "px at 44% 60%)"
@@ -1593,26 +1993,7 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
                     farma.style.setProperty("-webkit-clip-path", klip)
                     farma.style.clipPath = klip
                 }
-                // Górka i Kulka wchodzą na łąkę z dwóch stron, gdy rysunek wjeżdża na ekran. Idą tylko wtedy, gdy strona się przewija.
-                const gorka = el.lakaG as HTMLElement | undefined
-                const kulka = el.lakaK as HTMLElement | undefined
-                if (gorka && kulka) {
-                    const w = gladko("laka", clamp((vh * 0.86 - r.top) / (vh * 0.6), 0, 1))
-                    const px = (r.width * 1.0432) / 1448 // piksele ekranu na piksel rysunku
-                    const idz = (e: HTMLElement, droga: number, t: number, krok: number) => {
-                        const dx = droga * (1 - t)
-                        const k = Math.sin((dx / krok) * Math.PI)
-                        e.style.transform = "translate3d(" + (dx * px).toFixed(1) + "px," + (-Math.abs(k) * 9 * px).toFixed(1) + "px,0) rotate(" + (k * 1.3).toFixed(2) + "deg)"
-                    }
-                    idz(kulka, 650, w, 100) // z prawej, długa droga przed krową
-                    idz(gorka, -230, clamp((w - 0.5) / 0.5, 0, 1), 87) // z lewej, krótka droga: rusza później
-                    const razem = w > 0.995
-                    if (razem !== s.lakaRazem) {
-                        s.lakaRazem = razem
-                        farma.classList.toggle("gk2-laka-razem", razem)
-                    }
-                }
-            }
+            } else if (s.farmaSam) s.farmaSam = 0
         }
 
         // 6. Smaki: każdy smak zalewa ekran swoim kolorem, a chromowy rożek ten kolor odbija
@@ -2139,7 +2520,7 @@ export default function KonceptFundusz2(props: Props) {
                 </div>
                 <div className="gk2-zrodla-rzad">
                     <figure className="gk2-farma">
-                        <Laka oknoRef={u("farma")} kulkaRef={u("lakaK")} gorkaRef={u("lakaG")} />
+                        <Laka oknoRef={u("farma")} />
                         <figcaption className="gk2-e">
                             <span>Ryc. 8 — Górka i Kulka u krów z Juchowa.</span>
                             <a className="gk2-zrodla-link" href={JUCHOWO_FILM} target="_blank" rel="noopener noreferrer">
