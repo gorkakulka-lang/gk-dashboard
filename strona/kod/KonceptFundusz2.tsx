@@ -93,7 +93,7 @@ const RYCINY = [
 
 // Od podstaw: skąd bierzemy mleko, śmietankę i jajka.
 // Żywy obrazek łąki: LAKA_TLO to rysunek bez ogonów, łbów i kęp trawy; te części leżą na arkuszu LAKA_CZESCI.
-// Wiersz opisu: rodzaj (o = ogon, g = łeb skubiący trawę, n = łeb kiwający, k = kępa trawy), x, y, szer., wys. na rysunku,
+// Wiersz opisu: rodzaj (o = ogon, g = łeb skubiący trawę, n = łeb kiwający, k = kępa trawy, p = kępa przed postaciami), x, y, szer., wys. na rysunku,
 // x, y na arkuszu, punkt obrotu x, y, wychylenie w stopniach, długość cyklu i przesunięcie startu w sekundach.
 const LAKA_TLO = obraz("HtfGc28Cs1n5NHgiLXzTzKTw.webp")
 const LAKA_CZESCI = obraz("we6L7ocXymNFJFqBhgVmLFSca7Q.webp")
@@ -109,9 +109,9 @@ const LAKA_OPIS: (string | number)[][] = [
     ["g", 1189, 459, 65, 91, 255, 251, 1243.0, 488.0, 3.4, 3.3, -0.3], // g6
     ["k", 161, 752, 78, 53, 668, 251, 195.4, 800.0, 7, 3.4, -0.5], // k1
     ["k", 77, 786, 73, 67, 516, 251, 115.2, 848.0, 8, 2.9, -1.7], // k2
-    ["k", 159, 934, 63, 62, 597, 251, 185.5, 991.0, 7, 3.8, -2.4], // k3
-    ["k", 833, 888, 90, 102, 109, 251, 874.4, 985.0, 6, 3.2, -0.9], // k4
-    ["k", 1196, 889, 103, 75, 405, 251, 1243.4, 959.0, 6, 3.6, -3.1], // k5
+    ["p", 159, 934, 63, 62, 597, 251, 185.5, 991.0, 7, 3.8, -2.4], // k3
+    ["p", 833, 888, 90, 102, 109, 251, 874.4, 985.0, 6, 3.2, -0.9], // k4
+    ["p", 1196, 889, 103, 75, 405, 251, 1243.4, 959.0, 6, 3.6, -3.1], // k5
     ["k", 409, 570, 47, 36, 207, 363, 431.4, 601.0, 8, 2.7, -1.1], // k6
     ["k", 740, 582, 80, 40, 119, 363, 783.2, 617.0, 8, 3.1, -2.0], // k7
     ["k", 826, 705, 70, 44, 8, 363, 860.1, 744.0, 7, 3.5, -0.2], // k8
@@ -123,6 +123,10 @@ const LAKA_OPIS: (string | number)[][] = [
     ["o", 1329, 641, 42, 104, 8, 251, 1339.0, 644.0, 8, 6.0, -4.4], // o5
     ["o", 1354, 483, 25, 42, 86, 363, 1360.0, 485.0, 11, 4.2, -2.6], // o6
 ]
+// Górka i Kulka z plików marki, w układzie jak na ich wspólnym rysunku: Górka z lewej patrzy w prawo, Kulka z prawej w lewo.
+// Mają papierowe wypełnienie, żeby krowy nie prześwitywały przez twarze. Wchodzą z dwóch stron razem z przewijaniem.
+const LAKA_GORKA = obraz("oUMfAKuICZffM2R12ErUd0kgAyA.webp")
+const LAKA_KULKA = obraz("yarZX9KjS82VMqekzSpb0FU7iEs.webp")
 // Prawdziwe krowy: film gospodarstwa na YouTubie, od ujęć z pastwiska.
 const JUCHOWO_FILM = "https://www.youtube.com/watch?v=MCZsIUALDIY&t=22s"
 type Zrodlo = { co: string; skad: string; opis: string; link?: string[] }
@@ -668,7 +672,8 @@ function Kubek(props: { tiltRef: (el: HTMLDivElement | null) => void }) {
 }
 
 // Żywy obrazek: krowy na łące. Ogony, łby i kępy trawy są osobnymi kawałkami arkusza i ruszają się same,
-// dopóki obrazek widać na ekranie. Przy ograniczonym ruchu zostaje zwykły, nieruchomy rysunek.
+// dopóki obrazek widać na ekranie. Górka i Kulka wchodzą na łąkę z dwóch stron razem z przewijaniem (silnik).
+// Przy ograniczonym ruchu zostaje zwykły, nieruchomy rysunek z postaciami na miejscach.
 function procent(v: number) {
     return (Math.round(v * 100000) / 1000).toString() + "%"
 }
@@ -690,7 +695,7 @@ function czescStyl(c: (string | number)[]): any {
     }
 }
 
-function Laka(props: { oknoRef: (el: HTMLDivElement | null) => void }) {
+function Laka(props: { oknoRef: (el: HTMLDivElement | null) => void; kulkaRef: (el: HTMLSpanElement | null) => void; gorkaRef: (el: HTMLSpanElement | null) => void }) {
     const [gotowa, ustawGotowa] = useState(false)
     const [zywa, ustawZywa] = useState(false)
     const lakaRef = useRef<HTMLDivElement>(null)
@@ -701,7 +706,14 @@ function Laka(props: { oknoRef: (el: HTMLDivElement | null) => void }) {
         let ile = 0
         const jest = () => {
             ile += 1
-            if (ile >= 2 && !anulowane) ustawGotowa(true)
+            if (ile >= 2 && !anulowane) {
+                ustawGotowa(true)
+                // Postaci ładują się zaraz po rysunku, żeby nie wskakiwały w połowie marszu.
+                for (const src of [LAKA_GORKA, LAKA_KULKA]) {
+                    const im = new Image()
+                    im.src = src
+                }
+            }
         }
         const arkusz = new Image()
         arkusz.onload = jest
@@ -737,12 +749,21 @@ function Laka(props: { oknoRef: (el: HTMLDivElement | null) => void }) {
                 ref={lakaRef}
                 className={"gk2-laka" + (gotowa ? " gk2-laka-gotowa" : "") + (zywa ? " gk2-laka-zywa" : "")}
                 role="img"
-                aria-label="Rysunek: szarobrązowe krowy pasą się na łące nad jeziorem."
+                aria-label="Rysunek: Górka i Kulka z rożkami stoją na łące wśród pasących się szarobrązowych krów."
             >
                 <img ref={tloRef} className="gk2-laka-tlo" src={LAKA_TLO} alt="" loading="lazy" decoding="async" draggable={false} />
-                {LAKA_OPIS.map((c, i) => (
-                    <i key={i} className={"gk2-laka-cz gk2-laka-" + c[0]} style={czescStyl(c)} aria-hidden="true" />
-                ))}
+                {LAKA_OPIS.map((c, i) => (c[0] === "p" ? null : <i key={i} className={"gk2-laka-cz gk2-laka-" + c[0]} style={czescStyl(c)} aria-hidden="true" />))}
+                <span className="gk2-laka-postac" ref={props.gorkaRef} style={{ left: "4.69%", top: "65.56%", width: "11.37%" }} aria-hidden="true">
+                    <span className="gk2-laka-hop">
+                        <img src={LAKA_GORKA} width={318} height={568} alt="" loading="lazy" decoding="async" draggable={false} />
+                    </span>
+                </span>
+                <span className="gk2-laka-postac" ref={props.kulkaRef} style={{ left: "54.81%", top: "61.57%", width: "16.07%" }} aria-hidden="true">
+                    <span className="gk2-laka-hop">
+                        <img src={LAKA_KULKA} width={389} height={568} alt="" loading="lazy" decoding="async" draggable={false} />
+                    </span>
+                </span>
+                {LAKA_OPIS.map((c, i) => (c[0] === "p" ? <i key={i} className="gk2-laka-cz gk2-laka-k" style={czescStyl(c)} aria-hidden="true" /> : null))}
             </div>
         </div>
     )
@@ -982,6 +1003,14 @@ const CSS_B = [
     ".gk2-laka-g { animation-name: gk2-laka-skub; }",
     ".gk2-laka-n { animation-name: gk2-laka-kiwa; animation-direction: alternate; }",
     ".gk2-laka-k { animation-name: gk2-laka-trawa; animation-direction: alternate; }",
+    "/* Górka i Kulka: zewnętrzny element przesuwa silnik (marsz), środkowy podskakuje po dojściu, sam rysunek lekko się kołysze */",
+    ".gk2-laka-postac { position: absolute; display: block; transform-origin: 50% 96%; will-change: transform; }",
+    ".gk2-laka-hop { display: block; }",
+    ".gk2-laka-postac img { display: block; width: 100%; height: auto; transform-origin: 50% 97%; animation: gk2-laka-stoi 4.8s ease-in-out infinite alternate; animation-play-state: paused; }",
+    ".gk2-laka-postac + .gk2-laka-postac img { animation-duration: 5.6s; animation-delay: -1.4s; }",
+    ".gk2-laka-zywa .gk2-laka-postac img { animation-play-state: running; }",
+    ".gk2-laka-razem .gk2-laka-hop { animation: gk2-laka-hop .75s cubic-bezier(.3,.7,.4,1) 1; }",
+    ".gk2-laka-razem .gk2-laka-postac + .gk2-laka-postac .gk2-laka-hop { animation-delay: .14s; }",
     ".gk2-farma figcaption { margin-top: 14px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 20px; }",
     ".gk2-farma figcaption .gk2-zrodla-link { margin-top: 0; }",
     ".gk2-zrodla-lista { display: flex; flex-direction: column; border-top: 1.5px solid var(--tusz); }",
@@ -1087,6 +1116,8 @@ const CSS_B = [
     "@keyframes gk2-laka-ogon { 0%, 44%, 92%, 100% { transform: rotate(0deg); } 53% { transform: rotate(var(--k)); } 62% { transform: rotate(calc(var(--k) * -.75)); } 71% { transform: rotate(calc(var(--k) * .5)); } 81% { transform: rotate(calc(var(--k) * -.25)); } }",
     "@keyframes gk2-laka-skub { 0%, 62%, 100% { transform: rotate(0deg); } 11% { transform: rotate(var(--k)); } 23% { transform: rotate(calc(var(--k) * -.3)); } 35% { transform: rotate(calc(var(--k) * .8)); } 48% { transform: rotate(calc(var(--k) * -.2)); } }",
     "@keyframes gk2-laka-kiwa { from { transform: rotate(calc(var(--k) * -.6)); } to { transform: rotate(var(--k)); } }",
+    "@keyframes gk2-laka-stoi { from { transform: rotate(-.8deg); } to { transform: rotate(.8deg); } }",
+    "@keyframes gk2-laka-hop { 0%, 100% { transform: translate3d(0, 0, 0); } 32% { transform: translate3d(0, -7%, 0); } 58% { transform: translate3d(0, 0, 0); } 76% { transform: translate3d(0, -2.4%, 0); } }",
     "@keyframes gk2-laka-trawa { from { transform: skewX(calc(var(--k) * -1)); } to { transform: skewX(var(--k)); } }",
     "@keyframes gk2-puls { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }",
     "@keyframes gk2-tasma { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(calc(var(--tw) * -1), 0, 0); } }",
@@ -1234,6 +1265,7 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
         otwarte: false,
         smak: -1,
         farma: "",
+        lakaRazem: false,
     }
     const geo = { vw: 0, vh: 0, il: 0, it: 0, iw: 0, ih: 0, pw: 150, p1w: 0, p1h: 0, dpr: 1 }
     const wygl: Record<string, number> = {}
@@ -1560,6 +1592,25 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
                     s.farma = klip
                     farma.style.setProperty("-webkit-clip-path", klip)
                     farma.style.clipPath = klip
+                }
+                // Górka i Kulka wchodzą na łąkę z dwóch stron, gdy rysunek wjeżdża na ekran. Idą tylko wtedy, gdy strona się przewija.
+                const gorka = el.lakaG as HTMLElement | undefined
+                const kulka = el.lakaK as HTMLElement | undefined
+                if (gorka && kulka) {
+                    const w = gladko("laka", clamp((vh * 0.86 - r.top) / (vh * 0.6), 0, 1))
+                    const px = (r.width * 1.0432) / 1448 // piksele ekranu na piksel rysunku
+                    const idz = (e: HTMLElement, droga: number, t: number, krok: number) => {
+                        const dx = droga * (1 - t)
+                        const k = Math.sin((dx / krok) * Math.PI)
+                        e.style.transform = "translate3d(" + (dx * px).toFixed(1) + "px," + (-Math.abs(k) * 9 * px).toFixed(1) + "px,0) rotate(" + (k * 1.3).toFixed(2) + "deg)"
+                    }
+                    idz(kulka, 650, w, 100) // z prawej, długa droga przed krową
+                    idz(gorka, -230, clamp((w - 0.5) / 0.5, 0, 1), 87) // z lewej, krótka droga: rusza później
+                    const razem = w > 0.995
+                    if (razem !== s.lakaRazem) {
+                        s.lakaRazem = razem
+                        farma.classList.toggle("gk2-laka-razem", razem)
+                    }
                 }
             }
         }
@@ -2088,9 +2139,9 @@ export default function KonceptFundusz2(props: Props) {
                 </div>
                 <div className="gk2-zrodla-rzad">
                     <figure className="gk2-farma">
-                        <Laka oknoRef={u("farma")} />
+                        <Laka oknoRef={u("farma")} kulkaRef={u("lakaK")} gorkaRef={u("lakaG")} />
                         <figcaption className="gk2-e">
-                            <span>Ryc. 8 — Krowy z Juchowa. Latem na łące.</span>
+                            <span>Ryc. 8 — Górka i Kulka u krów z Juchowa.</span>
                             <a className="gk2-zrodla-link" href={JUCHOWO_FILM} target="_blank" rel="noopener noreferrer">
                                 Zobacz prawdziwe Juchowo ↗
                             </a>
