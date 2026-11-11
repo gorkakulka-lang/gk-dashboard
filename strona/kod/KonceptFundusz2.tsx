@@ -920,7 +920,7 @@ const CSS_B = [
     ".gk2-zrodla-glowa { align-items: end; }",
     ".gk2-zrodla-rzad { margin-top: calc(var(--vh) * 8); align-items: stretch; }",
     ".gk2-farma-okno { position: relative; aspect-ratio: 16 / 9; border-radius: 22px; overflow: hidden; background: #26301F; will-change: clip-path; }",
-    ".gk2-farma-gra { clip-path: none !important; -webkit-clip-path: none !important; }",
+    ".gk2-farma-gra, .gk2-farma-okno:focus-within { clip-path: none !important; -webkit-clip-path: none !important; }",
     ".gk2-farma-okno iframe { position: absolute; left: 0; top: 0; width: 100%; height: 100%; border: 0; display: block; }",
     ".gk2-farma-start { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; padding: 0; margin: 0; border: 0; border-radius: 0; background: none; color: #fff; font: inherit; cursor: pointer; overflow: hidden; }",
     ".gk2-farma-start img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1.4s cubic-bezier(.2,.85,.25,1); }",
@@ -929,6 +929,8 @@ const CSS_B = [
     ".gk2-farma-graj i { position: relative; flex: none; display: block; width: clamp(60px, 5.6vw, 92px); aspect-ratio: 1; border-radius: 50%; background: var(--roz); box-shadow: 0 18px 44px -16px rgba(0,0,0,.65); transition: transform .4s cubic-bezier(.2,.85,.25,1), background .25s ease; }",
     ".gk2-farma-graj i::before { content: ''; position: absolute; left: 40%; top: 31%; width: 30%; height: 38%; background: var(--rubin); clip-path: polygon(0 0, 100% 50%, 0 100%); }",
     ".gk2-farma-graj b { font-weight: 400; white-space: nowrap; text-shadow: 0 1px 14px rgba(0,0,0,.75); }",
+    ".gk2-js .gk2-farma-graj { opacity: 0; transform: translate3d(0, 10px, 0); transition: opacity .45s ease, transform .6s cubic-bezier(.2,.85,.25,1); }",
+    ".gk2-js .gk2-farma-pelna .gk2-farma-graj, .gk2-js .gk2-farma-okno:focus-within .gk2-farma-graj { opacity: 1; transform: none; }",
     "@media (hover: hover) { .gk2-farma-start:hover img { transform: scale(1.045); } .gk2-farma-start:hover .gk2-farma-graj i { transform: scale(1.1); background: var(--maslo); } }",
     ".gk2-farma-start:focus-visible { outline: none; }",
     ".gk2-farma-start:focus-visible .gk2-farma-graj i { box-shadow: 0 0 0 4px #fff, 0 18px 44px -16px rgba(0,0,0,.65); }",
@@ -1136,7 +1138,7 @@ const CSS_B = [
     "}",
     "@media (prefers-reduced-motion: reduce) {",
     "  .gk2 *, .gk2 *::before, .gk2 *::after { animation: none !important; transition: none !important; }",
-    "  .gk2-js .gk2-wjazd, .gk2-js .gk2-linie > span > span, .gk2-js .gk2-s { opacity: 1 !important; transform: none !important; }",
+    "  .gk2-js .gk2-wjazd, .gk2-js .gk2-linie > span > span, .gk2-js .gk2-s, .gk2-js .gk2-farma-graj { opacity: 1 !important; transform: none !important; }",
     "  .gk2-js .gk2-opak, .gk2-js .gk2-swieta-droga { display: none !important; }",
     "  .gk2-film-zdjecia img:first-child { opacity: 1; }",
     "  .gk2-js .gk2-hero, .gk2-js .gk2-kino { height: calc(var(--vh) * 100); }",
@@ -1178,6 +1180,7 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
         otwarte: false,
         smak: -1,
         farma: "",
+        farmaPelna: false,
     }
     const geo = { vw: 0, vh: 0, il: 0, it: 0, iw: 0, ih: 0, pw: 150, p1w: 0, p1h: 0, dpr: 1 }
     const wygl: Record<string, number> = {}
@@ -1492,7 +1495,12 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
 
         // 5b. Od podstaw: kadr z farmy otwiera się z kulki do pełnego ekranu
         const farma = el.farma as HTMLElement | undefined
-        if (farma && !reduce) {
+        if (farma && reduce) {
+            if (!s.farmaPelna) {
+                s.farmaPelna = true
+                farma.classList.add("gk2-farma-pelna")
+            }
+        } else if (farma) {
             const r = farma.getBoundingClientRect()
             if (r.bottom > -80 && r.top < vh + 80) {
                 // Środek kulki leży na krowie z kadru (58% szerokości, 60% wysokości), nie na środku ekranu.
@@ -1504,6 +1512,12 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
                     s.farma = klip
                     farma.style.setProperty("-webkit-clip-path", klip)
                     farma.style.clipPath = klip
+                }
+                // Przycisk odtwarzania pojawia się dopiero, gdy kulka go odsłoni.
+                const pelna = p > 0.88
+                if (pelna !== s.farmaPelna) {
+                    s.farmaPelna = pelna
+                    farma.classList.toggle("gk2-farma-pelna", pelna)
                 }
             }
         }
