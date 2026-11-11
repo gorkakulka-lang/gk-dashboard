@@ -91,9 +91,40 @@ const RYCINY = [
     "Ryc. 6 — Rozpogodziło się.",
 ]
 
-// Od podstaw: skąd bierzemy mleko, śmietankę i jajka. Film z gospodarstwa jest osadzony z YouTube'a (kanał Juchowo Farm).
-const FARMA_FILM = "MCZsIUALDIY"
-const FARMA_START = 22
+// Od podstaw: skąd bierzemy mleko, śmietankę i jajka.
+// Żywy obrazek łąki: LAKA_TLO to rysunek bez ogonów, łbów i kęp trawy; te części leżą na arkuszu LAKA_CZESCI.
+// Wiersz opisu: rodzaj (o = ogon, g = łeb skubiący trawę, n = łeb kiwający, k = kępa trawy), x, y, szer., wys. na rysunku,
+// x, y na arkuszu, punkt obrotu x, y, wychylenie w stopniach, długość cyklu i przesunięcie startu w sekundach.
+const LAKA_TLO = obraz("HtfGc28Cs1n5NHgiLXzTzKTw.webp")
+const LAKA_CZESCI = obraz("we6L7ocXymNFJFqBhgVmLFSca7Q.webp")
+const LAKA_W = 1448
+const LAKA_H = 1086
+const ARKUSZ_W = 760
+const ARKUSZ_H = 415
+const LAKA_OPIS: (string | number)[][] = [
+    ["n", 292, 340, 170, 117, 450, 8, 342.0, 438.0, -1.3, 7.5, -3.3], // g1
+    ["g", 627, 764, 168, 235, 8, 8, 653.0, 825.0, -2.2, 3.6, -0.8], // g2
+    ["g", 653, 484, 83, 114, 628, 8, 674.0, 512.0, -3.0, 3.0, -1.9], // g3
+    ["g", 1008, 664, 117, 158, 271, 8, 1111.0, 706.0, 2.6, 4.2, -2.7], // g5
+    ["g", 1189, 459, 65, 91, 255, 251, 1243.0, 488.0, 3.4, 3.3, -0.3], // g6
+    ["k", 161, 752, 78, 53, 668, 251, 195.4, 800.0, 7, 3.4, -0.5], // k1
+    ["k", 77, 786, 73, 67, 516, 251, 115.2, 848.0, 8, 2.9, -1.7], // k2
+    ["k", 159, 934, 63, 62, 597, 251, 185.5, 991.0, 7, 3.8, -2.4], // k3
+    ["k", 833, 888, 90, 102, 109, 251, 874.4, 985.0, 6, 3.2, -0.9], // k4
+    ["k", 1196, 889, 103, 75, 405, 251, 1243.4, 959.0, 6, 3.6, -3.1], // k5
+    ["k", 409, 570, 47, 36, 207, 363, 431.4, 601.0, 8, 2.7, -1.1], // k6
+    ["k", 740, 582, 80, 40, 119, 363, 783.2, 617.0, 8, 3.1, -2.0], // k7
+    ["k", 826, 705, 70, 44, 8, 363, 860.1, 744.0, 7, 3.5, -0.2], // k8
+    ["k", 1321, 785, 69, 76, 328, 251, 1354.8, 856.0, 7, 3.0, -2.8], // k9
+    ["o", 61, 469, 46, 152, 396, 8, 94.0, 470.0, 7, 5.6, -1.2], // o1
+    ["o", 268, 706, 79, 199, 184, 8, 335.0, 712.0, 6, 6.4, -3.0], // o2
+    ["o", 466, 463, 40, 93, 207, 251, 495.0, 467.0, 9, 4.6, -0.4], // o3
+    ["o", 1097, 495, 43, 102, 58, 251, 1107.0, 500.0, 8, 5.0, -2.1], // o4
+    ["o", 1329, 641, 42, 104, 8, 251, 1339.0, 644.0, 8, 6.0, -4.4], // o5
+    ["o", 1354, 483, 25, 42, 86, 363, 1360.0, 485.0, 11, 4.2, -2.6], // o6
+]
+// Prawdziwe krowy: film gospodarstwa na YouTubie, od ujęć z pastwiska.
+const JUCHOWO_FILM = "https://www.youtube.com/watch?v=MCZsIUALDIY&t=22s"
 type Zrodlo = { co: string; skad: string; opis: string; link?: string[] }
 const ZRODLA: Zrodlo[] = [
     { co: "Mleko i śmietanka", skad: "Juchowo Farm", opis: "Mleko sienne z\u00a0biodynamicznego gospodarstwa. Latem łąka, zimą siano. Wyjątkowe mleko.", link: ["juchowo.org", "https://www.juchowo.org/"] },
@@ -636,63 +667,83 @@ function Kubek(props: { tiltRef: (el: HTMLDivElement | null) => void }) {
     )
 }
 
-// Film z gospodarstwa Juchowo (kanał Juchowo Farm na YouTubie). Do kliknięcia widać sam kadr;
-// odtwarzacz YouTube'a ładuje się dopiero po kliknięciu i startuje od ujęć z pastwiska.
-function FilmZFarmy(props: { oknoRef: (el: HTMLDivElement | null) => void }) {
-    const [gra, ustawGra] = useState<"" | "glosno" | "cicho">("")
-    const [kadr, ustawKadr] = useState("maxres1")
-    const start = () => {
-        // Na telefonach i w Safari odtwarzacz rusza sam tylko bez dźwięku (YouTube pokazuje wtedy przycisk głośnika);
-        // na komputerze po kliknięciu gra od razu z dźwiękiem.
-        let cicho = true
-        try {
-            const nav = window.navigator
-            cicho = (window.matchMedia ? window.matchMedia("(hover: none)").matches : false) || /Apple/.test(nav.vendor || "") || /Mobi|Android/.test(nav.userAgent || "")
-        } catch (e) {}
-        ustawGra(cicho ? "cicho" : "glosno")
+// Żywy obrazek: krowy na łące. Ogony, łby i kępy trawy są osobnymi kawałkami arkusza i ruszają się same,
+// dopóki obrazek widać na ekranie. Przy ograniczonym ruchu zostaje zwykły, nieruchomy rysunek.
+function procent(v: number) {
+    return (Math.round(v * 100000) / 1000).toString() + "%"
+}
+
+function czescStyl(c: (string | number)[]): any {
+    const x = c[1] as number, y = c[2] as number, w = c[3] as number, h = c[4] as number
+    const ax = c[5] as number, ay = c[6] as number, ox = c[7] as number, oy = c[8] as number
+    return {
+        left: procent(x / LAKA_W),
+        top: procent(y / LAKA_H),
+        width: procent(w / LAKA_W),
+        height: procent(h / LAKA_H),
+        backgroundSize: procent(ARKUSZ_W / w) + " " + procent(ARKUSZ_H / h),
+        backgroundPosition: procent(ax / (ARKUSZ_W - w)) + " " + procent(ay / (ARKUSZ_H - h)),
+        transformOrigin: procent((ox - x) / w) + " " + procent((oy - y) / h),
+        animationDuration: c[10] + "s",
+        animationDelay: c[11] + "s",
+        ["--k" as any]: c[9] + "deg",
     }
-    const kadrRef = useRef<HTMLImageElement>(null)
+}
+
+function Laka(props: { oknoRef: (el: HTMLDivElement | null) => void }) {
+    const [gotowa, ustawGotowa] = useState(false)
+    const [zywa, ustawZywa] = useState(false)
+    const lakaRef = useRef<HTMLDivElement>(null)
+    const tloRef = useRef<HTMLImageElement>(null)
     useEffect(() => {
-        // Gdy YouTube nie ma dużego kadru, oddaje szarą miniaturę 120 px; wtedy bierzemy mniejszy kadr.
-        const im = kadrRef.current
-        if (im && im.complete && im.naturalWidth > 0 && im.naturalWidth <= 120) ustawKadr("hq1")
+        // Obrazek pokazujemy dopiero, gdy są oba pliki: bez arkusza części krowy stałyby bez łbów.
+        let anulowane = false
+        let ile = 0
+        const jest = () => {
+            ile += 1
+            if (ile >= 2 && !anulowane) ustawGotowa(true)
+        }
+        const arkusz = new Image()
+        arkusz.onload = jest
+        arkusz.src = LAKA_CZESCI
+        const tlo = tloRef.current
+        if (tlo && tlo.complete && tlo.naturalWidth > 0) jest()
+        else if (tlo) tlo.addEventListener("load", jest, { once: true })
+        return () => {
+            anulowane = true
+            arkusz.onload = null
+            if (tlo) tlo.removeEventListener("load", jest)
+        }
+    }, [])
+    useEffect(() => {
+        // Ruch tylko wtedy, gdy obrazek jest na ekranie.
+        const el = lakaRef.current
+        if (!el || typeof IntersectionObserver === "undefined") {
+            ustawZywa(true)
+            return
+        }
+        const io = new IntersectionObserver(
+            (wpisy) => {
+                for (const w of wpisy) ustawZywa(w.isIntersecting)
+            },
+            { rootMargin: "60px 0px" }
+        )
+        io.observe(el)
+        return () => io.disconnect()
     }, [])
     return (
-        <div className={"gk2-farma-okno" + (gra ? " gk2-farma-gra" : "")} ref={props.oknoRef}>
-            {gra ? (
-                <iframe
-                    src={"https://www.youtube-nocookie.com/embed/" + FARMA_FILM + "?autoplay=1" + (gra === "cicho" ? "&mute=1" : "") + "&start=" + FARMA_START + "&rel=0&playsinline=1&hl=pl"}
-                    title="Juchowo Farm: krowy na pastwisku (film z YouTube'a)"
-                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                    allowFullScreen
-                    referrerPolicy="strict-origin-when-cross-origin"
-                />
-            ) : (
-                <button type="button" className="gk2-farma-start" onClick={start} aria-label="Odtwórz film z gospodarstwa Juchowo. Włączy się odtwarzacz YouTube'a.">
-                    <img
-                        ref={kadrRef}
-                        src={"https://i.ytimg.com/vi/" + FARMA_FILM + "/" + kadr + ".jpg"}
-                        alt="Krowy z gospodarstwa Juchowo na pastwisku"
-                        loading="lazy"
-                        decoding="async"
-                        referrerPolicy="no-referrer"
-                        draggable={false}
-                        onLoad={(e) => {
-                            if (e.currentTarget.naturalWidth <= 120 && kadr !== "hq1") ustawKadr("hq1")
-                        }}
-                        onError={() => {
-                            if (kadr !== "hq1") ustawKadr("hq1")
-                        }}
-                    />
-                    <span className="gk2-farma-graj" aria-hidden="true">
-                        <i />
-                        <b className="gk2-e">
-                            Obejrzyj film
-                            <br />z Juchowa
-                        </b>
-                    </span>
-                </button>
-            )}
+        <div className="gk2-farma-okno" ref={props.oknoRef}>
+            <div
+                ref={lakaRef}
+                className={"gk2-laka" + (gotowa ? " gk2-laka-gotowa" : "") + (zywa ? " gk2-laka-zywa" : "")}
+                role="img"
+                aria-label="Rysunek: szarobrązowe krowy pasą się na łące nad jeziorem."
+            >
+                <img ref={tloRef} className="gk2-laka-tlo" src={LAKA_TLO} alt="" loading="lazy" decoding="async" draggable={false} />
+                {LAKA_OPIS.map((c, i) => (
+                    <i key={i} className={"gk2-laka-cz gk2-laka-" + c[0]} style={czescStyl(c)} aria-hidden="true" />
+                ))}
+            </div>
         </div>
     )
 }
@@ -919,23 +970,20 @@ const CSS_B = [
     ".gk2-zrodla-glowa, .gk2-zrodla-rzad { display: grid; grid-template-columns: 1.62fr 1fr; column-gap: 4vw; }",
     ".gk2-zrodla-glowa { align-items: end; }",
     ".gk2-zrodla-rzad { margin-top: calc(var(--vh) * 8); align-items: stretch; }",
-    ".gk2-farma-okno { position: relative; aspect-ratio: 16 / 9; border-radius: 22px; overflow: hidden; background: #26301F; will-change: clip-path; }",
-    ".gk2-farma-gra, .gk2-farma-okno:focus-within { clip-path: none !important; -webkit-clip-path: none !important; }",
-    ".gk2-farma-okno iframe { position: absolute; left: 0; top: 0; width: 100%; height: 100%; border: 0; display: block; }",
-    ".gk2-farma-start { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; padding: 0; margin: 0; border: 0; border-radius: 0; background: none; color: #fff; font: inherit; cursor: pointer; overflow: hidden; }",
-    ".gk2-farma-start img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1.4s cubic-bezier(.2,.85,.25,1); }",
-    ".gk2-farma-start::after { content: ''; position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(0,0,0,.52), rgba(0,0,0,0) 48%); pointer-events: none; }",
-    ".gk2-farma-graj { position: absolute; left: clamp(14px, 2.2vw, 34px); bottom: clamp(14px, 2.2vw, 34px); z-index: 2; display: flex; align-items: center; gap: clamp(12px, 1.2vw, 18px); text-align: left; }",
-    ".gk2-farma-graj i { position: relative; flex: none; display: block; width: clamp(60px, 5.6vw, 92px); aspect-ratio: 1; border-radius: 50%; background: var(--roz); box-shadow: 0 18px 44px -16px rgba(0,0,0,.65); transition: transform .4s cubic-bezier(.2,.85,.25,1), background .25s ease; }",
-    ".gk2-farma-graj i::before { content: ''; position: absolute; left: 40%; top: 31%; width: 30%; height: 38%; background: var(--rubin); clip-path: polygon(0 0, 100% 50%, 0 100%); }",
-    ".gk2-farma-graj b { font-weight: 400; white-space: nowrap; text-shadow: 0 1px 14px rgba(0,0,0,.75); }",
-    ".gk2-js .gk2-farma-graj { opacity: 0; transform: translate3d(0, 10px, 0); transition: opacity .45s ease, transform .6s cubic-bezier(.2,.85,.25,1); }",
-    ".gk2-js .gk2-farma-pelna .gk2-farma-graj, .gk2-js .gk2-farma-okno:focus-within .gk2-farma-graj { opacity: 1; transform: none; }",
-    "@media (hover: hover) { .gk2-farma-start:hover img { transform: scale(1.045); } .gk2-farma-start:hover .gk2-farma-graj i { transform: scale(1.1); background: var(--maslo); } }",
-    ".gk2-farma-start:focus-visible { outline: none; }",
-    ".gk2-farma-start:focus-visible .gk2-farma-graj i { box-shadow: 0 0 0 4px #fff, 0 18px 44px -16px rgba(0,0,0,.65); }",
+    ".gk2-farma-okno { position: relative; aspect-ratio: 1388 / 936; border-radius: 22px; overflow: hidden; background: #FBF4EC; will-change: clip-path; }",
+    "/* rysunek ma własny papierowy margines; okno przycina go do samej łąki */",
+    ".gk2-laka { position: absolute; left: -2.16%; top: -13.9%; width: 104.32%; aspect-ratio: 1448 / 1086; }",
+    ".gk2-js .gk2-laka { opacity: 0; transition: opacity .6s ease; }",
+    ".gk2-js .gk2-laka-gotowa { opacity: 1; }",
+    ".gk2-laka-tlo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }",
+    ".gk2-laka-cz { position: absolute; display: block; background-repeat: no-repeat; background-image: url(" + LAKA_CZESCI + "); will-change: transform; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-play-state: paused; }",
+    ".gk2-laka-zywa .gk2-laka-cz { animation-play-state: running; }",
+    ".gk2-laka-o { animation-name: gk2-laka-ogon; }",
+    ".gk2-laka-g { animation-name: gk2-laka-skub; }",
+    ".gk2-laka-n { animation-name: gk2-laka-kiwa; animation-direction: alternate; }",
+    ".gk2-laka-k { animation-name: gk2-laka-trawa; animation-direction: alternate; }",
     ".gk2-farma figcaption { margin-top: 14px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 20px; }",
-    ".gk2-farma figcaption span + span { opacity: .6; }",
+    ".gk2-farma figcaption .gk2-zrodla-link { margin-top: 0; }",
     ".gk2-zrodla-lista { display: flex; flex-direction: column; border-top: 1.5px solid var(--tusz); }",
     ".gk2-zrodla-lista li { flex: 1 0 auto; display: grid; gap: 7px; align-content: center; padding: 18px 0; border-bottom: 1.5px solid var(--tusz); }",
     ".gk2-zrodla-co { opacity: .6; }",
@@ -1036,6 +1084,10 @@ const CSS_B = [
     "@keyframes gk2-obrot { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }",
     "@keyframes gk2-kolys { 0%, 100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.8deg); } }",
     "@keyframes gk2-kokarda { 0%, 100% { transform: rotate(-1.1deg); } 50% { transform: rotate(1.1deg); } }",
+    "@keyframes gk2-laka-ogon { 0%, 44%, 92%, 100% { transform: rotate(0deg); } 53% { transform: rotate(var(--k)); } 62% { transform: rotate(calc(var(--k) * -.75)); } 71% { transform: rotate(calc(var(--k) * .5)); } 81% { transform: rotate(calc(var(--k) * -.25)); } }",
+    "@keyframes gk2-laka-skub { 0%, 62%, 100% { transform: rotate(0deg); } 11% { transform: rotate(var(--k)); } 23% { transform: rotate(calc(var(--k) * -.3)); } 35% { transform: rotate(calc(var(--k) * .8)); } 48% { transform: rotate(calc(var(--k) * -.2)); } }",
+    "@keyframes gk2-laka-kiwa { from { transform: rotate(calc(var(--k) * -.6)); } to { transform: rotate(var(--k)); } }",
+    "@keyframes gk2-laka-trawa { from { transform: skewX(calc(var(--k) * -1)); } to { transform: skewX(var(--k)); } }",
     "@keyframes gk2-puls { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }",
     "@keyframes gk2-tasma { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(calc(var(--tw) * -1), 0, 0); } }",
     "@keyframes gk2-napis { from { opacity: 0; transform: translate3d(0, 12px, 0); } to { opacity: 1; transform: none; } }",
@@ -1111,7 +1163,7 @@ const CSS_B = [
     "  .gk2-zrodla-rzad { margin-top: calc(var(--vh) * 5); row-gap: 26px; }",
     "  .gk2-farma { margin: 0 calc(var(--m) * -1); }",
     "  .gk2-farma-okno { border-radius: 0; }",
-    "  .gk2-farma figcaption { display: grid; gap: 2px; margin-top: 12px; padding: 0 var(--m); }",
+    "  .gk2-farma figcaption { display: grid; gap: 8px; margin-top: 12px; padding: 0 var(--m); }",
     "  .gk2-zrodla-lista li { padding: 16px 0; }",
     "  .gk2-zrodla-skad { font-size: 8vw; }",
     "  .gk2-smak { grid-template-columns: 1fr; grid-template-rows: auto auto; align-content: start; gap: calc(var(--vh) * 3); padding: calc(var(--vh) * 12) var(--m) 0; }",
@@ -1138,7 +1190,7 @@ const CSS_B = [
     "}",
     "@media (prefers-reduced-motion: reduce) {",
     "  .gk2 *, .gk2 *::before, .gk2 *::after { animation: none !important; transition: none !important; }",
-    "  .gk2-js .gk2-wjazd, .gk2-js .gk2-linie > span > span, .gk2-js .gk2-s, .gk2-js .gk2-farma-graj { opacity: 1 !important; transform: none !important; }",
+    "  .gk2-js .gk2-wjazd, .gk2-js .gk2-linie > span > span, .gk2-js .gk2-s { opacity: 1 !important; transform: none !important; }",
     "  .gk2-js .gk2-opak, .gk2-js .gk2-swieta-droga { display: none !important; }",
     "  .gk2-film-zdjecia img:first-child { opacity: 1; }",
     "  .gk2-js .gk2-hero, .gk2-js .gk2-kino { height: calc(var(--vh) * 100); }",
@@ -1180,7 +1232,6 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
         otwarte: false,
         smak: -1,
         farma: "",
-        farmaPelna: false,
     }
     const geo = { vw: 0, vh: 0, il: 0, it: 0, iw: 0, ih: 0, pw: 150, p1w: 0, p1h: 0, dpr: 1 }
     const wygl: Record<string, number> = {}
@@ -1493,31 +1544,20 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
             }
         }
 
-        // 5b. Od podstaw: kadr z farmy otwiera się z kulki do pełnego ekranu
+        // 5b. Od podstaw: rysunek łąki otwiera się z kulki do pełnego kadru
         const farma = el.farma as HTMLElement | undefined
-        if (farma && reduce) {
-            if (!s.farmaPelna) {
-                s.farmaPelna = true
-                farma.classList.add("gk2-farma-pelna")
-            }
-        } else if (farma) {
+        if (farma && !reduce) {
             const r = farma.getBoundingClientRect()
             if (r.bottom > -80 && r.top < vh + 80) {
-                // Środek kulki leży na krowie z kadru (58% szerokości, 60% wysokości), nie na środku ekranu.
+                // Środek kulki leży na krowie z pierwszego planu (44% szerokości, 60% wysokości), nie na środku ekranu.
                 const p = clamp((vh - r.top - r.height * 0.15) / (vh * 0.55), 0, 1)
-                // Kulka rośnie coraz szybciej, żeby ostatnie rogi kadru nie wisiały przycięte.
-                const R = lerp(Math.min(r.width, r.height) * 0.3, Math.hypot(r.width * 0.58, r.height * 0.6) + 2, Math.pow(p, 1.5))
-                const klip = p >= 1 ? "none" : "circle(" + R.toFixed(1) + "px at 58% 60%)"
+                // Kulka rośnie coraz szybciej, żeby ostatnie rogi rysunku nie wisiały przycięte.
+                const R = lerp(Math.min(r.width, r.height) * 0.3, Math.hypot(r.width * 0.56, r.height * 0.6) + 2, Math.pow(p, 1.5))
+                const klip = p >= 1 ? "none" : "circle(" + R.toFixed(1) + "px at 44% 60%)"
                 if (klip !== s.farma) {
                     s.farma = klip
                     farma.style.setProperty("-webkit-clip-path", klip)
                     farma.style.clipPath = klip
-                }
-                // Przycisk odtwarzania pojawia się dopiero, gdy kulka go odsłoni.
-                const pelna = p > 0.88
-                if (pelna !== s.farmaPelna) {
-                    s.farmaPelna = pelna
-                    farma.classList.toggle("gk2-farma-pelna", pelna)
                 }
             }
         }
@@ -2046,10 +2086,12 @@ export default function KonceptFundusz2(props: Props) {
                 </div>
                 <div className="gk2-zrodla-rzad">
                     <figure className="gk2-farma">
-                        <FilmZFarmy oknoRef={u("farma")} />
+                        <Laka oknoRef={u("farma")} />
                         <figcaption className="gk2-e">
                             <span>Ryc. 8 — Krowy z Juchowa. Latem na łące.</span>
-                            <span>Film: Juchowo Farm, YouTube</span>
+                            <a className="gk2-zrodla-link" href={JUCHOWO_FILM} target="_blank" rel="noopener noreferrer">
+                                Zobacz prawdziwe Juchowo ↗
+                            </a>
                         </figcaption>
                     </figure>
                     <ul className="gk2-zrodla-lista">
