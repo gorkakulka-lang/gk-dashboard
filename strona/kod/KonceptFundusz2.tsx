@@ -91,10 +91,18 @@ const RYCINY = [
     "Ryc. 6 — Rozpogodziło się.",
 ]
 
+// Od podstaw: skąd bierzemy mleko, śmietankę i jajka. Film z gospodarstwa jest osadzony z YouTube'a (kanał Juchowo Farm).
+const FARMA_FILM = "MCZsIUALDIY"
+const FARMA_START = 22
+type Zrodlo = { co: string; skad: string; opis: string; link?: string[] }
+const ZRODLA: Zrodlo[] = [
+    { co: "Mleko i śmietanka", skad: "Juchowo Farm", opis: "Mleko sienne z\u00a0biodynamicznego gospodarstwa. Latem łąka, zimą siano. Wyjątkowe mleko.", link: ["juchowo.org", "https://www.juchowo.org/"] },
+    { co: "Jajka", skad: "Rozlewiska nad Wartą", opis: "Od\u00a0kur z\u00a0wolnego wybiegu." },
+    { co: "Lody i wypieki", skad: "Nasza pracownia", opis: "Tu z\u00a0mleka, śmietanki i\u00a0jajek powstaje cała\u00a0reszta." },
+]
+
 const MANIFEST =
     "~Szary ~Dzień przychodzi do każdego. Do Gorzowa i do Nowego Jorku. W poniedziałki, w listopadzie, po pracy. Nie przeganiamy go. Częstujemy. Od dziesięciu lat robimy lody, po których dzień zmienia *kolor. Teraz zabieramy ten *kolor w świat. Po jednej kulce."
-
-const MIASTA = ["Warszawa", "Poznań", "Wrocław", "Kraków", "Berlin", "Kopenhaga"]
 
 // Napisy do filmów: [sekunda początku ujęcia, tekst]. Czasy z prawdziwych cięć w filmach.
 const NAPISY_1: Array<[number, string]> = [
@@ -512,35 +520,6 @@ function Zapis(props: { data: string }) {
     )
 }
 
-function Glosowanie() {
-    const [glosy, ustawGlosy] = useState<string[]>([])
-    return (
-        <div className="gk2-glosuj">
-            <div>
-                <h3 className="gk2-d gk2-h3">Gdzie następne?</h3>
-                <p className="gk2-lead">Tam, gdzie najszarzej, otworzymy najpierw. Zagłosuj na swoje miasto.</p>
-            </div>
-            <div>
-                <div className="gk2-miasta">
-                    {MIASTA.map((m) => {
-                        const on = glosy.indexOf(m) >= 0
-                        return (
-                            <button key={m} type="button" className="gk2-miasto" aria-pressed={on} onClick={() => ustawGlosy(on ? glosy.filter((x) => x !== m) : glosy.concat([m]))}>
-                                {m}
-                                {on ? " ✓" : ""}
-                            </button>
-                        )
-                    })}
-                    <button type="button" className="gk2-miasto gk2-miasto-inne">
-                        Moje miasto +
-                    </button>
-                </div>
-                <p className="gk2-drobny">{glosy.length ? "Dzięki. Liczymy chmury nad: " + glosy.join(", ") + "." : "Jeden klik, bez logowania."}</p>
-            </div>
-        </div>
-    )
-}
-
 // Kokarda z pliku marki, pocięta na części: pętle chowają się w węźle, ogony się wydłużają i zsuwają.
 function Kokarda(props: { u: (k: string) => (el: any) => void }) {
     const czesc = (k: string, klasa: string) => <i ref={props.u("kok_" + k)} className={"gk2-kok-cz " + klasa} style={{ clipPath: KOK[k], WebkitClipPath: KOK[k] } as React.CSSProperties} />
@@ -609,7 +588,7 @@ function Kubek(props: { tiltRef: (el: HTMLDivElement | null) => void }) {
     return (
         <section className="gk2-kubek" id="gk2-kubek" data-motyw="jasny">
             <div className="gk2-kubek-tekst">
-                <div className="gk2-e">06 — Na wynos</div>
+                <div className="gk2-e">07 — Na wynos</div>
                 <Linie linie={["Zapas", "lata."]} className="gk2-h2" />
                 <p className="gk2-lead">Kubek 450 ml prosto do zamrażarki. Na wypadek, gdyby Szary Dzień przyszedł bez zapowiedzi.</p>
                 <div className="gk2-wybor" role="group" aria-label="Wybierz smak">
@@ -654,6 +633,57 @@ function Kubek(props: { tiltRef: (el: HTMLDivElement | null) => void }) {
                 </div>
             </div>
         </section>
+    )
+}
+
+// Film z gospodarstwa Juchowo (kanał Juchowo Farm na YouTubie). Do kliknięcia widać sam kadr;
+// odtwarzacz YouTube'a ładuje się dopiero po kliknięciu i startuje bez dźwięku, od ujęć z pastwiska.
+function FilmZFarmy(props: { oknoRef: (el: HTMLDivElement | null) => void }) {
+    const [gra, ustawGra] = useState(false)
+    const [kadr, ustawKadr] = useState("maxres1")
+    const kadrRef = useRef<HTMLImageElement>(null)
+    useEffect(() => {
+        // Gdy YouTube nie ma dużego kadru, oddaje szarą miniaturę 120 px; wtedy bierzemy mniejszy kadr.
+        const im = kadrRef.current
+        if (im && im.complete && im.naturalWidth > 0 && im.naturalWidth <= 120) ustawKadr("hq1")
+    }, [])
+    return (
+        <div className={"gk2-farma-okno" + (gra ? " gk2-farma-gra" : "")} ref={props.oknoRef}>
+            {gra ? (
+                <iframe
+                    src={"https://www.youtube-nocookie.com/embed/" + FARMA_FILM + "?autoplay=1&mute=1&start=" + FARMA_START + "&rel=0&playsinline=1&hl=pl"}
+                    title="Juchowo Farm: krowy na pastwisku (film z YouTube'a)"
+                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                    allowFullScreen
+                    referrerPolicy="strict-origin-when-cross-origin"
+                />
+            ) : (
+                <button type="button" className="gk2-farma-start" onClick={() => ustawGra(true)} aria-label="Odtwórz film z gospodarstwa Juchowo. Włączy się odtwarzacz YouTube'a.">
+                    <img
+                        ref={kadrRef}
+                        src={"https://i.ytimg.com/vi/" + FARMA_FILM + "/" + kadr + ".jpg"}
+                        alt="Krowy z gospodarstwa Juchowo na pastwisku"
+                        loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                        draggable={false}
+                        onLoad={(e) => {
+                            if (e.currentTarget.naturalWidth <= 120 && kadr !== "hq1") ustawKadr("hq1")
+                        }}
+                        onError={() => {
+                            if (kadr !== "hq1") ustawKadr("hq1")
+                        }}
+                    />
+                    <span className="gk2-farma-graj" aria-hidden="true">
+                        <i />
+                        <b className="gk2-e">
+                            Obejrzyj film
+                            <br />z Juchowa
+                        </b>
+                    </span>
+                </button>
+            )}
+        </div>
     )
 }
 
@@ -874,6 +904,35 @@ const CSS_B = [
     ".gk2-zapytanie-dol .gk2-drobny { margin-top: 0; }",
     ".gk2-zapytanie-dzieki { margin-top: 34px; max-width: 760px; }",
 
+    "/* 5b. Od podstaw: skąd mleko, śmietanka i jajka; film z gospodarstwa */",
+    ".gk2-zrodla { position: relative; background: var(--roz); padding: calc(var(--vh) * 18) var(--m) calc(var(--vh) * 16); overflow: clip; }",
+    ".gk2-zrodla-glowa, .gk2-zrodla-rzad { display: grid; grid-template-columns: 1.62fr 1fr; column-gap: 4vw; }",
+    ".gk2-zrodla-glowa { align-items: end; }",
+    ".gk2-zrodla-rzad { margin-top: calc(var(--vh) * 8); align-items: stretch; }",
+    ".gk2-farma-okno { position: relative; aspect-ratio: 16 / 9; border-radius: 22px; overflow: hidden; background: #26301F; will-change: clip-path; }",
+    ".gk2-farma-gra { clip-path: none !important; -webkit-clip-path: none !important; }",
+    ".gk2-farma-okno iframe { position: absolute; left: 0; top: 0; width: 100%; height: 100%; border: 0; display: block; }",
+    ".gk2-farma-start { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; padding: 0; margin: 0; border: 0; border-radius: 0; background: none; color: #fff; font: inherit; cursor: pointer; overflow: hidden; }",
+    ".gk2-farma-start img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1.4s cubic-bezier(.2,.85,.25,1); }",
+    ".gk2-farma-start::after { content: ''; position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(0,0,0,.52), rgba(0,0,0,0) 48%); pointer-events: none; }",
+    ".gk2-farma-graj { position: absolute; left: clamp(14px, 2.2vw, 34px); bottom: clamp(14px, 2.2vw, 34px); z-index: 2; display: flex; align-items: center; gap: clamp(12px, 1.2vw, 18px); text-align: left; }",
+    ".gk2-farma-graj i { position: relative; flex: none; display: block; width: clamp(60px, 5.6vw, 92px); aspect-ratio: 1; border-radius: 50%; background: var(--roz); box-shadow: 0 18px 44px -16px rgba(0,0,0,.65); transition: transform .4s cubic-bezier(.2,.85,.25,1), background .25s ease; }",
+    ".gk2-farma-graj i::before { content: ''; position: absolute; left: 40%; top: 31%; width: 30%; height: 38%; background: var(--rubin); clip-path: polygon(0 0, 100% 50%, 0 100%); }",
+    ".gk2-farma-graj b { font-weight: 400; white-space: nowrap; text-shadow: 0 1px 14px rgba(0,0,0,.75); }",
+    "@media (hover: hover) { .gk2-farma-start:hover img { transform: scale(1.045); } .gk2-farma-start:hover .gk2-farma-graj i { transform: scale(1.1); background: var(--maslo); } }",
+    ".gk2-farma-start:focus-visible { outline: none; }",
+    ".gk2-farma-start:focus-visible .gk2-farma-graj i { box-shadow: 0 0 0 4px #fff, 0 18px 44px -16px rgba(0,0,0,.65); }",
+    ".gk2-farma figcaption { margin-top: 14px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 20px; }",
+    ".gk2-farma figcaption span + span { opacity: .6; }",
+    ".gk2-zrodla-lista { display: flex; flex-direction: column; border-top: 1.5px solid var(--tusz); }",
+    ".gk2-zrodla-lista li { flex: 1 0 auto; display: grid; gap: 7px; align-content: center; padding: 18px 0; border-bottom: 1.5px solid var(--tusz); }",
+    ".gk2-zrodla-co { opacity: .6; }",
+    ".gk2-zrodla-skad { font-size: clamp(26px, 2.8vw, 46px); line-height: .95; }",
+    ".gk2-zrodla-opis { font-size: 13px; line-height: 1.5; max-width: 36em; }",
+    ".gk2-zrodla-link { justify-self: start; position: relative; margin-top: 2px; }",
+    ".gk2-zrodla-link::after { content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 1px; background: currentColor; transform-origin: left; transition: transform .35s ease; }",
+    "@media (hover: hover) { .gk2-zrodla-link:hover::after { transform: scaleX(.4); } }",
+
     "/* 6. Smaki */",
     ".gk2-smaki { position: relative; height: calc(var(--vh) * 100 + var(--n, 6) * var(--vh) * 64); background: #F3ECDC; }",
     ".gk2-smaki-scena { position: sticky; top: 0; height: calc(var(--vh) * 100); overflow: hidden; }",
@@ -946,17 +1005,10 @@ const CSS_B = [
     ".gk2-lista { margin-top: calc(var(--vh) * 9); border-top: 1.5px solid var(--tusz); }",
     ".gk2-lista li { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 2vw; align-items: baseline; padding: 24px 0; border-bottom: 1.5px solid var(--tusz); font-size: 12px; letter-spacing: .05em; text-transform: uppercase; }",
     ".gk2-lista-nazwa { font-size: clamp(26px, 2.8vw, 46px); line-height: 1; }",
-    ".gk2-glosuj { margin-top: calc(var(--vh) * 13); display: grid; grid-template-columns: 1fr 1fr; gap: 4vw; align-items: start; }",
-    ".gk2-glosuj .gk2-lead { margin-top: 18px; }",
-    ".gk2-miasta { display: flex; flex-wrap: wrap; gap: 10px; }",
-    ".gk2-miasto { border: 1.5px solid var(--tusz); border-radius: 999px; padding: 13px 20px; background: transparent; color: var(--tusz); font-family: 'Fragment Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: .07em; text-transform: uppercase; cursor: pointer; transition: background .25s ease, color .25s ease; }",
-    ".gk2-miasto:hover { background: rgba(17,17,17,.07); }",
-    ".gk2-miasto[aria-pressed='true'] { background: var(--tusz); color: var(--maslo); }",
-    ".gk2-miasto-inne { border-style: dashed; }",
     ".gk2-deptak { position: relative; height: clamp(170px, 21vw, 320px); margin-top: calc(var(--vh) * 7); }",
     ".gk2-para { position: absolute; left: 0; bottom: 0; height: 100%; transform-origin: 50% 100%; will-change: transform; z-index: 2; }",
     ".gk2-para .gk2-wyc { height: 100%; }",
-    ".gk2-deptak-napis { position: absolute; right: 0; bottom: 18px; }",
+    ".gk2-deptak-napis { position: absolute; right: 0; top: 36%; display: grid; gap: 2px; text-align: right; }",
 
     "/* 10. Stopka */",
     ".gk2-tasmy-dol .gk2-tasma-a { top: calc(var(--th) * -0.9); }",
@@ -1041,6 +1093,15 @@ const CSS_B = [
     "  .gk2-trojka li + li { padding-left: 0; border-left: 0; border-top: 1.5px solid var(--tusz); }",
     "  .gk2-trojka b { font-size: 8vw; }",
     "  .gk2-zapytanie { grid-template-columns: minmax(0, 1fr); margin-top: 28px; }",
+    "  .gk2-zrodla { padding: calc(var(--vh) * 13) var(--m); }",
+    "  .gk2-zrodla-glowa, .gk2-zrodla-rzad { grid-template-columns: minmax(0, 1fr); }",
+    "  .gk2-zrodla-glowa .gk2-lead { margin-top: 22px; }",
+    "  .gk2-zrodla-rzad { margin-top: calc(var(--vh) * 5); row-gap: 26px; }",
+    "  .gk2-farma { margin: 0 calc(var(--m) * -1); }",
+    "  .gk2-farma-okno { border-radius: 0; }",
+    "  .gk2-farma figcaption { display: grid; gap: 2px; margin-top: 12px; padding: 0 var(--m); }",
+    "  .gk2-zrodla-lista li { padding: 16px 0; }",
+    "  .gk2-zrodla-skad { font-size: 8vw; }",
     "  .gk2-smak { grid-template-columns: 1fr; grid-template-rows: auto auto; align-content: start; gap: calc(var(--vh) * 3); padding: calc(var(--vh) * 12) var(--m) 0; }",
     "  .gk2-js .gk2-smak + .gk2-smak { clip-path: circle(0px at 50% 30%); }",
     "  .gk2-gala { order: -1; width: min(66vw, calc(var(--vh) * 36)); }",
@@ -1059,9 +1120,8 @@ const CSS_B = [
     "  .gk2-luk { justify-self: start; width: 72vw; }",
     "  .gk2-lista li { grid-template-columns: 1fr; gap: 6px; }",
     "  .gk2-lista-strzalka { display: none; }",
-    "  .gk2-glosuj { grid-template-columns: 1fr; gap: 30px; }",
     "  .gk2-deptak { height: 46vw; }",
-    "  .gk2-deptak-napis { right: auto; left: 0; bottom: 12px; }",
+    "  .gk2-deptak-napis { right: auto; left: 0; top: auto; bottom: calc(100% + 10px); display: block; text-align: left; white-space: nowrap; }",
     "  .gk2-stopka { padding-top: calc(var(--vh) * 15); }",
     "}",
     "@media (prefers-reduced-motion: reduce) {",
@@ -1107,6 +1167,7 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
         swieta: -1,
         otwarte: false,
         smak: -1,
+        farma: "",
     }
     const geo = { vw: 0, vh: 0, il: 0, it: 0, iw: 0, ih: 0, pw: 150, p1w: 0, p1h: 0, dpr: 1 }
     const wygl: Record<string, number> = {}
@@ -1416,6 +1477,24 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
             if (r.bottom > -80 && r.top < vh + 80) {
                 const p = clamp((vh - r.top) / (vh + r.height), 0, 1)
                 el.firmyObraz.style.transform = "translate3d(0," + (-p * 13).toFixed(2) + "%,0)"
+            }
+        }
+
+        // 5b. Od podstaw: kadr z farmy otwiera się z kulki do pełnego ekranu
+        const farma = el.farma as HTMLElement | undefined
+        if (farma && !reduce) {
+            const r = farma.getBoundingClientRect()
+            if (r.bottom > -80 && r.top < vh + 80) {
+                // Środek kulki leży na krowie z kadru (58% szerokości, 60% wysokości), nie na środku ekranu.
+                const p = clamp((vh - r.top - r.height * 0.15) / (vh * 0.55), 0, 1)
+                // Kulka rośnie coraz szybciej, żeby ostatnie rogi kadru nie wisiały przycięte.
+                const R = lerp(Math.min(r.width, r.height) * 0.3, Math.hypot(r.width * 0.58, r.height * 0.6) + 2, Math.pow(p, 1.5))
+                const klip = p >= 1 ? "none" : "circle(" + R.toFixed(1) + "px at 58% 60%)"
+                if (klip !== s.farma) {
+                    s.farma = klip
+                    farma.style.setProperty("-webkit-clip-path", klip)
+                    farma.style.clipPath = klip
+                }
             }
         }
 
@@ -1932,6 +2011,40 @@ export default function KonceptFundusz2(props: Props) {
                 </div>
             </section>
 
+            <section className="gk2-zrodla" id="gk2-zrodla" data-motyw="jasny">
+                <div className="gk2-wiersz gk2-e">
+                    <span>05 — Od podstaw</span>
+                    <span>Mleko, śmietanka, jajka</span>
+                </div>
+                <div className="gk2-zrodla-glowa">
+                    <Linie linie={["Sami.", "Od podstaw."]} className="gk2-h2" />
+                    <p className="gk2-lead">{"Wszystko robimy sami, od\u00a0podstaw. Dlatego dokładnie wiemy, skąd bierzemy mleko, śmietankę i\u00a0jajka."}</p>
+                </div>
+                <div className="gk2-zrodla-rzad">
+                    <figure className="gk2-farma">
+                        <FilmZFarmy oknoRef={u("farma")} />
+                        <figcaption className="gk2-e">
+                            <span>Ryc. 8 — Krowy z Juchowa. Latem na łące.</span>
+                            <span>Film: Juchowo Farm, YouTube</span>
+                        </figcaption>
+                    </figure>
+                    <ul className="gk2-zrodla-lista">
+                        {ZRODLA.map((z) => (
+                            <li key={z.skad}>
+                                <span className="gk2-e gk2-zrodla-co">{z.co}</span>
+                                <b className="gk2-d gk2-zrodla-skad">{z.skad}</b>
+                                <span className="gk2-zrodla-opis">{z.opis}</span>
+                                {z.link ? (
+                                    <a className="gk2-e gk2-zrodla-link" href={z.link[1]} target="_blank" rel="noopener noreferrer">
+                                        {z.link[0]} ↗
+                                    </a>
+                                ) : null}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </section>
+
             <section className="gk2-smaki" ref={u("smaki")} id="gk2-smaki" data-motyw="jasny" style={{ ["--n" as any]: SMAKI.length }}>
                 <div className="gk2-smaki-scena">
                     <h2 className="gk2-sr">Smaki lodów</h2>
@@ -1939,7 +2052,7 @@ export default function KonceptFundusz2(props: Props) {
                         <div key={sm.nr} className="gk2-smak" ref={u("smak" + i)} style={{ background: sm.kolor, color: sm.tekst, zIndex: i + 1 }}>
                             <div className="gk2-smak-tekst" ref={u("smakTekst" + i)}>
                                 <div className="gk2-e">
-                                    05 — Smaki · {sm.nr} / 0{SMAKI.length}
+                                    06 — Smaki · {sm.nr} / 0{SMAKI.length}
                                 </div>
                                 <h3 className="gk2-d gk2-smak-nazwa">
                                     {sm.nazwa.map((l) => (
@@ -1968,7 +2081,7 @@ export default function KonceptFundusz2(props: Props) {
 
             <section className="gk2-noc" ref={u("noc")} id="gk2-dzien" data-motyw="ciemny">
                 <div className="gk2-noc-tekst">
-                    <div className="gk2-e">07 — Święto marki · {dzien.dlugo}</div>
+                    <div className="gk2-e">08 — Święto marki · {dzien.dlugo}</div>
                     <div className="gk2-d gk2-data gk2-wjazd" data-wjazd="">
                         {dzien.krotko}
                     </div>
@@ -1988,8 +2101,8 @@ export default function KonceptFundusz2(props: Props) {
             <section className="gk2-lokale" ref={u("lokale")} id="gk2-lokale" data-motyw="jasny">
                 <div className="gk2-lokale-gora">
                     <div>
-                        <div className="gk2-e">08 — Lokale</div>
-                        <Linie linie={["Gorzów", "na początek."]} className="gk2-h2" />
+                        <div className="gk2-e">09 — Lokale</div>
+                        <Linie linie={["Trzy adresy", "w Gorzowie."]} className="gk2-h2" />
                     </div>
                     <figure className="gk2-luk">
                         <div className="gk2-luk-okno" ref={u("okno")}>
@@ -2012,11 +2125,12 @@ export default function KonceptFundusz2(props: Props) {
                         </li>
                     ))}
                 </ul>
-                <Glosowanie />
                 <div className="gk2-deptak" ref={u("deptak")}>
-                    <span className="gk2-e gk2-deptak-napis">Następny przystanek: Twoje miasto →</span>
+                    <span className="gk2-e gk2-deptak-napis">
+                        <span>Następny przystanek:</span> <span>Sikorskiego 126 →</span>
+                    </span>
                     <div className="gk2-para" ref={u("para")}>
-                        <Wyc a={P.para} rozmiar={1024} alt="Górka i Kulka idą dalej, każde z rożkiem" />
+                        <Wyc a={P.para} rozmiar={1024} alt="Górka i Kulka idą na Sikorskiego, każde z rożkiem" />
                     </div>
                 </div>
             </section>
