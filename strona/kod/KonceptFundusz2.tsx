@@ -637,10 +637,20 @@ function Kubek(props: { tiltRef: (el: HTMLDivElement | null) => void }) {
 }
 
 // Film z gospodarstwa Juchowo (kanał Juchowo Farm na YouTubie). Do kliknięcia widać sam kadr;
-// odtwarzacz YouTube'a ładuje się dopiero po kliknięciu i startuje bez dźwięku, od ujęć z pastwiska.
+// odtwarzacz YouTube'a ładuje się dopiero po kliknięciu i startuje od ujęć z pastwiska.
 function FilmZFarmy(props: { oknoRef: (el: HTMLDivElement | null) => void }) {
-    const [gra, ustawGra] = useState(false)
+    const [gra, ustawGra] = useState<"" | "glosno" | "cicho">("")
     const [kadr, ustawKadr] = useState("maxres1")
+    const start = () => {
+        // Na telefonach i w Safari odtwarzacz rusza sam tylko bez dźwięku (YouTube pokazuje wtedy przycisk głośnika);
+        // na komputerze po kliknięciu gra od razu z dźwiękiem.
+        let cicho = true
+        try {
+            const nav = window.navigator
+            cicho = (window.matchMedia ? window.matchMedia("(hover: none)").matches : false) || /Apple/.test(nav.vendor || "") || /Mobi|Android/.test(nav.userAgent || "")
+        } catch (e) {}
+        ustawGra(cicho ? "cicho" : "glosno")
+    }
     const kadrRef = useRef<HTMLImageElement>(null)
     useEffect(() => {
         // Gdy YouTube nie ma dużego kadru, oddaje szarą miniaturę 120 px; wtedy bierzemy mniejszy kadr.
@@ -651,14 +661,14 @@ function FilmZFarmy(props: { oknoRef: (el: HTMLDivElement | null) => void }) {
         <div className={"gk2-farma-okno" + (gra ? " gk2-farma-gra" : "")} ref={props.oknoRef}>
             {gra ? (
                 <iframe
-                    src={"https://www.youtube-nocookie.com/embed/" + FARMA_FILM + "?autoplay=1&mute=1&start=" + FARMA_START + "&rel=0&playsinline=1&hl=pl"}
+                    src={"https://www.youtube-nocookie.com/embed/" + FARMA_FILM + "?autoplay=1" + (gra === "cicho" ? "&mute=1" : "") + "&start=" + FARMA_START + "&rel=0&playsinline=1&hl=pl"}
                     title="Juchowo Farm: krowy na pastwisku (film z YouTube'a)"
                     allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                     allowFullScreen
                     referrerPolicy="strict-origin-when-cross-origin"
                 />
             ) : (
-                <button type="button" className="gk2-farma-start" onClick={() => ustawGra(true)} aria-label="Odtwórz film z gospodarstwa Juchowo. Włączy się odtwarzacz YouTube'a.">
+                <button type="button" className="gk2-farma-start" onClick={start} aria-label="Odtwórz film z gospodarstwa Juchowo. Włączy się odtwarzacz YouTube'a.">
                     <img
                         ref={kadrRef}
                         src={"https://i.ytimg.com/vi/" + FARMA_FILM + "/" + kadr + ".jpg"}
