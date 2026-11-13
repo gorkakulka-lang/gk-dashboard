@@ -62,9 +62,9 @@ const KOK: Record<string, string> = {
 
 // Wypieki na Święta 2026: trzy ciasta z makiety zamówień (bez cen).
 const WYPIEKI = [
-    { f: "6jNwbhYhSQpNCiupLkUbX4Ebc.jpg", w: 840, nazwa: "Sernik waniliowy", opis: "Kremowy w\u00a0środku, mocno przypieczony z\u00a0wierzchu. Świąteczna klasyka w\u00a0naszym wydaniu." },
-    { f: "zdqTZNtOtNyLBT1wi6bLYKjYhM.jpg", w: 804, nazwa: "Makowiec", opis: "Drożdżowe ciasto zwinięte z\u00a0gęstą masą makową. Bez niego nie ma Wigilii." },
-    { f: "XZiPiwkX7kaehGjFJrxTCVpvoNo.jpg", w: 736, nazwa: "Ciasto czekoladowe", opis: "Warstwy czekoladowego biszkoptu i\u00a0kremu pod wiórkami czekolady." },
+    { f: "6jNwbhYhSQpNCiupLkUbX4Ebc.jpg", wyc: "6OiT6TePNj7plGBew2Kr0itT0.webp", w: 840, nazwa: "Sernik waniliowy", opis: "Kremowy w\u00a0środku, mocno przypieczony z\u00a0wierzchu. Świąteczna klasyka w\u00a0naszym wydaniu." },
+    { f: "zdqTZNtOtNyLBT1wi6bLYKjYhM.jpg", wyc: "iP6jW8FH9UpAKGGNFZobBkVUg.webp", w: 804, nazwa: "Makowiec", opis: "Drożdżowe ciasto zwinięte z\u00a0gęstą masą makową. Bez niego nie ma Wigilii." },
+    { f: "XZiPiwkX7kaehGjFJrxTCVpvoNo.jpg", wyc: "yXip6FRU4fEi08sgSqP5hq8c2uQ.webp", w: 736, nazwa: "Ciasto czekoladowe", opis: "Warstwy czekoladowego biszkoptu i\u00a0kremu pod wiórkami czekolady." },
 ]
 const ZAMOWIENIA = "/kolekcja-swiateczna"
 
@@ -96,11 +96,11 @@ const RYCINY = [
 // LAKA_POSTACI to arkusz części Górki i Kulki z plików marki: bez żadnego wypełnienia, wnętrza kreski są przezroczyste.
 const LAKA_TLO = obraz("XMzNJrpzWFFU7U5oqRAqU19G1jQ.webp")
 const LAKA_CZESCI = obraz("V5OsQGCvGCiZa61xIPaff10WBU.webp")
-const LAKA_POSTACI = obraz("dDgkBkxhZAUONREtHiHbIp0KpA.webp")
+const LAKA_POSTACI = obraz("XUWgDr4seXK0zZQTHXxzoINPWLo.webp")
 const LAKA_W = 1448
 const LAKA_H = 1086
 const ARK_C = [760, 383]
-const ARK_P = [720, 508]
+const ARK_P = [720, 511]
 // Części krów i trawy: rodzaj (o = ogniwo ogona, g = łeb skubiący, w = łeb krowy z przodu, która skubie i wącha Kulkę, n = łeb kiwający,
 // k = kępa trawy, p = kępa przed postaciami),
 // x, y, szer., wys. na rysunku, x i y na arkuszu, przegub x i y, wychylenie w stopniach, rytm i start w sekundach, numer ogona, numer ogniwa.
@@ -141,23 +141,23 @@ const LAKA_OPIS: (string | number)[][] = [
 // Górka i Kulka: ramka na rysunku (x, y, skala), rozmiar ramki w pikselach źródła, zwrot (1 = w prawo), liczba kroków wejścia, czas kroku,
 // uniesienie stopy, wysokość podskoku, sprężystość tułowia; osie obrotu nóg, tułowia i głowy; punkt zawieszenia wiadra i długość wahadła (puste, gdy bez wiadra);
 // czy stoi przy łbie krowy z przodu (krowa go wącha); nogi (przednia, tylna): kąt, promień, kierunek podeszwy, kostka;
-// części w kolejności: noga tylna, stopa tylna, noga przednia, stopa przednia, podkład głowy, tułów, głowa, wiadro, pięść nad pałąkiem (brak = null):
+// części w kolejności: noga tylna, stopa tylna, noga przednia, stopa przednia, podkład głowy, tułów, głowa, wiadro, pięść nad pałąkiem, przedramię z lodem (brak = null):
 // x, y, szer., wys. w ramce, potem x, y, szer., wys. na arkuszu.
-type LakaPostac = { x: number; y: number; s: number; w: number; h: number; dir: number; kroki: number; takt: number; unos: number; skok: number; zgniot: number; osNog: number[]; osTulowia: number[]; osGlowy: number[]; osWiadra: number[]; przyLbie: number; nogi: number[][]; cz: (number[] | null)[] }
+type LakaPostac = { x: number; y: number; s: number; w: number; h: number; dir: number; kroki: number; takt: number; unos: number; skok: number; zgniot: number; osNog: number[]; osTulowia: number[]; osGlowy: number[]; osWiadra: number[]; osReki: number[]; przyLbie: number; nogi: number[][]; cz: (number[] | null)[] }
 const LAKA_POSTACIE: LakaPostac[] = [
     {
         x: 180, y: 686, s: 0.40146, w: 453, h: 822, dir: 1, kroki: 5, takt: 0.54, unos: 22, skok: 50, zgniot: 0.012,
         osNog: [222.5, 166.5], osTulowia: [226.5, 330.5], osGlowy: [249.5, 182.5],
-        osWiadra: [229.5, 378.5, 140], przyLbie: 0,
+        osWiadra: [229.5, 378.5, 140], osReki: [], przyLbie: 0,
         nogi: [[10.26, 629.1, -40.5, 334.5, 785.5], [-14.5, 631.1, 34.2, 64.5, 777.5]],
-        cz: [[38.88, 405.31, 148.47, 382.3, 270, 6, 84, 216], [44.19, 761.05, 81.3, 61.95, 122, 452, 46, 35], [226.23, 440.7, 116.65, 366.37, 360, 6, 66, 207], [318.14, 727.43, 95.44, 88.49, 6, 452, 54, 50], null, [0, 153.98, 456, 426.54, 6, 6, 258, 241], [102.51, 0, 226.23, 200, 450, 253, 128, 113], [143.16, 366.37, 173.21, 228.32, 168, 253, 98, 129], [167.91, 325.66, 125.49, 93.8, 584, 253, 71, 53]],
+        cz: [[38.88, 405.31, 148.47, 382.3, 270, 6, 84, 216], [44.19, 761.05, 81.3, 61.95, 199, 452, 46, 35], [226.23, 440.7, 116.65, 366.37, 360, 6, 66, 207], [318.14, 727.43, 95.44, 88.49, 83, 452, 54, 50], null, [0, 153.98, 456, 426.54, 6, 6, 258, 241], [102.51, 0, 226.23, 200, 576, 253, 128, 113], [143.16, 366.37, 173.21, 228.32, 168, 253, 98, 129], [167.91, 325.66, 125.49, 93.8, 6, 452, 71, 53], null],
     }, // Górka
     {
         x: 792, y: 630, s: 0.50734, w: 326, h: 749, dir: -1, kroki: 7, takt: 0.5, unos: 15, skok: 56, zgniot: 0.022,
         osNog: [172.5, 323.5], osTulowia: [165.5, 340.5], osGlowy: [173.5, 190.5],
-        osWiadra: [], przyLbie: 1,
+        osWiadra: [], osReki: [282.5, 331.5], przyLbie: 1,
         nogi: [[-15.26, 410.5, -142, 64.5, 719.5], [13.38, 401.9, 146.9, 265.5, 714.5]],
-        cz: [[186.85, 445.53, 95.03, 264.73, 103, 253, 59, 164], [217.45, 697.34, 69.26, 51.66, 174, 452, 43, 32], [28.99, 427.77, 146.58, 311.55, 6, 253, 91, 193], [0, 669.9, 80.54, 74.25, 66, 452, 50, 46], [77.32, 0, 135.3, 203.39, 272, 253, 84, 126], [0, 175.95, 330.21, 329.3, 432, 6, 205, 204], [77.32, 0, 132.08, 201.78, 362, 253, 82, 125], null, null],
+        cz: [[186.85, 445.53, 95.03, 264.73, 103, 253, 59, 164], [217.45, 697.34, 69.26, 51.66, 251, 452, 43, 32], [28.99, 427.77, 146.58, 311.55, 6, 253, 91, 193], [0, 669.9, 80.54, 74.25, 143, 452, 50, 46], [77.32, 0, 135.3, 203.39, 272, 253, 84, 126], [0, 175.95, 330.21, 329.3, 432, 6, 205, 204], [77.32, 0, 132.08, 201.78, 362, 253, 82, 125], null, null, [86.98, 206.62, 193.29, 185.64, 450, 253, 120, 115]],
     }, // Kulka
 ]
 // Prawdziwe krowy: film gospodarstwa na YouTubie, od ujęć z pastwiska.
@@ -602,6 +602,113 @@ function Kokarda(props: { u: (k: string) => (el: any) => void }) {
     )
 }
 
+// Termin wigilii: kalendarz w stylu strony zamiast systemowego. Miesiące liczone dopiero po otwarciu (bez rozjazdu z wersją z serwera).
+const MIESIACE = ["styczeń", "luty", "marzec", "kwiecień", "maj", "czerwiec", "lipiec", "sierpień", "wrzesień", "październik", "listopad", "grudzień"]
+const MIESIACE_D = ["stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca", "lipca", "sierpnia", "września", "października", "listopada", "grudnia"]
+const DNI_TYG = ["pn", "wt", "śr", "cz", "pt", "so", "nd"]
+const DNI_PELNE = ["niedziela", "poniedziałek", "wtorek", "środa", "czwartek", "piątek", "sobota"]
+
+function Termin() {
+    const [otwarty, ustawOtwarty] = useState(false)
+    const [wybrany, ustawWybrany] = useState<null | { r: number; m: number; d: number }>(null)
+    const [widok, ustawWidok] = useState(-1) // rok * 12 + miesiąc
+    const [dzis, ustawDzis] = useState(-1) // rok * 10000 + miesiąc * 100 + dzień
+    const ref = useRef<HTMLDivElement>(null)
+    const otworz = () => {
+        const t = new Date()
+        const d0 = t.getFullYear() * 10000 + t.getMonth() * 100 + t.getDate()
+        ustawDzis(d0)
+        if (widok < 0) ustawWidok(wybrany ? wybrany.r * 12 + wybrany.m : t.getMonth() === 11 || t.getMonth() < 11 ? t.getFullYear() * 12 + 11 : t.getFullYear() * 12 + t.getMonth())
+        ustawOtwarty(true)
+    }
+    useEffect(() => {
+        if (!otwarty) return
+        const poza = (e: Event) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) ustawOtwarty(false)
+        }
+        const klawisz = (e: KeyboardEvent) => {
+            if (e.key === "Escape") ustawOtwarty(false)
+        }
+        document.addEventListener("pointerdown", poza)
+        document.addEventListener("keydown", klawisz)
+        return () => {
+            document.removeEventListener("pointerdown", poza)
+            document.removeEventListener("keydown", klawisz)
+        }
+    }, [otwarty])
+    const iso = wybrany ? wybrany.r + "-" + dwa(wybrany.m + 1) + "-" + dwa(wybrany.d) : ""
+    const opis = wybrany ? DNI_PELNE[new Date(wybrany.r, wybrany.m, wybrany.d).getDay()] + ", " + wybrany.d + " " + MIESIACE_D[wybrany.m] + " " + wybrany.r : "Wybierz dzień"
+    const rok = Math.floor(widok / 12)
+    const mies = widok % 12
+    const komorki: Array<null | { d: number; klucz: number }> = []
+    if (widok >= 0) {
+        const pierwszy = (new Date(rok, mies, 1).getDay() + 6) % 7
+        const ile = new Date(rok, mies + 1, 0).getDate()
+        for (let i = 0; i < pierwszy; i++) komorki.push(null)
+        for (let d = 1; d <= ile; d++) komorki.push({ d, klucz: rok * 10000 + mies * 100 + d })
+    }
+    const minWidok = dzis >= 0 ? Math.floor(dzis / 10000) * 12 + (Math.floor(dzis / 100) % 100) : 0
+    return (
+        <div className="gk2-pole gk2-termin" ref={ref}>
+            <span className="gk2-e" id="gk2-termin-etykieta">
+                Termin
+            </span>
+            <button
+                type="button"
+                className={"gk2-termin-pole" + (wybrany ? " gk2-termin-pelne" : "")}
+                aria-haspopup="dialog"
+                aria-expanded={otwarty}
+                aria-labelledby="gk2-termin-etykieta gk2-termin-wartosc"
+                onClick={() => (otwarty ? ustawOtwarty(false) : otworz())}
+            >
+                <span id="gk2-termin-wartosc">{opis}</span>
+                <i aria-hidden="true">{otwarty ? "↑" : "↓"}</i>
+            </button>
+            <input className="gk2-termin-ukryte" type="text" name="termin" required value={iso} onChange={() => {}} onInvalid={() => otworz()} tabIndex={-1} aria-hidden="true" />
+            {otwarty && widok >= 0 ? (
+                <div className="gk2-kalendarz" role="dialog" aria-label="Wybierz dzień wigilii firmowej">
+                    <div className="gk2-kalendarz-gora">
+                        <button type="button" aria-label="Poprzedni miesiąc" disabled={widok <= minWidok} onClick={() => ustawWidok(widok - 1)}>
+                            ←
+                        </button>
+                        <span className="gk2-e">{MIESIACE[mies] + " " + rok}</span>
+                        <button type="button" aria-label="Następny miesiąc" disabled={widok >= minWidok + 14} onClick={() => ustawWidok(widok + 1)}>
+                            →
+                        </button>
+                    </div>
+                    <div className="gk2-kalendarz-siatka">
+                        {DNI_TYG.map((d) => (
+                            <span key={d} className="gk2-e gk2-kalendarz-dt" aria-hidden="true">
+                                {d}
+                            </span>
+                        ))}
+                        {komorki.map((c, i) =>
+                            c ? (
+                                <button
+                                    key={c.klucz}
+                                    type="button"
+                                    disabled={c.klucz < dzis}
+                                    aria-pressed={!!wybrany && wybrany.r === rok && wybrany.m === mies && wybrany.d === c.d}
+                                    aria-label={c.d + " " + MIESIACE_D[mies] + " " + rok}
+                                    className={c.klucz === dzis ? "gk2-kalendarz-dzis" : undefined}
+                                    onClick={() => {
+                                        ustawWybrany({ r: rok, m: mies, d: c.d })
+                                        ustawOtwarty(false)
+                                    }}
+                                >
+                                    {c.d}
+                                </button>
+                            ) : (
+                                <span key={"p" + i} />
+                            )
+                        )}
+                    </div>
+                </div>
+            ) : null}
+        </div>
+    )
+}
+
 // Zapytanie o wigilię firmową. Makieta: nic nie jest wysyłane.
 function Zapytanie() {
     const [wyslane, ustawWyslane] = useState(false)
@@ -624,10 +731,7 @@ function Zapytanie() {
                 <span className="gk2-e">Firma</span>
                 <input type="text" name="firma" required autoComplete="organization" placeholder="Nazwa firmy" />
             </label>
-            <label className="gk2-pole">
-                <span className="gk2-e">Termin</span>
-                <input type="date" name="termin" required />
-            </label>
+            <Termin />
             <label className="gk2-pole">
                 <span className="gk2-e">Liczba osób</span>
                 <input type="number" name="osoby" required min={2} inputMode="numeric" placeholder="np. 12" />
@@ -736,6 +840,7 @@ function kawalekOs(p: LakaPostac, j: number): number[] {
     if (j === 3) return [p.nogi[0][3], p.nogi[0][4]]
     if (j === 5 || j === 8) return p.osTulowia
     if (j === 7) return p.osWiadra
+    if (j === 9) return p.osReki
     return p.osGlowy
 }
 
@@ -785,7 +890,7 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
     // Postaci: model chodu wynika z rysunku. Obie nogi kręcą się wokół jednej osi, w spoczynku stoją w rozkroku +-alf.
     const postaci = LAKA_POSTACIE.map((p, k) => {
         const box = laka.querySelector('[data-postac="' + k + '"]') as HTMLElement | null
-        const kaw: Array<HTMLElement | null> = [null, null, null, null, null, null, null, null, null]
+        const kaw: Array<HTMLElement | null> = [null, null, null, null, null, null, null, null, null, null]
         if (box) {
             const l = box.querySelectorAll("[data-kaw]")
             for (let i = 0; i < l.length; i++) {
@@ -811,14 +916,27 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
     const T_ZYCIE = T_SKOK + 1.0 // odtąd postaci stoją i żyją
     const POD_OD = 840 // podkład pod głową Kulki gaśnie między tymi pozycjami (piksele rysunku): dalej w lewo jest już sama łąka
     const POD_DO = 913
-    // Krowa z przodu wącha Kulkę: przerywa skubanie, podnosi łeb w jego stronę i węszy, a on cofa się z lodem.
-    // Pierwszy raz zaraz po powitaniu, potem co kilkanaście sekund.
+    // Krowa z przodu wącha Kulkę: przerywa skubanie, podnosi łeb w jego stronę i węszy („Muu?”),
+    // a Kulka odskakuje krok w tył i podnosi loda pod samą brodę. Pierwszy raz zaraz po powitaniu, potem co 12 sekund.
     const T_WACHA = T_SKOK + 0.9
-    const CO_ILE_WACHA = 13.5
+    const CO_ILE_WACHA = 12
+    const fazaWachania = (tw: number) => (tw < T_WACHA ? -1 : (tw - T_WACHA) % CO_ILE_WACHA)
     const wacha = (tw: number) => {
-        if (tw < T_WACHA) return 0
-        const x = (tw - T_WACHA) % CO_ILE_WACHA
-        return x < 0.6 ? gl(x / 0.6) : x < 2.5 ? 1 : x < 3.3 ? 1 - gl((x - 2.5) / 0.8) : 0
+        const x = fazaWachania(tw)
+        if (x < 0) return 0
+        return x < 0.6 ? gl(x / 0.6) : x < 2.9 ? 1 : x < 3.7 ? 1 - gl((x - 2.9) / 0.8) : 0
+    }
+    // Kulka reaguje z opóźnieniem: szybki odskok, a gdy krowa wraca do trawy, spokojny powrót na miejsce.
+    const odskok = (tw: number) => {
+        const x = fazaWachania(tw) - 0.45
+        if (x < 0) return { o: 0, lot: 0 }
+        if (x < 0.3) return { o: 1 - Math.pow(1 - x / 0.3, 3), lot: sin((Math.PI * x) / 0.3) }
+        if (x < 2.75) return { o: 1, lot: 0 }
+        if (x < 3.55) {
+            const v = (x - 2.75) / 0.8
+            return { o: 1 - gl(v), lot: 0.45 * sin(Math.PI * v) }
+        }
+        return { o: 0, lot: 0 }
     }
 
     // Ile kroków jest już za postacią w chwili tau.
@@ -911,19 +1029,24 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
             const xb = (s2 + f.faza * 2.6) % 11.4
             if (xb < 0.5) zg += 0.03 * Math.pow(sin((Math.PI * xb) / 0.5), 2)
         }
+        let cofa = 0
+        let reka = 0
         if (p.przyLbie) {
-            // krowa wącha: Kulka odchyla się do tyłu i odsuwa loda od jej nosa
-            const r = wacha(tw - 0.25)
-            rho -= p.dir * 5 * r
-            eta -= p.dir * 4 * r
+            // krowa wącha: Kulka odskakuje w tył, odchyla się i podnosi loda pod brodę, z dala od krowiego nosa
+            const r = odskok(tw)
+            cofa = 46 * r.o
+            by -= 26 * r.lot
+            rho -= p.dir * 9 * r.o
+            eta -= p.dir * 5 * r.o
+            reka = 36 * gl(r.o * 1.25)
         }
         // Droga do miejsca. Ziemia pod stopami z rysunku nie jest idealnie pozioma (pięta przedniej stopy stoi odrobinę niżej),
         // więc ciało idzie po tej samej, lekko pochyłej linii: wtedy stopa podporowa nie drga ani w poziomie, ani w pionie.
         const zostalo = (p.kroki - d) * f.krok
-        const bx = -p.dir * zostalo * cos(f.gam * RAD)
+        const bx = -p.dir * (zostalo * cos(f.gam * RAD) + cofa)
         const nadZiemia = by + skok // o tyle ciało jest teraz wyżej, niż stoi ziemia (ujemne = w górze)
         by += p.dir * zostalo * sin(f.gam * RAD)
-        return { d, bx, by, skok, nadZiemia, rho, eta, zg, fiF, fiB, kF, kB, nF, nB, wyrown }
+        return { d, bx, by, skok, nadZiemia, rho, eta, zg, fiF, fiB, kF, kB, nF, nB, wyrown, reka }
     }
 
     // Gdzie trafia punkt przyczepiony do tułowia, gdy tułów się przechyla i sprężynuje (piksele rysunku postaci, względem ramki).
@@ -1014,6 +1137,13 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
             const w = naTulowiu(p, q, p.osWiadra[0], p.osWiadra[1])
             wia.style.transform = "translate(" + pr(((w[0] - p.osWiadra[0]) / cw[2]) * 100) + "," + pr(((w[1] - p.osWiadra[1]) / cw[3]) * 100) + ") rotate(" + (f.th / RAD).toFixed(2) + "deg)"
         }
+        // przedramię z lodem kręci się w łokciu, a łokieć jedzie razem z tułowiem
+        const rk = f.kaw[9]
+        const crk = p.cz[9]
+        if (rk && crk && p.osReki.length > 1) {
+            const w = naTulowiu(p, q, p.osReki[0], p.osReki[1])
+            rk.style.transform = "translate(" + pr(((w[0] - p.osReki[0]) / crk[2]) * 100) + "," + pr(((w[1] - p.osReki[1]) / crk[3]) * 100) + ") rotate(" + (q.rho - p.dir * q.reka).toFixed(2) + "deg)"
+        }
         const gw = naTulowiu(p, q, p.osGlowy[0], p.osGlowy[1])
         const gx = gw[0] - p.osGlowy[0]
         const gy = gw[1] - p.osGlowy[1]
@@ -1035,7 +1165,19 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
         }
     }
 
+    const muu = laka.querySelector("[data-muu]") as HTMLElement | null
+    let muuStan = ""
     const krowy = (t: number, tw: number) => {
+        if (muu) {
+            const x = fazaWachania(tw)
+            const v = x < 0.5 || x > 2.85 ? 0 : x < 0.72 ? gl((x - 0.5) / 0.22) : x > 2.6 ? 1 - gl((x - 2.6) / 0.25) : 1
+            const s = v <= 0 ? "" : v.toFixed(2)
+            if (s !== muuStan) {
+                muuStan = s
+                muu.style.opacity = s || "0"
+                muu.style.transform = "translate(-50%, -100%) scale(" + (0.6 + 0.4 * v + (v > 0 && v < 1 ? 0.08 * sin(Math.PI * v) : 0)).toFixed(3) + ") rotate(-4deg)"
+            }
+        }
         for (let i = 0; i < LAKA_OPIS.length; i++) {
             const c = LAKA_OPIS[i]
             const e = cz[i]
@@ -1051,7 +1193,7 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
                 if (c[0] === "w") {
                     // krowa z przodu podnosi łeb w stronę Kulki i węszy krótkimi, szybkimi kiwnięciami
                     const wq = wacha(tw)
-                    if (wq > 0) a = a * (1 - wq) + wq * (-8 + 1.1 * sin(DWA_PI * 3.1 * t))
+                    if (wq > 0) a = a * (1 - wq) + wq * (-8.6 + 1.5 * sin(DWA_PI * 3.4 * t))
                 }
                 e.style.transform = "rotate(" + a.toFixed(2) + "deg)"
             } else if (c[0] === "n") {
@@ -1097,6 +1239,11 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
                     jy += sa * dx + ca * dy
                 }
                 let a = kat * 0.1 * sin((DWA_PI * f) / (okres * 0.83) - 0.7 * i + st)
+                if (o === 2) {
+                    // krowa z przodu macha ogonem z przejęcia, gdy wącha loda
+                    const wq = wacha(tw)
+                    if (wq > 0) a += kat * 0.55 * wq * sin(DWA_PI * 2.1 * t - 0.85 * i)
+                }
                 // machnięcia: bierzemy też następne (mogło zacząć się odrobinę przed czasem) i poprzednie (jeszcze wygasa)
                 for (let k = -1; k < 2; k++) {
                     const n = n0 - k
@@ -1256,6 +1403,9 @@ function Laka(props: { oknoRef: (el: HTMLDivElement | null) => void }) {
                     </span>
                 ))}
                 {LAKA_OPIS.map((c, i) => (c[0] === "p" ? <i key={i} data-cz={i} className="gk2-laka-cz" style={czescStyl(c)} aria-hidden="true" /> : null))}
+                <span className="gk2-laka-muu gk2-e" data-muu="1" aria-hidden="true">
+                    Muu?
+                </span>
             </div>
         </div>
     )
@@ -1336,6 +1486,9 @@ const CSS_A = [
     ".gk2-ilu { position: absolute; right: 5vw; bottom: calc(var(--vh) * 3); height: var(--ih); aspect-ratio: 952 / 636; pointer-events: none; transform-origin: 50% 100%; will-change: transform; }",
     ".gk2-ilu i { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; background-color: #D0D0D0; background-repeat: no-repeat; background-size: calc(100% - 4px) calc(100% - 4px), 100% 100%; background-position: 2px 2px, 0 0; background-blend-mode: multiply, normal; }",
     ".gk2-kolor .gk2-ilu i { background-color: var(--roz); }",
+    // Deszcz w Gorzowie: Szary Dzień siedzi pod różowym parasolem z plików marki (na szarej stronie parasol też jest szary).
+    ".gk2-ilu i.gk2-parasol-stolik { left: 25.6%; top: -38.5%; width: 69%; height: 104%; opacity: 1; background-color: transparent; background-size: 100% 100%; background-position: 0 0; mix-blend-mode: normal; transform: rotate(-15.4deg); transform-origin: 36.8% 88%; clip-path: inset(0 0 12% 0); transition: none; }",
+    ".gk2-szara .gk2-ilu i.gk2-parasol-stolik { filter: grayscale(1) brightness(1.08) contrast(.9); }",
     ".gk2-ilu i + i { opacity: 0; transition: opacity .32s ease; }",
     ".gk2-ryc { position: absolute; left: var(--m); bottom: calc(var(--vh) * 5); display: grid; gap: 4px; z-index: 2; max-width: calc(95vw - var(--m) - var(--ih) * 1.497 - 16px); }",
     ".gk2-ryc span + span { opacity: .6; }",
@@ -1349,12 +1502,14 @@ const CSS_A = [
     "@media (hover: none) { .gk2-tylko-mysz { display: none; } .gk2-tylko-dotyk { display: inline; } }",
 
     "/* 2. Manifest */",
-    ".gk2-manifest { position: relative; padding: calc(var(--vh) * 16) var(--m) calc(var(--vh) * 12); background: var(--roz); overflow: clip; }",
+    ".gk2-manifest { position: relative; padding: calc(var(--vh) * 16) var(--m) calc(var(--vh) * 12); background: #D9D6D1; overflow: clip; }",
     ".gk2-manifest-tekst { margin-top: calc(var(--vh) * 12); font-size: clamp(30px, 4.5vw, 78px); line-height: 1; max-width: 1340px; }",
     ".gk2-slowo { opacity: 1; transition: opacity .2s linear; }",
     ".gk2-js .gk2-slowo { opacity: .13; }",
-    ".gk2-slowo-szare { color: #8D8D8D; }",
-    ".gk2-slowo-rubin { color: var(--rubin); }",
+    ".gk2-slowo-szare { color: #85827E; }",
+    // Jedyny kolor w szarym manifeście: słowo KOLOR jak zakreślacz, przechodzi przez barwy smaków.
+    ".gk2-zakreslacz { color: var(--tusz); background-color: var(--roz); padding: 0 .07em; margin: 0 -.07em; border-radius: .07em; -webkit-box-decoration-break: clone; box-decoration-break: clone; animation: gk2-zakreslacz 9s ease-in-out infinite; }",
+    "@keyframes gk2-zakreslacz { 0%, 13% { background-color: #F7C2CF; color: #111111; } 17%, 30% { background-color: #FFB23E; color: #111111; } 34%, 47% { background-color: #A9BD78; color: #111111; } 51%, 64% { background-color: #B4652F; color: #FFF3E2; } 68%, 81% { background-color: #D3D77C; color: #111111; } 85%, 96% { background-color: #FFE295; color: #111111; } 100% { background-color: #F7C2CF; color: #111111; } }",
     ".gk2-plaza { position: relative; margin-top: calc(var(--vh) * 5); height: clamp(190px, 25vw, 400px); pointer-events: none; will-change: transform; }",
     ".gk2-plaza-parasol { position: absolute; right: 19vw; bottom: 3%; width: clamp(150px, 19vw, 310px); transform-origin: 46% 96%; animation: gk2-kolys 7s ease-in-out infinite; }",
     ".gk2-plaza-lezak { position: absolute; right: 1vw; bottom: 0; width: clamp(210px, 27vw, 440px); }",
@@ -1379,7 +1534,7 @@ const CSS_A = [
     ".gk2-kino-tytul { font-size: 8.4vw; line-height: 1; color: var(--roz); white-space: nowrap; will-change: transform; }",
     ".gk2-portal { position: relative; overflow: hidden; border-radius: 22px; background: #1B1A18; will-change: transform, clip-path; }",
     ".gk2-portal-1 { flex: none; height: calc(var(--vh) * 78); aspect-ratio: 9 / 16; z-index: 2; margin-top: 30px; }",
-    ".gk2-portal-2 { position: absolute; right: 6vw; bottom: calc(var(--vh) * -5); height: calc(var(--vh) * 46); aspect-ratio: 9 / 16; z-index: 3; opacity: 0; box-shadow: 0 40px 80px -30px rgba(0,0,0,.85); }",
+    ".gk2-portal-2 { position: absolute; right: 6vw; bottom: calc(var(--vh) * -11); height: calc(var(--vh) * 40); aspect-ratio: 9 / 16; z-index: 3; opacity: 0; box-shadow: 0 40px 80px -30px rgba(0,0,0,.85); }",
     ".gk2-portal-podpis { position: absolute; left: 14px; right: 14px; top: 12px; z-index: 2; color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,.6); }",
     ".gk2-film { position: absolute; inset: 0; }",
     ".gk2-film video, .gk2-film-zdjecia img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }",
@@ -1400,7 +1555,15 @@ const CSS_B = [
     ".gk2-swieta-lep { position: sticky; top: 0; min-height: calc(var(--vh) * 100); overflow: hidden; }",
     ".gk2-swieta-droga { display: none; height: calc(var(--vh) * 230); }",
     ".gk2-js .gk2-swieta-droga { display: block; }",
-    ".gk2-sklep { position: relative; min-height: calc(var(--vh) * 100); padding: 92px var(--m) calc(var(--vh) * 6); display: grid; grid-template-columns: .8fr 1.5fr; gap: 4.5vw; align-items: center; }",
+    ".gk2-sklep { position: relative; overflow: hidden; min-height: calc(var(--vh) * 100); padding: 92px var(--m) calc(var(--vh) * 6); display: grid; grid-template-columns: .8fr 1.5fr; gap: 4.5vw; align-items: center;",
+    // Rozwinięty papier od środka: jaśniejszy, z zagięciami tam, gdzie szła wstążka, i z ledwo widocznymi kropkami.
+    "  background-color: #F9DCE3; background-image: linear-gradient(90deg, transparent calc(70% - 2px), rgba(130,40,62,.10) calc(70% - 1px), rgba(255,255,255,.55) 70%, transparent calc(70% + 3px)), linear-gradient(180deg, transparent calc(58% - 2px), rgba(130,40,62,.10) calc(58% - 1px), rgba(255,255,255,.55) 58%, transparent calc(58% + 3px)), radial-gradient(120% 90% at 70% 58%, rgba(255,255,255,.35), rgba(255,255,255,0) 60%), radial-gradient(circle, rgba(255,255,255,.3) 0 4.5px, rgba(255,255,255,0) 5.5px), radial-gradient(circle, rgba(255,255,255,.3) 0 4.5px, rgba(255,255,255,0) 5.5px);",
+    "  background-size: 100% 100%, 100% 100%, 100% 100%, 56px 56px, 56px 56px; background-position: 0 0, 0 0, 0 0, 0 0, 28px 28px; }",
+    ".gk2-sklep > *:not(.gk2-sklep-wstazka):not(.gk2-sklep-kokarda) { position: relative; z-index: 1; }",
+    ".gk2-sklep-wstazka { position: absolute; z-index: 0; display: block; height: clamp(30px, 3.4vw, 58px); background: " + ZIARNO + " 0 0 / 200px 200px, linear-gradient(180deg, " + AKSAMIT + "); box-shadow: 0 10px 22px -10px rgba(70,10,20,.5); pointer-events: none; }",
+    ".gk2-sklep-wstazka-a { right: -8vw; top: 9%; width: 38vw; transform: rotate(-17deg); border-radius: 2px; }",
+    ".gk2-sklep-wstazka-b { left: -7vw; bottom: 6%; width: 31vw; transform: rotate(7deg); }",
+    ".gk2-sklep-kokarda { position: absolute; z-index: 0; display: block; right: 1.5vw; top: 1%; width: clamp(110px, 12vw, 210px); aspect-ratio: 1000 / 941; background: url(" + KOKARDA + ") 0 0 / 100% 100% no-repeat; transform: rotate(24deg); filter: drop-shadow(0 12px 14px rgba(70,10,20,.35)); pointer-events: none; }",
     ".gk2-h2-sklep { font-size: clamp(46px, 7vw, 124px); }",
     ".gk2-sklep .gk2-lead { margin-top: 24px; }",
     ".gk2-fakty { margin: 26px 0 30px; border-top: 1.5px solid var(--tusz); font-size: 12px; line-height: 1.5; letter-spacing: .05em; text-transform: uppercase; }",
@@ -1410,9 +1573,9 @@ const CSS_B = [
     ".gk2-fakty dd b { font-weight: 400; white-space: nowrap; }",
     ".gk2-wypieki { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.8vw; align-items: start; }",
     ".gk2-wypiek { display: grid; gap: 8px; align-content: start; }",
-    ".gk2-wypiek-foto { position: relative; display: block; aspect-ratio: 1 / 1.14; border-radius: 22px; background-color: #FDFBF6; overflow: hidden; transition: background-color .35s ease; }",
-    ".gk2-wypiek-foto i { position: absolute; left: -12%; top: -6.5%; width: 124%; aspect-ratio: 1; display: block; background-color: #FDFBF6; background-repeat: no-repeat; background-size: 100% 100%; background-blend-mode: multiply; transition: background-color .35s ease, transform .6s cubic-bezier(.2,.85,.25,1); }",
-    "@media (hover: hover) { .gk2-wypiek:hover .gk2-wypiek-foto, .gk2-wypiek:hover .gk2-wypiek-foto i { background-color: var(--roz); } .gk2-wypiek:hover .gk2-wypiek-foto i { transform: scale(1.07) rotate(-2deg); } }",
+    ".gk2-wypiek-foto { position: relative; display: block; aspect-ratio: 1 / .78; }",
+    ".gk2-wypiek-foto i { position: absolute; left: -9%; top: 0; width: 118%; height: 100%; display: block; background-repeat: no-repeat; background-size: contain; background-position: 50% 100%; transition: transform .45s cubic-bezier(.3,.7,.3,1); transform-origin: 50% 90%; }",
+    "@media (hover: hover) { .gk2-wypiek:hover .gk2-wypiek-foto i { transform: translateY(-4%) scale(1.06) rotate(-2deg); } }",
     ".gk2-wypiek-nr { margin-top: 8px; display: flex; align-items: center; gap: 8px; }",
     ".gk2-wypiek-nr::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--rubin); }",
     ".gk2-wypiek-nazwa { font-size: clamp(24px, 2.7vw, 46px); line-height: .92; }",
@@ -1474,12 +1637,29 @@ const CSS_B = [
     ".gk2-pole input { width: 100%; min-width: 0; min-height: 46px; background: transparent; border: 0; border-bottom: 1.5px solid var(--tusz); border-radius: 0; color: var(--tusz); padding: 10px 2px 12px; font: inherit; font-size: 16px; outline: none; transition: border-color .25s ease; }",
     ".gk2-pole input:focus { border-bottom-color: var(--rubin); }",
     ".gk2-pole input::placeholder { color: rgba(17,17,17,.42); }",
+    ".gk2-termin { position: relative; }",
+    ".gk2-termin-pole { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 46px; background: transparent; border: 0; border-bottom: 1.5px solid var(--tusz); border-radius: 0; padding: 10px 2px 12px; font: inherit; font-size: 16px; color: rgba(17,17,17,.42); text-align: left; cursor: pointer; }",
+    ".gk2-termin-pelne { color: var(--tusz); }",
+    ".gk2-termin-pole:focus-visible, .gk2-termin-pole[aria-expanded=true] { border-bottom-color: var(--rubin); outline: none; }",
+    ".gk2-termin-pole i { font-style: normal; color: var(--tusz); }",
+    ".gk2-termin-ukryte { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }",
+    ".gk2-kalendarz { position: absolute; left: 0; top: calc(100% + 8px); z-index: 30; width: min(320px, 86vw); padding: 14px; background: #FBF4EC; color: var(--tusz); border: 1px solid var(--tusz); border-radius: 18px; box-shadow: 0 24px 50px -24px rgba(40,30,20,.45); }",
+    ".gk2-kalendarz-gora { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }",
+    ".gk2-kalendarz-gora button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--tusz); background: transparent; color: var(--tusz); cursor: pointer; font: inherit; }",
+    ".gk2-kalendarz-gora button:disabled { opacity: .25; cursor: default; }",
+    ".gk2-kalendarz-siatka { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; text-align: center; }",
+    ".gk2-kalendarz-dt { opacity: .55; padding: 4px 0; }",
+    ".gk2-kalendarz-siatka button { aspect-ratio: 1; border: 0; border-radius: 50%; background: transparent; color: var(--tusz); font: inherit; font-size: 14px; cursor: pointer; }",
+    ".gk2-kalendarz-siatka button:hover:not(:disabled) { background: var(--roz); }",
+    ".gk2-kalendarz-siatka button:disabled { opacity: .25; cursor: default; }",
+    ".gk2-kalendarz-siatka button[aria-pressed=true] { background: var(--tusz); color: var(--maslo); }",
+    ".gk2-kalendarz-dzis { box-shadow: inset 0 0 0 1px var(--tusz); }",
     ".gk2-zapytanie-dol { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 8px; }",
     ".gk2-zapytanie-dol .gk2-drobny { margin-top: 0; }",
     ".gk2-zapytanie-dzieki { margin-top: 34px; max-width: 760px; }",
 
     "/* 5b. Od podstaw: skąd mleko, śmietanka i jajka; film z gospodarstwa */",
-    ".gk2-zrodla { position: relative; background: var(--roz); padding: calc(var(--vh) * 18) var(--m) calc(var(--vh) * 16); overflow: clip; }",
+    ".gk2-zrodla { position: relative; background: var(--krem); padding: calc(var(--vh) * 18) var(--m) calc(var(--vh) * 16); overflow: clip; }",
     ".gk2-zrodla-glowa, .gk2-zrodla-rzad { display: grid; grid-template-columns: 1.62fr 1fr; column-gap: 4vw; }",
     ".gk2-zrodla-glowa { align-items: end; }",
     ".gk2-zrodla-rzad { margin-top: calc(var(--vh) * 8); align-items: stretch; }",
@@ -1497,6 +1677,9 @@ const CSS_B = [
     ".gk2-laka-kaw { position: absolute; display: block; background-repeat: no-repeat; will-change: transform; }",
     ".gk2-laka-blisko .gk2-laka-kaw { background-image: url(" + LAKA_POSTACI + "); }",
     ".gk2-laka-pod { opacity: 0; }",
+    // „Muu?” krowy z przodu, gdy wącha loda Kulki
+    ".gk2-laka-muu { position: absolute; left: 49.6%; top: 65.6%; padding: 6px 11px 5px; border-radius: 999px; background: #FBF4EC; border: 1px solid var(--tusz); color: var(--tusz); white-space: nowrap; opacity: 0; transform: translate(-50%, -100%) scale(.6); transform-origin: 70% 100%; box-shadow: 0 6px 16px -10px rgba(40,30,20,.5); pointer-events: none; }",
+    ".gk2-laka-muu::after { content: ''; position: absolute; left: 66%; bottom: -6px; width: 9px; height: 9px; background: #FBF4EC; border-right: 1px solid var(--tusz); border-bottom: 1px solid var(--tusz); transform: rotate(45deg); }",
     // Cień pod stopami, w kolorze cieni pod krowami: bez niego postaci wyglądałyby na doklejone.
     ".gk2-laka-cien { position: absolute; display: block; left: -9%; width: 118%; top: 96.2%; height: 5.6%; background: radial-gradient(ellipse at 50% 50%, rgba(123,120,61,.34) 0%, rgba(123,120,61,.22) 38%, rgba(123,120,61,0) 70%); will-change: transform; }",
     // Dopóki pętla nie ustawi postaci poza kadrem, nie pokazujemy ich (bez JS stoją od razu na miejscu).
@@ -1654,7 +1837,7 @@ const CSS_B = [
     "  .gk2-fakty div { grid-template-columns: 7.2em 1fr; padding: 8px 0; }",
     "  .gk2-sklep-tekst > .gk2-przycisk { order: 6; margin-top: 18px; align-self: flex-start; }",
     "  .gk2-wypiek { grid-template-columns: 26vw minmax(0, 1fr); column-gap: 14px; row-gap: 5px; align-items: start; }",
-    "  .gk2-wypiek-foto { grid-row: 1 / span 4; border-radius: 14px; }",
+    "  .gk2-wypiek-foto { grid-row: 1 / span 4; }",
     "  .gk2-wypiek-nr { margin-top: 2px; }",
     "  .gk2-wypiek-nazwa { font-size: 7.2vw; }",
     "  .gk2-wypiek-opis { font-size: 12px; line-height: 1.42; }",
@@ -1912,14 +2095,16 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
                 const pr = clamp(p / 0.34, 0, 1)
                 const r0 = clamp(Math.min(sw, sh) * (mobile ? 0.21 : 0.17), 72, 180) * (1 + 0.03 * Math.sin(t * 1.7))
                 const rMax = Math.hypot(Math.max(s.x, sw - s.x), Math.max(s.y, sh - s.y)) + 6
-                const r = reduce ? rMax : lerp(r0, rMax, easeIn(pr))
+                // Przy słońcu w Gorzowie strona startuje od razu w kolorze (kulka nie musi go przynosić).
+                const slonecznie = root.getAttribute("data-pogoda") === "slonce"
+                const r = reduce || slonecznie ? rMax : lerp(r0, rMax, easeIn(pr))
                 kolor.style.clipPath = "circle(" + r.toFixed(1) + "px at " + s.x.toFixed(1) + "px " + s.y.toFixed(1) + "px)"
                 if (el.kula) {
                     el.kula.style.transform = "translate3d(" + (s.x - 100).toFixed(1) + "px," + (s.y - 100).toFixed(1) + "px,0) scale(" + (r / 100).toFixed(4) + ")"
-                    el.kula.style.opacity = reduce ? "0" : clamp(1 - pr * 3.2, 0, 1).toFixed(3)
+                    el.kula.style.opacity = reduce || slonecznie ? "0" : clamp(1 - pr * 3.2, 0, 1).toFixed(3)
                 }
                 if (el.podpis) {
-                    el.podpis.style.opacity = !reduce && s.droga < 260 && p < 0.03 ? "1" : "0"
+                    el.podpis.style.opacity = !reduce && !slonecznie && s.droga < 260 && p < 0.03 ? "1" : "0"
                     const px = clamp(s.x - geo.pw / 2, 10, sw - geo.pw - 10)
                     const py = Math.max(s.y - r - 46, 64)
                     el.podpis.style.transform = "translate3d(" + px.toFixed(1) + "px," + py.toFixed(1) + "px,0)"
@@ -2255,7 +2440,7 @@ export default function KonceptFundusz2(props: Props) {
         E.current[k] = el
     }
     const slowaRef = useRef<Array<HTMLSpanElement | null>>([])
-    const [pogoda, ustawPogode] = useState<null | { temp: number; chmury: number }>(null)
+    const [pogoda, ustawPogode] = useState<null | { temp: number; chmury: number; rodzaj: string }>(null)
     const [dzien, ustawDzien] = useState({ krotko: "18.01", dlugo: "poniedziałek, 18 stycznia 2027" })
 
     useEffect(() => {
@@ -2275,15 +2460,23 @@ export default function KonceptFundusz2(props: Props) {
         let anulowano = false
         const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null
         const timer = setTimeout(() => ctrl && ctrl.abort(), 4000)
-        fetch("https://api.open-meteo.com/v1/forecast?latitude=52.73&longitude=15.24&current=temperature_2m,cloud_cover&timezone=Europe%2FWarsaw", ctrl ? { signal: ctrl.signal } : undefined)
+        // Podgląd: ?pogoda=deszcz | slonce | szaro w adresie strony.
+        const wymus = (/[?&]pogoda=(deszcz|slonce|szaro)/.exec(window.location.search) || [])[1]
+        fetch("https://api.open-meteo.com/v1/forecast?latitude=52.73&longitude=15.24&current=temperature_2m,cloud_cover,precipitation,weather_code,is_day&timezone=Europe%2FWarsaw", ctrl ? { signal: ctrl.signal } : undefined)
             .then((r) => (r.ok ? r.json() : Promise.reject(new Error("pogoda"))))
             .then((d) => {
                 const c = d && d.current
                 if (!anulowano && c && typeof c.cloud_cover === "number" && typeof c.temperature_2m === "number") {
-                    ustawPogode({ temp: Math.round(c.temperature_2m), chmury: Math.round(c.cloud_cover) })
-                }
+                    const kod = typeof c.weather_code === "number" ? c.weather_code : 0
+                    const pada = (kod >= 51 && kod <= 67) || (kod >= 80 && kod <= 82) || kod >= 95 || (typeof c.precipitation === "number" && c.precipitation >= 0.1)
+                    const slonce = !pada && c.cloud_cover < 30 && c.is_day !== 0
+                    ustawPogode({ temp: Math.round(c.temperature_2m), chmury: Math.round(c.cloud_cover), rodzaj: wymus || (pada ? "deszcz" : slonce ? "slonce" : "szaro") })
+                } else if (!anulowano && wymus) ustawPogode({ temp: 6, chmury: 90, rodzaj: wymus })
             })
-            .catch(() => {})
+            .catch(() => {
+                const wymus = (/[?&]pogoda=(deszcz|slonce|szaro)/.exec(window.location.search) || [])[1]
+                if (!anulowano && wymus) ustawPogode({ temp: 6, chmury: 90, rodzaj: wymus })
+            })
         return () => {
             anulowano = true
             clearTimeout(timer)
@@ -2291,10 +2484,14 @@ export default function KonceptFundusz2(props: Props) {
         }
     }, [])
 
+    const rodzajPogody = pogoda ? pogoda.rodzaj : ""
     const statusSzary = pogoda
-        ? "Gorzów Wlkp., teraz " + pogoda.temp + "°C, " + pogoda.chmury + "% chmur. " + (pogoda.chmury >= 60 ? "Szaro." : pogoda.chmury >= 30 ? "Tak sobie." : "Słońce, ale kulka nie zaszkodzi.")
+        ? "Gorzów Wlkp., teraz " + pogoda.temp + "°C" + (rodzajPogody === "deszcz" ? " i pada. Szaro, ale pod parasolem." : ", " + pogoda.chmury + "% chmur. " + (pogoda.chmury >= 60 ? "Szaro." : pogoda.chmury >= 30 ? "Tak sobie." : "Słońce, ale kulka nie zaszkodzi."))
         : "Prognoza na dziś: szaro."
-    const statusKolor = pogoda ? "Gorzów Wlkp., teraz " + pogoda.temp + "°C. I kolorowo." : "Prognoza na dziś: kolorowo."
+    const statusKolor = pogoda
+        ? "Gorzów Wlkp., teraz " + pogoda.temp + "°C" + (rodzajPogody === "slonce" ? " i słońce. Od rana kolorowo." : rodzajPogody === "deszcz" ? " i pada. A u nas kolorowo." : ". I kolorowo.")
+        : "Prognoza na dziś: kolorowo."
+    const parasol = rodzajPogody === "deszcz" ? <i className="gk2-parasol-stolik" style={{ backgroundImage: "url(" + obraz(P.parasol.f, 1024) + ")" }} aria-hidden="true" /> : null
 
     const slowa = MANIFEST.split(" ")
     slowaRef.current = []
@@ -2349,7 +2546,7 @@ export default function KonceptFundusz2(props: Props) {
     )
 
     return (
-        <div className="gk2" ref={rootRef} style={props.style}>
+        <div className="gk2" ref={rootRef} style={props.style} data-pogoda={rodzajPogody || undefined}>
             <style dangerouslySetInnerHTML={{ __html: CSS }} />
             <div className="gk2-ziarno" aria-hidden="true" />
 
@@ -2394,6 +2591,7 @@ export default function KonceptFundusz2(props: Props) {
                         )}
                         <div className="gk2-ilu" ref={u("ilu")}>
                             <i style={klatkaTlo(SZARY[0])} />
+                            {parasol}
                         </div>
                         <div className="gk2-ryc gk2-e">
                             <span>{RYCINY[0]}</span>
@@ -2422,6 +2620,7 @@ export default function KonceptFundusz2(props: Props) {
                             {SZARY.slice(1).map((src, i) => (
                                 <i key={i} ref={u("klatka" + i)} style={klatkaTlo(src)} />
                             ))}
+                            {parasol}
                         </div>
                         <div className="gk2-ryc gk2-e">
                             <span ref={u("ryc")}>{RYCINY[1]}</span>
@@ -2444,6 +2643,7 @@ export default function KonceptFundusz2(props: Props) {
                 <p className="gk2-d gk2-manifest-tekst">
                     {slowa.map((w, i) => {
                         const rodzaj = w.charAt(0) === "~" ? " gk2-slowo-szare" : w.charAt(0) === "*" ? " gk2-slowo-rubin" : ""
+                        const tekst = w.replace(/^[~*]/, "")
                         return (
                             <span
                                 key={i}
@@ -2452,7 +2652,13 @@ export default function KonceptFundusz2(props: Props) {
                                     slowaRef.current[i] = sl
                                 }}
                             >
-                                {w.replace(/^[~*]/, "")}{" "}
+                                {rodzaj === " gk2-slowo-rubin" ? (
+                                    <span className="gk2-zakreslacz" style={{ animationDelay: -((i * 1.7) % 9).toFixed(1) + "s" }}>
+                                        {tekst}
+                                    </span>
+                                ) : (
+                                    tekst
+                                )}{" "}
                             </span>
                         )
                     })}
@@ -2506,6 +2712,9 @@ export default function KonceptFundusz2(props: Props) {
             <section className="gk2-swieta" ref={u("swieta")} id="gk2-swieta" data-motyw="jasny">
                 <div className="gk2-swieta-lep">
                     <div className="gk2-sklep">
+                        <i className="gk2-sklep-wstazka gk2-sklep-wstazka-a" aria-hidden="true" />
+                        <i className="gk2-sklep-wstazka gk2-sklep-wstazka-b" aria-hidden="true" />
+                        <i className="gk2-sklep-kokarda" aria-hidden="true" />
                         <div className="gk2-sklep-tekst">
                             <div className="gk2-e gk2-s">03 — Święta 2026</div>
                             <Linie linie={["Wypieki", "na Święta."]} className="gk2-h2 gk2-h2-sklep" bezWjazdu />
@@ -2539,7 +2748,7 @@ export default function KonceptFundusz2(props: Props) {
                             {WYPIEKI.map((w, i) => (
                                 <a key={w.nazwa} className="gk2-wypiek gk2-s" href={ZAMOWIENIA} style={{ ["--i" as any]: i + 2 }}>
                                     <span className="gk2-wypiek-foto" role="img" aria-label={w.nazwa + " — wypiek świąteczny Górka & Kulka"}>
-                                        <i style={{ backgroundImage: "url(" + obraz(w.f) + ")" }} />
+                                        <i style={{ backgroundImage: "url(" + obraz(w.wyc) + ")" }} />
                                     </span>
                                     <span className="gk2-e gk2-wypiek-nr">
                                         Nr 0{i + 1} · limit 20 sztuk
