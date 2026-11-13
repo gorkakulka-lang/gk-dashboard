@@ -77,8 +77,11 @@ const SMAKI: Smak[] = [
     { nr: "05", nazwa: ["Beza", "dacquoise"], en: "Dacquoise Meringue", opis: "Chrupie, zanim się rozpłynie.", kolor: "#EAD2C0", gala: "#F8E9DD", tekst: "#111111" },
     { nr: "06", nazwa: ["Gruszka", "z imbirem"], en: "Pear & Ginger", opis: "Sorbet. Rozgrzewa, choć mrozi.", kolor: "#D3D77C", gala: "#E4E7A8", tekst: "#111111" },
 ]
-// Duży rożek do Smaków, narysowany kreską marki w trzech warstwach: wafel, gałka (biała maska; kolor daje smak) i kreska z blaskiem.
-const ROZEK = { wafel: obraz("1tXQR2kRpyW3eUN5UaEuAN0DSyM.webp"), galka: obraz("1O6uaIA3BVT72ByZAiWMbWebteQ.webp"), kreska: obraz("KHRM61cDiC2R26Uwyhf3LtPGpJY.webp"), w: 1080, h: 1920 }
+// Kolory smaków jako liczby 0–1: chromowy rożek odbija kolor smaku, który właśnie spłynął.
+const rgb01 = (hex: string) => [parseInt(hex.slice(1, 3), 16) / 255, parseInt(hex.slice(3, 5), 16) / 255, parseInt(hex.slice(5, 7), 16) / 255]
+const SMAKI_RGB = SMAKI.map((s) => ({ a: rgb01(s.kolor), b: rgb01(s.gala) }))
+// Koniec zamówień świątecznych: 22.12.2026, północ czasu polskiego.
+const KONIEC_ZAMOWIEN = Date.UTC(2026, 11, 21, 23, 0, 0)
 // Kapki na brzegu zalewu: położenie (ułamek szerokości), promień, długość (ułamek najdłuższej) i faza falowania.
 const KAPKI = [
     { x: 0.05, r: 0.017, l: 0.5, f: 0.3 },
@@ -92,10 +95,8 @@ const KAPKI = [
 // Szary Dzień w podróży przez stronę: wycięty z rysunku marki (bez stolika i krzesła).
 // Obrazek to faktura (mnożona przez kolor) z kanałem przezroczystości; ten sam plik jest maską koloru.
 type SzaryPlik = { f: string; w: number; h: number }
-const SZARY_GLOWA: SzaryPlik = { f: obraz("yqgDmA9zqABV5F5VwtsvjcsAQ.webp"), w: 560, h: 395 }
-const SZARY_GLOWA_USMIECH: SzaryPlik = { f: obraz("Ad9fBC6NsgE1kXdd2vs18EdnrA.webp"), w: 560, h: 389 }
 const SZARY_CALY: SzaryPlik = { f: obraz("u70wwFBUSl9qRiD96vtf1wHo1NA.webp"), w: 800, h: 1002 }
-// Z każdą sekcją ma więcej koloru: od szarego do różu marki.
+// Jego własny szary (k = 0) i róż marki na wypadek, gdyby kiedyś miał się rozpogodzić.
 const SZARY_OD = "#BAB3B1"
 const SZARY_DO = "#F4AFC2"
 const hexRgb = (h: string) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]
@@ -632,7 +633,7 @@ const MIESIACE_D = ["stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca"
 const DNI_TYG = ["pn", "wt", "śr", "cz", "pt", "so", "nd"]
 const DNI_PELNE = ["niedziela", "poniedziałek", "wtorek", "środa", "czwartek", "piątek", "sobota"]
 
-function Termin() {
+function Termin(props: { id: string; etykieta: string; dialog: string; odDzis?: boolean }) {
     const [otwarty, ustawOtwarty] = useState(false)
     const [wybrany, ustawWybrany] = useState<null | { r: number; m: number; d: number }>(null)
     const [widok, ustawWidok] = useState(-1) // rok * 12 + miesiąc
@@ -642,7 +643,7 @@ function Termin() {
         const t = new Date()
         const d0 = t.getFullYear() * 10000 + t.getMonth() * 100 + t.getDate()
         ustawDzis(d0)
-        if (widok < 0) ustawWidok(wybrany ? wybrany.r * 12 + wybrany.m : t.getMonth() === 11 || t.getMonth() < 11 ? t.getFullYear() * 12 + 11 : t.getFullYear() * 12 + t.getMonth())
+        if (widok < 0) ustawWidok(wybrany ? wybrany.r * 12 + wybrany.m : props.odDzis ? t.getFullYear() * 12 + t.getMonth() : t.getFullYear() * 12 + 11)
         ustawOtwarty(true)
     }
     useEffect(() => {
@@ -674,23 +675,23 @@ function Termin() {
     const minWidok = dzis >= 0 ? Math.floor(dzis / 10000) * 12 + (Math.floor(dzis / 100) % 100) : 0
     return (
         <div className="gk2-pole gk2-termin" ref={ref}>
-            <span className="gk2-e" id="gk2-termin-etykieta">
-                Termin
+            <span className="gk2-e" id={"gk2-termin-etykieta-" + props.id}>
+                {props.etykieta}
             </span>
             <button
                 type="button"
                 className={"gk2-termin-pole" + (wybrany ? " gk2-termin-pelne" : "")}
                 aria-haspopup="dialog"
                 aria-expanded={otwarty}
-                aria-labelledby="gk2-termin-etykieta gk2-termin-wartosc"
+                aria-labelledby={"gk2-termin-etykieta-" + props.id + " gk2-termin-wartosc-" + props.id}
                 onClick={() => (otwarty ? ustawOtwarty(false) : otworz())}
             >
-                <span id="gk2-termin-wartosc">{opis}</span>
+                <span id={"gk2-termin-wartosc-" + props.id}>{opis}</span>
                 <i aria-hidden="true">{otwarty ? "↑" : "↓"}</i>
             </button>
             <input className="gk2-termin-ukryte" type="text" name="termin" required value={iso} onChange={() => {}} onInvalid={() => otworz()} tabIndex={-1} aria-hidden="true" />
             {otwarty && widok >= 0 ? (
-                <div className="gk2-kalendarz" role="dialog" aria-label="Wybierz dzień wigilii firmowej">
+                <div className="gk2-kalendarz" role="dialog" aria-label={props.dialog}>
                     <div className="gk2-kalendarz-gora">
                         <button type="button" aria-label="Poprzedni miesiąc" disabled={widok <= minWidok} onClick={() => ustawWidok(widok - 1)}>
                             ←
@@ -755,7 +756,7 @@ function Zapytanie() {
                 <span className="gk2-e">Firma</span>
                 <input type="text" name="firma" required autoComplete="organization" placeholder="Nazwa firmy" />
             </label>
-            <Termin />
+            <Termin id="wigilia" etykieta="Termin" dialog="Wybierz dzień wigilii firmowej" />
             <label className="gk2-pole">
                 <span className="gk2-e">Liczba osób</span>
                 <input type="number" name="osoby" required min={2} inputMode="numeric" placeholder="np. 12" />
@@ -774,8 +775,76 @@ function Zapytanie() {
     )
 }
 
+// Prośba o stolik w Kawiarni Centrum: kawiarnia oddzwania albo pisze SMS. Makieta: nic nie jest wysyłane.
+const GODZINY_STOLIKA = (() => {
+    const g: string[] = []
+    for (let h = 10; h <= 18; h++) {
+        g.push(h + ":00")
+        if (h < 18) g.push(h + ":30")
+    }
+    return g
+})()
+function Stolik() {
+    const [wyslane, ustawWyslane] = useState(false)
+    if (wyslane)
+        return (
+            <div className="gk2-zapytanie-dzieki">
+                <p className="gk2-d gk2-h3">Dziękujemy. Oddzwonimy albo napiszemy SMS.</p>
+                <p className="gk2-drobny">Tak będzie wyglądać potwierdzenie. To makieta: prośba jeszcze nigdzie nie trafia.</p>
+            </div>
+        )
+    return (
+        <form
+            className="gk2-zapytanie gk2-stolik-formularz"
+            onSubmit={(e) => {
+                e.preventDefault()
+                ustawWyslane(true)
+            }}
+        >
+            <Termin id="stolik" etykieta="Dzień" dialog="Wybierz dzień rezerwacji" odDzis />
+            <label className="gk2-pole">
+                <span className="gk2-e">Godzina</span>
+                <select name="godzina" required defaultValue="">
+                    <option value="" disabled>
+                        Wybierz
+                    </option>
+                    {GODZINY_STOLIKA.map((g) => (
+                        <option key={g} value={g}>
+                            {g}
+                        </option>
+                    ))}
+                </select>
+            </label>
+            <label className="gk2-pole">
+                <span className="gk2-e">Liczba osób</span>
+                <select name="osoby" required defaultValue="2">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                        <option key={n} value={n}>
+                            {n}
+                        </option>
+                    ))}
+                </select>
+            </label>
+            <label className="gk2-pole">
+                <span className="gk2-e">Imię</span>
+                <input type="text" name="imie" required autoComplete="given-name" placeholder="np. Ola" />
+            </label>
+            <label className="gk2-pole">
+                <span className="gk2-e">Telefon</span>
+                <input type="tel" name="telefon" required autoComplete="tel" inputMode="tel" placeholder="np. 601 234 567" />
+            </label>
+            <div className="gk2-zapytanie-dol">
+                <button type="submit" className="gk2-przycisk">
+                    Poproś o stolik
+                </button>
+                <span className="gk2-drobny">{"Więcej niż 8 osób albo firma? Napisz w\u00a0sprawie wigilii firmowej."}</span>
+            </div>
+        </form>
+    )
+}
+
 // Kubek na wynos: wycięty z pliku marki, a etykieta jest złożona na nowo (ostra w każdym rozmiarze).
-// Szary Dzień: k = ile koloru już złapał (0 szary, 1 różowy). "zza" = wychyla się zza krawędzi okienka.
+// Szary Dzień wycięty z rysunku marki. k = ile koloru (0 = jego własny szary).
 function Szary(props: { p: SzaryPlik; k: number; className?: string; lustro?: boolean }) {
     const m = "url(" + props.p.f + ")"
     return (
@@ -784,15 +853,6 @@ function Szary(props: { p: SzaryPlik; k: number; className?: string; lustro?: bo
                 <i className="gk2-sz-kolor" style={{ WebkitMaskImage: m, maskImage: m }} />
                 <img className="gk2-sz-faktura" src={props.p.f} width={props.p.w} height={props.p.h} alt="" loading="lazy" decoding="async" draggable={false} />
             </span>
-        </span>
-    )
-}
-
-// Okienko, zza którego Szary Dzień wygląda: dolna krawędź schowana za czymś (taśmą, ciastem, ramką, kubkiem).
-function SzaryZza(props: { p: SzaryPlik; k: number; klasa: string; lustro?: boolean }) {
-    return (
-        <span className={"gk2-sz-okno " + props.klasa} data-wjazd="" aria-hidden="true">
-            <Szary p={props.p} k={props.k} lustro={props.lustro} className="gk2-sz-zza" />
         </span>
     )
 }
@@ -806,7 +866,7 @@ function Kubek(props: { tiltRef: (el: HTMLDivElement | null) => void }) {
     return (
         <section className="gk2-kubek" id="gk2-kubek" data-motyw="jasny">
             <div className="gk2-kubek-tekst">
-                <div className="gk2-e">07 — Na wynos</div>
+                <div className="gk2-e">10 — Na wynos</div>
                 <Linie linie={["Zapas", "lata."]} className="gk2-h2" />
                 <p className="gk2-lead">Kubek 450 ml prosto do zamrażarki. Na wypadek, gdyby Szary Dzień przyszedł bez zapowiedzi.</p>
                 <div className="gk2-wybor" role="group" aria-label="Wybierz smak">
@@ -824,7 +884,6 @@ function Kubek(props: { tiltRef: (el: HTMLDivElement | null) => void }) {
                 <div className="gk2-kubek-cien" aria-hidden="true" />
                 <div className="gk2-kubek-tilt" ref={props.tiltRef}>
                     <div className="gk2-kubek-obraz">
-                        <SzaryZza p={SZARY_GLOWA_USMIECH} k={0.62} klasa="gk2-sz-okno-kubek" lustro />
                         <img src={KUBEK} width={630} height={668} alt={"Kubek lodów Górka & Kulka 450 ml, smak: " + smak.nazwa.join(" ")} loading="lazy" decoding="async" draggable={false} />
                         <svg className="gk2-etykieta" viewBox="0 0 300 400" aria-hidden="true">
                             <rect x="0" y="0" width="300" height="327" fill="#FFFFFF" />
@@ -1214,70 +1273,7 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
 
     const muu = laka.querySelector("[data-muu]") as HTMLElement | null
     let muuStan = ""
-    // Zabawka: dotknięta krowa mówi „Muu.”, kiwa łbem i macha ogonem.
-    const muu2 = laka.querySelector("[data-muu2]") as HTMLElement | null
-    let muu2Stan = ""
-    let muu2T = -10
-    let tTeraz = 0
-    const lebKlik: number[] = []
-    const ogonKlik: number[] = []
-    const naKrowe = (e: PointerEvent) => {
-        const r = laka.getBoundingClientRect()
-        if (!r.width) return
-        const x = ((e.clientX - r.left) / r.width) * LAKA_W
-        const y = ((e.clientY - r.top) / r.height) * LAKA_H
-        let leb = -1
-        let ld = 320
-        for (let i = 0; i < LAKA_OPIS.length; i++) {
-            const c = LAKA_OPIS[i]
-            if (c[0] !== "g" && c[0] !== "w" && c[0] !== "n") continue
-            const d = Math.hypot(x - (c[7] as number), (y - (c[8] as number)) * 1.3)
-            if (d < ld) {
-                ld = d
-                leb = i
-            }
-        }
-        if (leb < 0) return
-        const h = LAKA_OPIS[leb]
-        lebKlik[leb] = tTeraz
-        let og = -1
-        let od = 560
-        for (let o = 0; o < ogony.length; o++) {
-            if (!ogony[o]) continue
-            const c0 = LAKA_OPIS[ogony[o][0]]
-            const d = Math.hypot((c0[7] as number) - (h[7] as number), ((c0[8] as number) - (h[8] as number)) * 1.6)
-            if (d < od) {
-                od = d
-                og = o
-            }
-        }
-        if (og >= 0) ogonKlik[og] = tTeraz
-        if (muu2) {
-            muu2.style.left = pr(((h[7] as number) / LAKA_W) * 100)
-            muu2.style.top = pr((((h[8] as number) - 34) / LAKA_H) * 100)
-        }
-        muu2T = tTeraz
-    }
-    okno.addEventListener("pointerdown", naKrowe)
-    const kiw = (i: number, t: number) => {
-        const t0 = lebKlik[i]
-        if (t0 === undefined) return 0
-        const u = t - t0
-        if (u < 0 || u > 2.6) return 0
-        return 9 * sin(DWA_PI * 1.7 * u) * Math.exp(-u / 0.55) * (1 - Math.exp(-u / 0.05))
-    }
     const krowy = (t: number, tw: number) => {
-        tTeraz = t
-        if (muu2) {
-            const u = t - muu2T
-            const v = u < 0 || u > 1.9 ? 0 : u < 0.18 ? gl(u / 0.18) : u > 1.6 ? 1 - gl((u - 1.6) / 0.3) : 1
-            const s2 = v <= 0 ? "" : v.toFixed(2)
-            if (s2 !== muu2Stan) {
-                muu2Stan = s2
-                muu2.style.opacity = s2 || "0"
-                muu2.style.transform = "translate(-50%, -100%) scale(" + (0.6 + 0.4 * v + (v > 0 && v < 1 ? 0.08 * sin(Math.PI * v) : 0)).toFixed(3) + ") rotate(3deg)"
-            }
-        }
         if (muu) {
             const x = fazaWachania(tw)
             const v = x < 0.5 || x > 2.85 ? 0 : x < 0.72 ? gl((x - 0.5) / 0.22) : x > 2.6 ? 1 - gl((x - 2.6) / 0.25) : 1
@@ -1305,7 +1301,6 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
                     const wq = wacha(tw)
                     if (wq > 0) a = a * (1 - wq) + wq * (-8.6 + 1.5 * sin(DWA_PI * 3.4 * t))
                 }
-                a += kiw(i, t)
                 e.style.transform = "rotate(" + a.toFixed(2) + "deg)"
             } else if (c[0] === "n") {
                 // krowa z łbem w górze rozgląda się powoli, a na powitanie postaci kiwa łbem
@@ -1313,7 +1308,6 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
                 let a = kat * (0.8 * sin((DWA_PI * f) / rytm) + 0.35 * sin((DWA_PI * f) / (rytm * 0.37) + 0.8))
                 const x = tw - T_SKOK - 0.1
                 if (x > 0 && x < 1.6) a += 2.4 * Math.pow(sin((Math.PI * x) / 1.6), 2)
-                a += kiw(i, t)
                 e.style.transform = "rotate(" + a.toFixed(2) + "deg)"
             } else {
                 // trawa: wiatr idzie przez łąkę od lewej do prawej, raz mocniej, raz słabiej
@@ -1355,11 +1349,6 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
                     // krowa z przodu macha ogonem z przejęcia, gdy wącha loda
                     const wq = wacha(tw)
                     if (wq > 0) a += kat * 0.55 * wq * sin(DWA_PI * 2.1 * t - 0.85 * i)
-                }
-                const ok = ogonKlik[o]
-                if (ok !== undefined) {
-                    const u = t - ok
-                    if (u > 0 && u < 3) a += kat * 0.8 * Math.exp(-u / 0.9) * sin(DWA_PI * 2.4 * u - 0.8 * i) * (1 - Math.exp(-u / 0.05))
                 }
                 // machnięcia: bierzemy też następne (mogło zacząć się odrobinę przed czasem) i poprzednie (jeszcze wygasa)
                 for (let k = -1; k < 2; k++) {
@@ -1440,7 +1429,6 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
         dziala = false
         if (raf) cancelAnimationFrame(raf)
         if (io) io.disconnect()
-        okno.removeEventListener("pointerdown", naKrowe)
     }
 }
 
@@ -1523,9 +1511,6 @@ function Laka(props: { oknoRef: (el: HTMLDivElement | null) => void }) {
                 {LAKA_OPIS.map((c, i) => (c[0] === "p" ? <i key={i} data-cz={i} className="gk2-laka-cz" style={czescStyl(c)} aria-hidden="true" /> : null))}
                 <span className="gk2-laka-muu gk2-e" data-muu="1" aria-hidden="true">
                     Muu?
-                </span>
-                <span className="gk2-laka-muu gk2-e" data-muu2="1" aria-hidden="true">
-                    Muu.
                 </span>
             </div>
         </div>
@@ -1641,7 +1626,7 @@ const CSS_A = [
     ".gk2-tasma { position: absolute; left: -6vw; right: -6vw; height: var(--th); overflow: hidden; --th: clamp(38px, 5vw, 72px); --tw: calc(var(--th) * 6.109); box-shadow: 0 12px 30px -18px rgba(0,0,0,.5); }",
     ".gk2-tasma-maslo { background: #FDE59F; }",
     ".gk2-js .gk2-tasma { touch-action: pan-y; -webkit-user-select: none; user-select: none; }",
-    "@media (hover: hover) { .gk2-js .gk2-tasma { cursor: grab; } .gk2-js .gk2-tasma.gk2-ciagnie { cursor: grabbing; } .gk2-laka-ruch { cursor: pointer; } }",
+    "@media (hover: hover) { .gk2-js .gk2-tasma { cursor: grab; } .gk2-js .gk2-tasma.gk2-ciagnie { cursor: grabbing; } }",
     ".gk2-tasma-roz { background: #F6C2CF; }",
     ".gk2-tasma div { display: flex; width: max-content; height: 100%; animation: gk2-tasma 17s linear infinite; }",
     ".gk2-tasma i { flex: none; display: block; width: var(--tw); height: 100%; background-repeat: no-repeat; background-size: calc(var(--th) * 15.714) 100%; background-position: calc(var(--th) * -0.6548) 0; }",
@@ -1837,12 +1822,12 @@ const CSS_B = [
     ".gk2-smaki-opis:first-child { opacity: 1; }",
     ".gk2-smaki-opis .gk2-lead { font-size: clamp(16px, 1.45vw, 23px); line-height: 1.45; margin-top: 10px; }",
     ".gk2-smak-stopka { margin-top: 22px; opacity: .7; max-width: 36em; }",
-    ".gk2-rozek2 { --rh: min(calc(var(--vh) * 86), 110vw); position: absolute; left: 72%; top: 50%; height: var(--rh); width: calc(var(--rh) * .5625); margin: calc(var(--rh) * -.5) 0 0 calc(var(--rh) * -.28125); transform-origin: 51% 96%; z-index: 2; will-change: transform; }",
-    ".gk2-rozek2 > * { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; }",
-    ".gk2-rozek2-galka { -webkit-mask-image: url(" + ROZEK.galka + "); -webkit-mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-image: url(" + ROZEK.galka + "); mask-size: 100% 100%; mask-repeat: no-repeat; }",
-    ".gk2-rozek2-galka-b { visibility: hidden; }",
-    "@media (hover: hover) { .gk2-js .gk2-rozek2 { cursor: pointer; } }",
-    ".gk2-js .gk2-rozek2 { pointer-events: auto; }",
+    ".gk2-rozek { --rh: min(calc(var(--vh) * 80), 100vw); position: absolute; left: 72%; top: 50%; height: var(--rh); aspect-ratio: 0.4908; margin: calc(var(--rh) * -.5) 0 0 calc(var(--rh) * -.2454); transform-origin: 50% 92%; z-index: 2; will-change: transform; }",
+    ".gk2-rozek .gk2-wyc, .gk2-rozek canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }",
+    ".gk2-rozek canvas { opacity: 0; transition: opacity .5s ease; }",
+    ".gk2-chrom-1 .gk2-rozek canvas { opacity: 1; }",
+    ".gk2-chrom-1 .gk2-rozek .gk2-wyc { visibility: hidden; }",
+    "@media (hover: hover) { .gk2-js .gk2-rozek { cursor: pointer; } }",
     ".gk2-smaki-kropki { position: absolute; right: var(--m); bottom: calc(var(--vh) * 8); z-index: 4; display: flex; align-items: center; gap: 4px; margin-right: -9px; }",
     ".gk2-smaki-kropki button { width: 30px; height: 30px; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; display: grid; place-items: center; -webkit-appearance: none; appearance: none; }",
     ".gk2-smaki-kropki button::before { content: ''; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid currentColor; box-sizing: border-box; transition: background .3s ease, transform .3s ease; }",
@@ -1917,24 +1902,39 @@ const CSS_B = [
     ".gk2-stopka-dzieci .gk2-e { padding-bottom: 6px; }",
     ".gk2-stopka-wiersz { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px 28px; margin-top: calc(var(--vh) * 6); }",
 
-    "/* Szary Dzień w podróży przez stronę: z każdą sekcją łapie trochę koloru */",
+    "/* Pierwszy ekran na grudzień: na papierze prezentu kim jesteśmy i trzy drogi */",
+    ".gk2-prezent { display: none; position: absolute; left: var(--m); top: calc(var(--vh) * 67); z-index: 7; max-width: min(640px, 56vw); }",
+    ".gk2-js .gk2-prezent { display: block; }",
+    ".gk2-prezent-kto { margin-bottom: 16px; }",
+    ".gk2-prezent-termin { display: none; }",
+    ".gk2-prezent-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; }",
+    ".gk2-prezent-link { padding: 6px 0 3px; border-bottom: 1px solid currentColor; }",
+    "@media (hover: hover) { .gk2-prezent-link:hover { color: var(--rubin); } }",
+    ".gk2-lista-strzalka { border-bottom: 1px solid currentColor; padding-bottom: 2px; white-space: nowrap; }",
+    "@media (hover: hover) { .gk2-lista-strzalka:hover { color: var(--rubin); } }",
+
+    "/* Stolik w Kawiarni Centrum */",
+    ".gk2-stolik { position: relative; background: var(--krem); padding: calc(var(--vh) * 18) var(--m) calc(var(--vh) * 16); display: grid; grid-template-columns: .9fr 1.1fr; column-gap: 6vw; align-items: center; }",
+    ".gk2-stolik-foto { position: relative; width: min(100%, 540px); }",
+    ".gk2-stolik-okno { border-radius: 24px; overflow: hidden; aspect-ratio: 4 / 5; background: #E9DFCF; }",
+    ".gk2-stolik-okno img { width: 100%; height: 100%; object-fit: cover; }",
+    ".gk2-stolik-foto figcaption { margin-top: 14px; }",
+    ".gk2-stolik-tresc .gk2-lead { margin-top: 30px; }",
+    ".gk2-stolik-formularz { grid-template-columns: 1fr 1fr 1fr; }",
+    ".gk2-stolik-formularz .gk2-termin { grid-column: span 2; }",
+    ".gk2-pole-szerokie { grid-column: span 2; }",
+    ".gk2-pole select { width: 100%; min-width: 0; min-height: 46px; background: transparent; border: 0; border-bottom: 1.5px solid var(--tusz); border-radius: 0; color: var(--tusz); padding: 10px 26px 12px 2px; font: inherit; font-size: 16px; outline: none; -webkit-appearance: none; appearance: none; cursor: pointer;",
+    "  background-image: linear-gradient(45deg, transparent 50%, var(--tusz) 50%), linear-gradient(135deg, var(--tusz) 50%, transparent 50%); background-position: calc(100% - 12px) 52%, calc(100% - 7px) 52%; background-size: 5px 5px; background-repeat: no-repeat; }",
+    ".gk2-pole select:focus { border-bottom-color: var(--rubin); }",
+    ".gk2-pasek-zamow { display: none; }",
+
+    "/* Szary Dzień: na 18.01 i w stopce obok Kulki */",
     ".gk2-sz { position: absolute; display: block; pointer-events: auto; -webkit-tap-highlight-color: transparent; }",
     ".gk2-sz-ruch { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; isolation: isolate; transform-origin: 50% 100%; }",
     ".gk2-sz-kolor, .gk2-sz-faktura { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }",
     ".gk2-sz-kolor { background: var(--sz); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }",
     ".gk2-sz-faktura { mix-blend-mode: multiply; }",
     ".gk2-sz-lustro .gk2-sz-kolor, .gk2-sz-lustro .gk2-sz-faktura { transform: scaleX(-1); }",
-    ".gk2-sz-okno { position: absolute; display: block; overflow: hidden; pointer-events: none; }",
-    ".gk2-sz-okno .gk2-sz { left: 0; bottom: 0; width: 100%; }",
-    ".gk2-js .gk2-sz-zza .gk2-sz-ruch { transform: translate3d(0, 104%, 0); transition: transform .9s cubic-bezier(.34, 1.5, .5, 1); }",
-    ".gk2-js .gk2-sz-okno.gk2-widac .gk2-sz-zza .gk2-sz-ruch { transform: translate3d(0, 0, 0); transition-delay: .35s; }",
-    "@media (hover: hover) { .gk2-js .gk2-sz-okno.gk2-widac .gk2-sz-zza:hover .gk2-sz-ruch, .gk2-js .gk2-wypiek:hover .gk2-sz-okno.gk2-widac .gk2-sz-ruch { transform: translate3d(0, 64%, 0); transition: transform .3s cubic-bezier(.4, 0, .6, 1); } }",
-    ".gk2-js .gk2-sz-okno.gk2-widac .gk2-sz-zza.gk2-sz-chowa .gk2-sz-ruch { transform: translate3d(0, 64%, 0); transition: transform .3s cubic-bezier(.4, 0, .6, 1); }",
-    ".gk2-sz-okno-tasmy { left: 31vw; bottom: calc(var(--th) * .5); width: clamp(112px, 13vw, 210px); aspect-ratio: 560 / 430; }",
-    ".gk2-sz-okno-ciasto { left: 59%; width: 45%; bottom: 40%; aspect-ratio: 560 / 430; }",
-    ".gk2-farma { position: relative; }",
-    ".gk2-sz-okno-laka { right: 7%; bottom: 100%; width: clamp(78px, 13%, 150px); aspect-ratio: 560 / 430; }",
-    ".gk2-sz-okno-kubek { left: 48%; width: 40%; bottom: 87%; aspect-ratio: 560 / 430; }",
     ".gk2-sz-gosc-okno { position: absolute; left: 33%; top: -38%; width: 46%; aspect-ratio: 800 / 1002; display: block; pointer-events: none; }",
     ".gk2-sz-gosc { left: 0; top: 0; width: 100%; animation: gk2-sz-unos 7s ease-in-out infinite; }",
     ".gk2-js .gk2-sz-gosc-okno .gk2-sz-ruch { opacity: 0; transform: translate3d(0, 16%, 0) scale(.94); transition: opacity 1s ease, transform 1.4s cubic-bezier(.2, .9, .25, 1); }",
@@ -2019,7 +2019,7 @@ const CSS_B = [
     "  .gk2-wypiek-nazwa { font-size: 7.2vw; }",
     "  .gk2-wypiek-opis { font-size: 12px; line-height: 1.42; }",
     "  .gk2-wypiek-link { margin-top: 2px; }",
-    "  .gk2-opak { --kx: calc(var(--sw) * .5); --ky: calc(var(--sh) * .6); --kw: calc(var(--sw) * .66); }",
+    "  .gk2-opak { --kx: calc(var(--sw) * .5); --ky: calc(var(--sh) * .67); --kw: calc(var(--sw) * .62); }",
     "  .gk2-pas-v { display: none; }",
     "  .gk2-papier-gora { top: 64px; }",
     "  .gk2-papier-gora span + span { display: none; }",
@@ -2045,7 +2045,7 @@ const CSS_B = [
     "  .gk2-zrodla-lista li { padding: 16px 0; }",
     "  .gk2-zrodla-skad { font-size: 8vw; }",
     "  .gk2-smaki-gora { top: calc(var(--vh) * 9.5); }",
-    "  .gk2-rozek2 { --rh: min(calc(var(--vh) * 45), 96vw); left: 50%; top: calc(var(--vh) * 37); }",
+    "  .gk2-rozek { --rh: min(calc(var(--vh) * 44), 90vw); left: 50%; top: calc(var(--vh) * 36); }",
     "  .gk2-beben { left: 0; right: 0; width: auto; top: calc(var(--vh) * 58); height: calc(var(--vh) * 22); perspective-origin: 50% 50%; }",
     "  .gk2-beben-nazwa { left: var(--m); right: var(--m); text-align: center; font-size: min(12.4vw, calc(var(--vh) * 6.6)); }",
     "  .gk2-smaki-opisy { left: var(--m); right: var(--m); width: auto; bottom: calc(var(--vh) * 10.5); text-align: center; }",
@@ -2063,14 +2063,31 @@ const CSS_B = [
     "  .gk2-lokale-gora { grid-template-columns: 1fr; gap: 34px; }",
     "  .gk2-luk { justify-self: start; width: 72vw; }",
     "  .gk2-lista li { grid-template-columns: 1fr; gap: 6px; }",
-    "  .gk2-lista-strzalka { display: none; }",
+    "  .gk2-lista li { position: relative; }",
+    "  .gk2-lista-strzalka { position: absolute; right: 0; top: 24px; }",
     "  .gk2-deptak { height: 46vw; }",
     "  .gk2-deptak-napis { right: auto; left: 0; top: auto; bottom: calc(100% + 10px); display: block; text-align: left; white-space: nowrap; }",
     "  .gk2-stopka { padding-top: calc(var(--vh) * 15); }",
-    "  .gk2-sz-okno-tasmy { left: 6vw; }",
+    "  .gk2-prezent { left: var(--m); right: var(--m); top: calc(var(--vh) * 14 + 37.9vw + 18px); max-width: none; }",
+    "  .gk2-prezent-cta { gap: 12px 18px; }",
+    "  .gk2-prezent-kto { margin-bottom: 4px; }",
+    "  .gk2-prezent-termin { display: block; margin-bottom: 16px; }",
+    "  .gk2-papier-gora span + span { display: none; }",
+    "  .gk2-stolik { grid-template-columns: minmax(0, 1fr); padding: calc(var(--vh) * 13) var(--m); }",
+    "  .gk2-stolik-foto { order: 2; justify-self: center; width: 78vw; margin-top: 12vw; }",
+    "  .gk2-stolik-formularz { grid-template-columns: 1fr 1fr; }",
+    "  .gk2-pasek-zamow { position: sticky; bottom: 12px; z-index: 66; display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 56px; margin: -68px var(--m) 12px; padding: 0 7px 0 18px; border-radius: 999px; background: var(--tusz); color: #F2EFE8; line-height: 1.35; transform: translate3d(0, 160%, 0); transition: transform .45s cubic-bezier(.2,.85,.25,1); box-shadow: 0 14px 36px -16px rgba(0,0,0,.55); }",
+    "  .gk2-pasek-zamow.gk2-pasek-widac { transform: none; }",
+    "  .gk2-pasek-zamow b { font-weight: 400; color: var(--tusz); background: var(--roz); border-radius: 999px; padding: 12px 16px; }",
     "  .gk2-szaro-pasek { left: var(--m); right: var(--m); bottom: 14px; transform: none; white-space: normal; justify-content: space-between; gap: 12px; padding: 8px 8px 8px 16px; border-radius: 22px; line-height: 1.4; }",
     "  .gk2-szaro-pasek button { flex: none; }",
     "  .gk2-sz-gosc-okno { left: 52%; top: -26%; width: 34%; }",
+    "}",
+    "@media (max-width: 809px) and (max-height: 700px), (max-aspect-ratio: 21/20) and (max-height: 700px) {",
+    "  .gk2-opak { --ky: calc(var(--sh) * .71); --kw: calc(var(--sw) * .52); }",
+    "  .gk2-papier-napis { top: calc(var(--sh) * .13); font-size: 16.5vw; }",
+    "  .gk2-prezent { top: calc(var(--vh) * 13 + 33.7vw + 16px); }",
+    "  .gk2-papier-dol { display: none; }",
     "}",
     "@media (prefers-reduced-motion: reduce) {",
     "  .gk2 *, .gk2 *::before, .gk2 *::after { animation: none !important; transition: none !important; }",
@@ -2079,6 +2096,7 @@ const CSS_B = [
     "  .gk2-film-zdjecia img:first-child { opacity: 1; }",
     "  .gk2-js .gk2-hero, .gk2-js .gk2-kino { height: calc(var(--vh) * 100); }",
     "  .gk2-js .gk2-sz-ruch { transform: none !important; opacity: 1 !important; }",
+    "  .gk2-js .gk2-prezent { display: none; }",
     "}",
 ].join("\n")
 
@@ -2153,6 +2171,7 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
         smakTlo: "",
         smakZ: "",
         smakB: "",
+        pasek: false,
         szX: -1,
         szY: -1,
         szLx: -1,
@@ -2207,10 +2226,7 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
             geo.zw = el.smakiScena.clientWidth
             geo.zh = el.smakiScena.clientHeight
             if (el.smakiZalew) el.smakiZalew.setAttribute("viewBox", "0 0 " + geo.zw + " " + geo.zh)
-            if (el.rozek) {
-                geo.rx = el.rozek.offsetLeft
-                geo.ry = el.rozek.offsetTop
-            }
+            if (el.rozek) geo.ry = el.rozek.offsetTop + el.rozek.offsetHeight / 2
             const n0 = el.bebenNazwa0 as HTMLElement | undefined
             const fz = n0 ? parseFloat(window.getComputedStyle(n0).fontSize) || 100 : 100
             geo.bR = fz * 3.3
@@ -2221,6 +2237,7 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
             s.smakZ = "-"
             s.smakB = "-"
         }
+        ustawPlotno(el.plotnoRozek)
         ustawPlotno(el.plotnoBalony)
         s.swieta = -1
     }
@@ -2238,10 +2255,14 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
     const poCzasie = window.setTimeout(mierz, 1200)
     if ((document as any).fonts && (document as any).fonts.ready) (document as any).fonts.ready.then(mierz).catch(() => {})
 
-    // Żywy chrom: jedyny na stronie, w balonach na Najszarszy Dzień.
+    // Żywy chrom: rożek w Smakach (odbija kolor smaku) i balony na Najszarszy Dzień.
+    let chromRozek: Chrom | null = null
     let chromBalony: Chrom | null = null
+    const kolA = [0, 0, 0]
+    const kolB = [0, 0, 0]
     if (!reduce) {
         const duzy = geo.vh * geo.dpr > 1150
+        if (el.plotnoRozek) chromRozek = stworzChrom(el.plotnoRozek, obraz(P.rozek.f, duzy ? 2048 : 1024), P.rozek.b, () => root.classList.add("gk2-chrom-1"))
         if (el.plotnoBalony) chromBalony = stworzChrom(el.plotnoBalony, obraz(P.balony.f, duzy ? 2048 : 1024), P.balony.b, () => root.classList.add("gk2-chrom-2"))
     }
 
@@ -2352,7 +2373,7 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
             naSmak(parseInt(kropka.getAttribute("data-smak") || "0", 10), true)
             return
         }
-        if (cel.closest(".gk2-rozek2")) {
+        if (cel.closest(".gk2-rozek")) {
             const i = Math.round(smakTeraz())
             naSmak(i >= SMAKI.length - 1 ? 0 : i + 1, true)
         }
@@ -2629,6 +2650,11 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
                 const p = gladko("swieta", clamp(-r.top / Math.max(1, dl), 0, 1))
                 if (Math.abs(p - s.swieta) > 0.0003) {
                     s.swieta = p
+                    if (el.prezent) {
+                        const o = clamp(1 - p / 0.05, 0, 1)
+                        el.prezent.style.opacity = o.toFixed(3)
+                        el.prezent.style.visibility = o > 0 ? "visible" : "hidden"
+                    }
                     const f = (a: number, b: number) => clamp((p - a) / (b - a), 0, 1)
                     // Ciągniemy za końce: pętle chowają się w węźle, ogony się wydłużają.
                     const a1 = easeInOut(f(0.03, 0.3))
@@ -2748,18 +2774,18 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
                     sc.style.fill = B.kolor
                     s.smakZ = kap
                 }
-                const gA = el.galkaA as HTMLElement | undefined
-                const gB = el.galkaB as HTMLElement | undefined
-                if (gA) gA.style.background = p >= 1 ? B.gala : A.gala
-                if (gB) {
-                    const klip = trwa ? "path('" + zalew(geo.zw, geo.zh, p, t, geo.rx, geo.ry) + "')" : ""
-                    if (klip !== s.smakB) {
-                        s.smakB = klip
-                        gB.style.visibility = trwa ? "visible" : "hidden"
-                        gB.style.background = B.gala
-                        gB.style.setProperty("-webkit-clip-path", klip || "none")
-                        gB.style.clipPath = klip || "none"
+                // Chromowy rożek: kolor smaku w odbiciach zmienia się, kiedy zalew przepływa przez rożek.
+                if (chromRozek) {
+                    const D0 = geo.zh * 0.2
+                    const yb0 = lerp(-D0 - 14, geo.zh + 4, p)
+                    const q = p >= 1 ? 1 : p <= 0 ? 0 : easeInOut(clamp((yb0 - (geo.ry - D0)) / (D0 * 1.6), 0, 1))
+                    const RA = SMAKI_RGB[i0]
+                    const RB = SMAKI_RGB[i0 + 1]
+                    for (let c = 0; c < 3; c++) {
+                        kolA[c] = lerp(RA.a[c], RB.a[c], q)
+                        kolB[c] = lerp(RA.b[c], RB.b[c], q)
                     }
+                    chromRozek.rysuj({ czas: t, lx: s.lx, ly: s.ly, kx: 0, ky: 0, kr: 0, caly: 1, A: kolA, B: kolB })
                 }
                 // Bęben z nazwami obraca się razem z przewijaniem.
                 const KROK = 34
@@ -2892,6 +2918,32 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
             }
         }
 
+        // 12. Telefon: pasek „Zamów wypieki” do 21.12, schowany na pierwszym ekranie, przy sklepie i w stopce
+        const pasek = el.pasekZamow as HTMLElement | undefined
+        if (pasek) {
+            let pokaz = false
+            if (mobile && window.scrollY > vh * 0.6) {
+                const sw = el.swieta as HTMLElement | undefined
+                const rs = sw ? sw.getBoundingClientRect() : null
+                const sklep = !!rs && s.otwarte && rs.bottom > vh * 0.35 && rs.top < vh * 0.65
+                const st = el.stopka as HTMLElement | undefined
+                const stopka = !!st && st.getBoundingClientRect().top < vh * 0.92
+                // na przypiętych scenach (opowieść, filmy, smaki) pasek zasłaniałby podpisy i kropki
+                let scena = false
+                for (const k of ["hero", "kino", "smaki"]) {
+                    const e = el[k] as HTMLElement | undefined
+                    if (!e) continue
+                    const r = e.getBoundingClientRect()
+                    if (r.top <= 1 && r.bottom >= vh - 1) scena = true
+                }
+                pokaz = !sklep && !stopka && !scena
+            }
+            if (pokaz !== s.pasek) {
+                pasek.classList.toggle("gk2-pasek-widac", pokaz)
+                s.pasek = pokaz
+            }
+        }
+
         // 10. Menu: jasne na ciemnych sekcjach, chowa się przy przewijaniu w dół
         const nav = el.nav as HTMLElement | undefined
         if (nav) {
@@ -2905,10 +2957,9 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
                 s.nav = motyw
             }
             const y = window.scrollY
-            const koniecHero = hero ? hero.offsetTop + hero.offsetHeight - vh : vh
             const dy = y - s.ostY
             let schowaj = s.schowana
-            if (y < koniecHero) schowaj = false
+            if (y < vh * 0.9) schowaj = false
             else if (dy > 6) schowaj = true
             else if (dy < -6) schowaj = false
             if (schowaj !== s.schowana) {
@@ -2967,6 +3018,7 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
         root.removeEventListener("pointercancel", tasmaGora)
         root.removeEventListener("click", slonceKlik)
         window.removeEventListener("touchmove", palecKuli)
+        if (chromRozek) chromRozek.usun()
         if (chromBalony) chromBalony.usun()
     }
 }
@@ -2998,9 +3050,12 @@ export default function KonceptFundusz2(props: Props) {
     // Najszarszy Dzień: tego dnia cała strona jest szara, a kulka pod kursorem (albo palcem) oddaje kolor.
     // "dzien" = naprawdę dziś, "podglad" = ?szary w adresie albo przycisk w sekcji 18.01.
     const [szaro, ustawSzaro] = useState<"" | "dzien" | "podglad">("")
+    // Pasek „Zamów wypieki” na telefonie: tylko do końca zamówień świątecznych.
+    const [przedKoncemZamowien, ustawPrzedKoncem] = useState(true)
 
     useEffect(() => {
         const teraz = Date.now()
+        ustawPrzedKoncem(teraz < KONIEC_ZAMOWIEN)
         const w = najszarszy(teraz)
         ustawDzien({ krotko: dwa(w.dzien) + ".01", dlugo: "poniedziałek, " + w.dzien + " stycznia " + w.rok })
         let tryb: "" | "dzien" | "podglad" = ""
@@ -3073,6 +3128,10 @@ export default function KonceptFundusz2(props: Props) {
 
     const skok = (id: string) => (e: React.MouseEvent) => {
         e.preventDefault()
+        if (id === "gora") {
+            window.scrollTo({ top: 0, behavior: "smooth" })
+            return
+        }
         // Do Świąt przewijamy od razu za kokardę: paczka rozpakowuje się po drodze, a na końcu czeka sklep.
         const sekcja = E.current.swieta as HTMLElement | undefined
         const droga = E.current.swietaDroga as HTMLElement | undefined
@@ -3109,8 +3168,8 @@ export default function KonceptFundusz2(props: Props) {
     const papier = (
         <div className="gk2-papier">
             <div className="gk2-papier-gora gk2-e">
-                <span>03 — Święta 2026</span>
-                <span>Zamówienia 1–21 grudnia</span>
+                <span>01 — Święta 2026</span>
+                <span>Zamówienia do 21.12 · odbiór 23–24.12</span>
             </div>
             <div className="gk2-d gk2-papier-napis">
                 <span>Rozpakuj</span>
@@ -3143,16 +3202,16 @@ export default function KonceptFundusz2(props: Props) {
 
             <div className="gk2-nav-kotwica">
                 <header className="gk2-nav" ref={u("nav")}>
-                    <a className="gk2-nav-logo" href="#gk2-start" onClick={skok("gk2-start")} aria-label="Górka & Kulka — początek strony">
+                    <a className="gk2-nav-logo" href="#gk2-swieta" onClick={skok("gora")} aria-label="Górka & Kulka — początek strony">
                         <Wyc a={P.logotyp} rozmiar={1024} alt="Górka & Kulka" odrazu />
                     </a>
                     <nav className="gk2-nav-linki" aria-label="Główne">
                         {[
-                            ["U nas", "gk2-unas"],
-                            ["Święta", "gk2-swieta"],
-                            ["Dla firm", "gk2-firmy"],
-                            ["Smaki", "gk2-smaki"],
+                            ["Wypieki", "gk2-swieta"],
+                            ["Wigilie", "gk2-firmy"],
+                            ["Stolik", "gk2-stolik"],
                             ["Lokale", "gk2-lokale"],
+                            ["O nas", "gk2-dlaczego"],
                         ].map((p) => (
                             <a key={p[1]} href={"#" + p[1]} onClick={skok(p[1])}>
                                 {p[0]}
@@ -3169,7 +3228,177 @@ export default function KonceptFundusz2(props: Props) {
                 </header>
             </div>
 
-            <section className="gk2-hero" ref={u("hero")} id="gk2-start" data-motyw="jasny">
+            <section className="gk2-swieta" ref={u("swieta")} id="gk2-swieta" data-motyw="jasny">
+                <h1 className="gk2-sr">Górka & Kulka — lody rzemieślnicze i ciasta z Gorzowa Wielkopolskiego. Wypieki na Święta 2026: zamówienia do 21 grudnia.</h1>
+                <div className="gk2-swieta-lep">
+                    <div className="gk2-sklep">
+                        <i className="gk2-sklep-wstazka gk2-sklep-wstazka-a" aria-hidden="true" />
+                        <i className="gk2-sklep-wstazka gk2-sklep-wstazka-b" aria-hidden="true" />
+                        <i className="gk2-sklep-kokarda" aria-hidden="true" />
+                        <div className="gk2-sklep-tekst">
+                            <div className="gk2-e gk2-s">01 — Święta 2026</div>
+                            <Linie linie={["Wypieki", "na Święta."]} className="gk2-h2 gk2-h2-sklep" bezWjazdu />
+                            <p className="gk2-lead gk2-s" style={{ ["--i" as any]: 1 }}>
+                                {"Sernik, makowiec i\u00a0ciasto czekoladowe. Pieczemy sami, na\u00a0zamówienie — po\u00a0dwadzieścia sztuk każdego."}
+                            </p>
+                            <dl className="gk2-fakty gk2-s" style={{ ["--i" as any]: 2 }}>
+                                <div>
+                                    <dt>Zamówienia</dt>
+                                    <dd>{"1–21\u00a0grudnia, przez stronę"}</dd>
+                                </div>
+                                <div>
+                                    <dt>Odbiór</dt>
+                                    <dd>
+                                        <span>{"Kawiarnia Centrum, ul.\u00a0Sikorskiego\u00a0126"}</span>
+                                        <span>
+                                            <b>23 grudnia 10–19</b> · <b>24 grudnia 10–12</b>
+                                        </span>
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt>Zadatek</dt>
+                                    <dd>{"30% płatne online"}</dd>
+                                </div>
+                            </dl>
+                            <a className="gk2-przycisk gk2-s" href={ZAMOWIENIA} style={{ ["--i" as any]: 3 }}>
+                                Zamów wypieki →
+                            </a>
+                        </div>
+                        <div className="gk2-wypieki">
+                            {WYPIEKI.map((w, i) => (
+                                <a key={w.nazwa} className="gk2-wypiek gk2-s" href={ZAMOWIENIA} style={{ ["--i" as any]: i + 2 }}>
+                                    <span className="gk2-wypiek-foto" role="img" aria-label={w.nazwa + " — wypiek świąteczny Górka & Kulka"}>
+                                        <i style={{ backgroundImage: "url(" + obraz(w.wyc) + ")" }} />
+                                    </span>
+                                    <span className="gk2-e gk2-wypiek-nr">
+                                        Nr 0{i + 1} · limit 20 sztuk
+                                    </span>
+                                    <span className="gk2-d gk2-wypiek-nazwa">{w.nazwa}</span>
+                                    <span className="gk2-wypiek-opis">{w.opis}</span>
+                                    <span className="gk2-e gk2-wypiek-link">Zamawiam →</span>
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="gk2-opak" ref={u("opak")} aria-hidden="true">
+                        {["a", "b", "c", "d"].map((k) => (
+                            <div key={k} className={"gk2-cw gk2-cw-" + k} ref={u("cw_" + k)}>
+                                {papier}
+                            </div>
+                        ))}
+                        <i className="gk2-pas gk2-pas-h gk2-pas-hl" ref={u("pasHL")} />
+                        <i className="gk2-pas gk2-pas-h gk2-pas-hp" ref={u("pasHP")} />
+                        <i className="gk2-pas gk2-pas-v gk2-pas-vg" ref={u("pasVG")} />
+                        <i className="gk2-pas gk2-pas-v gk2-pas-vd" ref={u("pasVD")} />
+                        <div className="gk2-kok-cien" ref={u("kokCien")} />
+                        <Kokarda u={u} />
+                    </div>
+                    <div className="gk2-prezent" ref={u("prezent")}>
+                        <p className="gk2-e gk2-prezent-kto">{"Górka & Kulka · lody i\u00a0ciasta z\u00a0Gorzowa · od\u00a02016"}</p>
+                        <p className="gk2-e gk2-prezent-termin">{"Zamówienia do 21\u00a0grudnia · odbiór 23–24.12 w\u00a0Kawiarni Centrum"}</p>
+                        <div className="gk2-prezent-cta">
+                            <a className="gk2-przycisk" href={ZAMOWIENIA}>
+                                Zamów wypieki →
+                            </a>
+                            <a className="gk2-prezent-link gk2-e" href="#gk2-firmy" onClick={skok("gk2-firmy")}>
+                                Wigilia firmowa
+                            </a>
+                            <a className="gk2-prezent-link gk2-e" href="#gk2-stolik" onClick={skok("gk2-stolik")}>
+                                Stolik w Kawiarni Centrum
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div className="gk2-swieta-droga" ref={u("swietaDroga")} aria-hidden="true" />
+            </section>
+
+            <section className="gk2-firmy" id="gk2-firmy" data-motyw="jasny">
+                <div className="gk2-firmy-glowa">
+                    <div className="gk2-e">02 — Dla firm</div>
+                    <Linie linie={["Wigilia", "firmowa."]} className="gk2-h2" />
+                </div>
+                <figure className="gk2-firmy-foto gk2-wjazd" data-wjazd="">
+                    <div className="gk2-firmy-okno" ref={u("firmyOkno")}>
+                        <img ref={u("firmyObraz")} src={FOTO.ciasto} alt="Sernik na paterze i ciasto czekoladowe na marmurowym stole, goście nakładają sobie po kawałku" loading="lazy" decoding="async" />
+                    </div>
+                    <i className="gk2-firmy-kokarda" aria-hidden="true" />
+                    <figcaption className="gk2-e">Kawiarnia Centrum, ul. Sikorskiego 126</figcaption>
+                </figure>
+                <div className="gk2-firmy-tresc">
+                    <p className="gk2-lead">{"Zamknijcie rok przy jednym stole. Dwie godziny, nasza obsługa i\u00a0specjalne menu ułożone na\u00a0tę okazję. Podajcie termin i\u00a0liczbę osób, a\u00a0odpiszemy z\u00a0ofertą."}</p>
+                    <ul className="gk2-trojka">
+                        <li>
+                            <b className="gk2-d">2 godziny</b>
+                            <span>przy wspólnym stole</span>
+                        </li>
+                        <li>
+                            <b className="gk2-d">Obsługa</b>
+                            <span>{"podajemy i\u00a0dbamy o\u00a0resztę"}</span>
+                        </li>
+                        <li>
+                            <b className="gk2-d">Menu</b>
+                            <span>{"specjalne, układane na\u00a0tę okazję"}</span>
+                        </li>
+                    </ul>
+                    <Zapytanie />
+                </div>
+            </section>
+
+            <section className="gk2-stolik" id="gk2-stolik" data-motyw="jasny">
+                <figure className="gk2-stolik-foto gk2-wjazd" data-wjazd="">
+                    <div className="gk2-stolik-okno">
+                        <img src={FOTO.sniadanie} alt="Śniadanie na stoliku w Kawiarni Centrum Górka & Kulka" loading="lazy" decoding="async" />
+                    </div>
+                    <figcaption className="gk2-e">Kawiarnia Centrum, ul. Sikorskiego 126 · codziennie 10–19</figcaption>
+                </figure>
+                <div className="gk2-stolik-tresc">
+                    <div className="gk2-e">03 — Stolik</div>
+                    <Linie linie={["Zarezerwuj", "stolik."]} className="gk2-h2" />
+                    <p className="gk2-lead">{"Śniadanie, kawa, kawałek ciasta w\u00a0Kawiarni Centrum. Zostaw prośbę, a\u00a0my oddzwonimy albo napiszemy SMS, żeby ją potwierdzić."}</p>
+                    <Stolik />
+                </div>
+            </section>
+
+            <section className="gk2-lokale" ref={u("lokale")} id="gk2-lokale" data-motyw="jasny">
+                <div className="gk2-lokale-gora">
+                    <div>
+                        <div className="gk2-e">04 — Lokale</div>
+                        <Linie linie={["Trzy adresy", "w Gorzowie."]} className="gk2-h2" />
+                    </div>
+                    <figure className="gk2-luk">
+                        <div className="gk2-luk-okno" ref={u("okno")}>
+                            <img ref={u("oknoFoto")} src={FOTO.witryna} alt="Witryna Kawiarni Centrum z różową i żółtą ławką" loading="lazy" decoding="async" />
+                        </div>
+                        <figcaption className="gk2-e">Kawiarnia Centrum, ul. Sikorskiego 126</figcaption>
+                    </figure>
+                </div>
+                <ul className="gk2-lista">
+                    {[
+                        ["Kawiarnia Centrum", "ul. Sikorskiego 126", "Kawiarnia, lody, ciasta · codziennie 10–19", "Górka & Kulka Sikorskiego 126 Gorzów Wielkopolski"],
+                        ["Nova Park", "Centrum handlowe Nova Park", "Lodziarnia · godziny galerii", "Górka & Kulka Nova Park Gorzów Wielkopolski"],
+                        ["Górczyn", "Lodziarnia sezonowa", "Otwarta w sezonie, wiosna–lato", "Górka & Kulka Górczyn Gorzów Wielkopolski"],
+                    ].map((l) => (
+                        <li key={l[0]}>
+                            <span className="gk2-d gk2-lista-nazwa">{l[0]}</span>
+                            <span>{l[1]}</span>
+                            <span>{l[2]}</span>
+                            <a className="gk2-lista-strzalka" href={"https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(l[3])} target="_blank" rel="noopener noreferrer">
+                                Jak dojść ↗
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+                <div className="gk2-deptak" ref={u("deptak")}>
+                    <span className="gk2-e gk2-deptak-napis">
+                        <span>Następny przystanek:</span> <span>Sikorskiego 126 →</span>
+                    </span>
+                    <div className="gk2-para" ref={u("para")}>
+                        <Wyc a={P.para} rozmiar={1024} alt="Górka i Kulka idą na Sikorskiego, każde z rożkiem" />
+                    </div>
+                </div>
+            </section>
+
+            <section className="gk2-hero" ref={u("hero")} id="gk2-dlaczego" data-motyw="jasny">
                 <div className="gk2-scena" ref={u("scena")}>
                     <div className="gk2-warstwa gk2-szara" aria-hidden="true">
                         {blok(
@@ -3190,7 +3419,6 @@ export default function KonceptFundusz2(props: Props) {
                         </div>
                     </div>
                     <div className="gk2-warstwa gk2-kolor" ref={u("kolor")}>
-                        <h1 className="gk2-sr">Małe święto każdego dnia. Górka & Kulka — lody rzemieślnicze z Gorzowa Wielkopolskiego</h1>
                         <div className="gk2-slonce" ref={u("slonce")} aria-hidden="true">
                             <Wyc a={P.slonce} rozmiar={1024} odrazu />
                         </div>
@@ -3228,7 +3456,7 @@ export default function KonceptFundusz2(props: Props) {
 
             <section className="gk2-manifest" ref={u("manifest")} data-motyw="jasny">
                 <div className="gk2-wiersz gk2-e">
-                    <span>01 — Manifest</span>
+                    <span>05 — Manifest</span>
                     <span>Górka & Kulka, Gorzów Wielkopolski, od 2016</span>
                 </div>
                 <p className="gk2-d gk2-manifest-tekst">
@@ -3262,7 +3490,6 @@ export default function KonceptFundusz2(props: Props) {
             </section>
 
             <div className="gk2-tasmy" aria-hidden="true">
-                <SzaryZza p={SZARY_GLOWA} k={0} klasa="gk2-sz-okno-tasmy" />
                 <Tasma src={TASMA_MASLO} klasa="gk2-tasma-a gk2-tasma-maslo" />
                 <Tasma src={TASMA_ROZ} klasa="gk2-tasma-b gk2-tasma-roz" />
             </div>
@@ -3270,7 +3497,7 @@ export default function KonceptFundusz2(props: Props) {
             <section className="gk2-kino" ref={u("kino")} id="gk2-unas" data-motyw="ciemny">
                 <div className="gk2-kino-scena">
                     <div className="gk2-kino-gora gk2-e">
-                        <span>02 — Zajrzyj do nas</span>
+                        <span>06 — Zajrzyj do nas</span>
                         <span className="gk2-kino-seans">Otwarte codziennie, 10–19</span>
                     </div>
                     <h2 className="gk2-sr">Zajrzyj do nas — filmy z naszej kawiarni</h2>
@@ -3301,110 +3528,9 @@ export default function KonceptFundusz2(props: Props) {
                 </div>
             </section>
 
-            <section className="gk2-swieta" ref={u("swieta")} id="gk2-swieta" data-motyw="jasny">
-                <div className="gk2-swieta-lep">
-                    <div className="gk2-sklep">
-                        <i className="gk2-sklep-wstazka gk2-sklep-wstazka-a" aria-hidden="true" />
-                        <i className="gk2-sklep-wstazka gk2-sklep-wstazka-b" aria-hidden="true" />
-                        <i className="gk2-sklep-kokarda" aria-hidden="true" />
-                        <div className="gk2-sklep-tekst">
-                            <div className="gk2-e gk2-s">03 — Święta 2026</div>
-                            <Linie linie={["Wypieki", "na Święta."]} className="gk2-h2 gk2-h2-sklep" bezWjazdu />
-                            <p className="gk2-lead gk2-s" style={{ ["--i" as any]: 1 }}>
-                                {"Sernik, makowiec i\u00a0ciasto czekoladowe. Pieczemy sami, na\u00a0zamówienie — po\u00a0dwadzieścia sztuk każdego."}
-                            </p>
-                            <dl className="gk2-fakty gk2-s" style={{ ["--i" as any]: 2 }}>
-                                <div>
-                                    <dt>Zamówienia</dt>
-                                    <dd>{"1–21\u00a0grudnia, przez stronę"}</dd>
-                                </div>
-                                <div>
-                                    <dt>Odbiór</dt>
-                                    <dd>
-                                        <span>{"Kawiarnia Centrum, ul.\u00a0Sikorskiego\u00a0126"}</span>
-                                        <span>
-                                            <b>23 grudnia 10–19</b> · <b>24 grudnia 10–12</b>
-                                        </span>
-                                    </dd>
-                                </div>
-                                <div>
-                                    <dt>Zadatek</dt>
-                                    <dd>{"30% płatne online"}</dd>
-                                </div>
-                            </dl>
-                            <a className="gk2-przycisk gk2-s" href={ZAMOWIENIA} style={{ ["--i" as any]: 3 }}>
-                                Zamów wypieki →
-                            </a>
-                        </div>
-                        <div className="gk2-wypieki">
-                            {WYPIEKI.map((w, i) => (
-                                <a key={w.nazwa} className="gk2-wypiek gk2-s" href={ZAMOWIENIA} style={{ ["--i" as any]: i + 2 }}>
-                                    <span className="gk2-wypiek-foto" role="img" aria-label={w.nazwa + " — wypiek świąteczny Górka & Kulka"}>
-                                        {i === 1 ? <SzaryZza p={SZARY_GLOWA} k={0.24} klasa="gk2-sz-okno-ciasto" lustro /> : null}
-                                        <i style={{ backgroundImage: "url(" + obraz(w.wyc) + ")" }} />
-                                    </span>
-                                    <span className="gk2-e gk2-wypiek-nr">
-                                        Nr 0{i + 1} · limit 20 sztuk
-                                    </span>
-                                    <span className="gk2-d gk2-wypiek-nazwa">{w.nazwa}</span>
-                                    <span className="gk2-wypiek-opis">{w.opis}</span>
-                                    <span className="gk2-e gk2-wypiek-link">Zamawiam →</span>
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="gk2-opak" ref={u("opak")} aria-hidden="true">
-                        {["a", "b", "c", "d"].map((k) => (
-                            <div key={k} className={"gk2-cw gk2-cw-" + k} ref={u("cw_" + k)}>
-                                {papier}
-                            </div>
-                        ))}
-                        <i className="gk2-pas gk2-pas-h gk2-pas-hl" ref={u("pasHL")} />
-                        <i className="gk2-pas gk2-pas-h gk2-pas-hp" ref={u("pasHP")} />
-                        <i className="gk2-pas gk2-pas-v gk2-pas-vg" ref={u("pasVG")} />
-                        <i className="gk2-pas gk2-pas-v gk2-pas-vd" ref={u("pasVD")} />
-                        <div className="gk2-kok-cien" ref={u("kokCien")} />
-                        <Kokarda u={u} />
-                    </div>
-                </div>
-                <div className="gk2-swieta-droga" ref={u("swietaDroga")} aria-hidden="true" />
-            </section>
-
-            <section className="gk2-firmy" id="gk2-firmy" data-motyw="jasny">
-                <div className="gk2-firmy-glowa">
-                    <div className="gk2-e">04 — Dla firm</div>
-                    <Linie linie={["Wigilia", "firmowa."]} className="gk2-h2" />
-                </div>
-                <figure className="gk2-firmy-foto gk2-wjazd" data-wjazd="">
-                    <div className="gk2-firmy-okno" ref={u("firmyOkno")}>
-                        <img ref={u("firmyObraz")} src={FOTO.ciasto} alt="Sernik na paterze i ciasto czekoladowe na marmurowym stole, goście nakładają sobie po kawałku" loading="lazy" decoding="async" />
-                    </div>
-                    <i className="gk2-firmy-kokarda" aria-hidden="true" />
-                    <figcaption className="gk2-e">Kawiarnia Centrum, ul. Sikorskiego 126</figcaption>
-                </figure>
-                <div className="gk2-firmy-tresc">
-                    <p className="gk2-lead">{"Zamknijcie rok przy jednym stole. Dwie godziny, nasza obsługa i\u00a0specjalne menu ułożone na\u00a0tę okazję. Podajcie termin i\u00a0liczbę osób, a\u00a0odpiszemy z\u00a0ofertą."}</p>
-                    <ul className="gk2-trojka">
-                        <li>
-                            <b className="gk2-d">2 godziny</b>
-                            <span>przy wspólnym stole</span>
-                        </li>
-                        <li>
-                            <b className="gk2-d">Obsługa</b>
-                            <span>{"podajemy i\u00a0dbamy o\u00a0resztę"}</span>
-                        </li>
-                        <li>
-                            <b className="gk2-d">Menu</b>
-                            <span>{"specjalne, układane na\u00a0tę okazję"}</span>
-                        </li>
-                    </ul>
-                    <Zapytanie />
-                </div>
-            </section>
-
             <section className="gk2-zrodla" id="gk2-zrodla" data-motyw="jasny">
                 <div className="gk2-wiersz gk2-e">
-                    <span>05 — Od podstaw</span>
+                    <span>07 — Od podstaw</span>
                     <span>Mleko, śmietanka, jajka</span>
                 </div>
                 <div className="gk2-zrodla-glowa">
@@ -3413,7 +3539,6 @@ export default function KonceptFundusz2(props: Props) {
                 </div>
                 <div className="gk2-zrodla-rzad">
                     <figure className="gk2-farma">
-                        <SzaryZza p={SZARY_GLOWA_USMIECH} k={0.44} klasa="gk2-sz-okno-laka" lustro />
                         <Laka oknoRef={u("farma")} />
                         <figcaption className="gk2-e">
                             <span>Ryc. 8 — Górka i Kulka u krów z Juchowa.</span>
@@ -3439,6 +3564,31 @@ export default function KonceptFundusz2(props: Props) {
                 </div>
             </section>
 
+            <section className="gk2-noc" ref={u("noc")} id="gk2-dzien" data-motyw="ciemny">
+                <div className="gk2-noc-tekst">
+                    <div className="gk2-e">08 — Święto marki · {dzien.dlugo}</div>
+                    <div className="gk2-d gk2-data gk2-wjazd" data-wjazd="">
+                        {dzien.krotko}
+                    </div>
+                    <Linie linie={["Najszarszy", "Dzień."]} className="gk2-h2 gk2-h2-szary" />
+                    <p className="gk2-lead">
+                        Trzeci poniedziałek stycznia uchodzi za najsmutniejszy dzień w roku. U nas to święto. Raz do roku Szary Dzień jest gościem honorowym, a każda lodziarnia zamienia się w jego przyjęcie.
+                    </p>
+                    <Odliczanie />
+                    <Zapis data={dzien.krotko} />
+                    <button type="button" className="gk2-szaro-podglad gk2-e" onClick={() => (szaro ? koniecSzarosci() : ustawSzaro("podglad"))}>
+                        {szaro ? "Wyłącz szarość" : "Zobacz stronę w dniu " + dzien.krotko + " →"}
+                    </button>
+                </div>
+                <div className="gk2-balony" ref={u("balony")}>
+                    <span className="gk2-sz-gosc-okno" data-wjazd="" aria-hidden="true">
+                        <Szary p={SZARY_CALY} k={0} className="gk2-sz-gosc" />
+                    </span>
+                    <Wyc a={P.balony} rozmiar={1024} alt="Chromowe balony z monogramem Górka & Kulka" />
+                    <canvas ref={u("plotnoBalony")} aria-hidden="true" />
+                </div>
+            </section>
+
             <section className="gk2-smaki" ref={u("smaki")} id="gk2-smaki" data-motyw="jasny" style={{ ["--n" as any]: SMAKI.length }}>
                 <div className="gk2-smaki-scena" ref={u("smakiScena")} style={{ background: SMAKI[0].kolor, color: SMAKI[0].tekst }}>
                     <h2 className="gk2-sr">Smaki lodów</h2>
@@ -3454,7 +3604,7 @@ export default function KonceptFundusz2(props: Props) {
                     </svg>
                     <div className="gk2-smaki-gora gk2-e" ref={u("smakiGora")} aria-hidden="true">
                         <span>
-                            06 — Smaki · <span ref={u("smakiNr")}>01</span> / 0{SMAKI.length}
+                            09 — Smaki · <span ref={u("smakiNr")}>01</span> / 0{SMAKI.length}
                         </span>
                         <span className="gk2-tylko-mysz">← Przeciągnij w bok →</span>
                         <span className="gk2-tylko-dotyk">← Przesuń palcem →</span>
@@ -3483,11 +3633,9 @@ export default function KonceptFundusz2(props: Props) {
                         </div>
                         <p className="gk2-e gk2-smak-stopka">Karta zmienia się jak pogoda. Dziś gościnnie: pumpkin spice latte i matcha z truskawką.</p>
                     </div>
-                    <div className="gk2-rozek2" ref={u("rozek")} aria-hidden="true">
-                        <img className="gk2-rozek2-wafel" src={ROZEK.wafel} width={ROZEK.w} height={ROZEK.h} alt="" loading="lazy" decoding="async" draggable={false} />
-                        <i className="gk2-rozek2-galka" ref={u("galkaA")} style={{ background: SMAKI[0].gala }} />
-                        <i className="gk2-rozek2-galka gk2-rozek2-galka-b" ref={u("galkaB")} />
-                        <img className="gk2-rozek2-kreska" src={ROZEK.kreska} width={ROZEK.w} height={ROZEK.h} alt="" loading="lazy" decoding="async" draggable={false} />
+                    <div className="gk2-rozek" ref={u("rozek")}>
+                        <Wyc a={P.rozek} rozmiar={1024} alt="Chromowy rożek lodów Górka & Kulka" />
+                        <canvas ref={u("plotnoRozek")} aria-hidden="true" />
                     </div>
                     <div className="gk2-smaki-kropki" ref={u("smakiKropki")} role="group" aria-label="Wybierz smak">
                         {SMAKI.map((sm, i) => (
@@ -3499,77 +3647,15 @@ export default function KonceptFundusz2(props: Props) {
 
             <Kubek tiltRef={u("kubekTilt")} />
 
-            <section className="gk2-noc" ref={u("noc")} id="gk2-dzien" data-motyw="ciemny">
-                <div className="gk2-noc-tekst">
-                    <div className="gk2-e">08 — Święto marki · {dzien.dlugo}</div>
-                    <div className="gk2-d gk2-data gk2-wjazd" data-wjazd="">
-                        {dzien.krotko}
-                    </div>
-                    <Linie linie={["Najszarszy", "Dzień."]} className="gk2-h2 gk2-h2-szary" />
-                    <p className="gk2-lead">
-                        Trzeci poniedziałek stycznia uchodzi za najsmutniejszy dzień w roku. U nas to święto. Raz do roku Szary Dzień jest gościem honorowym, a każda lodziarnia zamienia się w jego przyjęcie.
-                    </p>
-                    <Odliczanie />
-                    <Zapis data={dzien.krotko} />
-                    <button type="button" className="gk2-szaro-podglad gk2-e" onClick={() => (szaro ? koniecSzarosci() : ustawSzaro("podglad"))}>
-                        {szaro ? "Wyłącz szarość" : "Zobacz stronę w dniu " + dzien.krotko + " →"}
-                    </button>
-                </div>
-                <div className="gk2-balony" ref={u("balony")}>
-                    <span className="gk2-sz-gosc-okno" data-wjazd="" aria-hidden="true">
-                        <Szary p={SZARY_CALY} k={0.8} className="gk2-sz-gosc" />
-                    </span>
-                    <Wyc a={P.balony} rozmiar={1024} alt="Chromowe balony z monogramem Górka & Kulka" />
-                    <canvas ref={u("plotnoBalony")} aria-hidden="true" />
-                </div>
-            </section>
-
-            <section className="gk2-lokale" ref={u("lokale")} id="gk2-lokale" data-motyw="jasny">
-                <div className="gk2-lokale-gora">
-                    <div>
-                        <div className="gk2-e">09 — Lokale</div>
-                        <Linie linie={["Trzy adresy", "w Gorzowie."]} className="gk2-h2" />
-                    </div>
-                    <figure className="gk2-luk">
-                        <div className="gk2-luk-okno" ref={u("okno")}>
-                            <img ref={u("oknoFoto")} src={FOTO.witryna} alt="Witryna Kawiarni Centrum z różową i żółtą ławką" loading="lazy" decoding="async" />
-                        </div>
-                        <figcaption className="gk2-e">Kawiarnia Centrum, ul. Sikorskiego 126</figcaption>
-                    </figure>
-                </div>
-                <ul className="gk2-lista">
-                    {[
-                        ["Kawiarnia Centrum", "ul. Sikorskiego 126", "Kawiarnia, lody, ciasta"],
-                        ["Nova Park", "Centrum handlowe Nova Park", "Lodziarnia"],
-                        ["Górczyn", "Lodziarnia sezonowa", "Otwarta w sezonie"],
-                    ].map((l) => (
-                        <li key={l[0]}>
-                            <span className="gk2-d gk2-lista-nazwa">{l[0]}</span>
-                            <span>{l[1]}</span>
-                            <span>{l[2]}</span>
-                            <span className="gk2-lista-strzalka">Gorzów Wlkp. ↗</span>
-                        </li>
-                    ))}
-                </ul>
-                <div className="gk2-deptak" ref={u("deptak")}>
-                    <span className="gk2-e gk2-deptak-napis">
-                        <span>Następny przystanek:</span> <span>Sikorskiego 126 →</span>
-                    </span>
-                    <div className="gk2-para" ref={u("para")}>
-                        <Wyc a={P.para} rozmiar={1024} alt="Górka i Kulka idą na Sikorskiego, każde z rożkiem" />
-                    </div>
-                </div>
-            </section>
-
             <div className="gk2-tasmy gk2-tasmy-dol" aria-hidden="true">
                 <Tasma src={TASMA_ROZ} klasa="gk2-tasma-a gk2-tasma-roz" />
                 <Tasma src={TASMA_MASLO} klasa="gk2-tasma-b gk2-tasma-maslo" />
             </div>
 
-            <footer className="gk2-stopka" data-motyw="jasny">
+            <footer className="gk2-stopka" ref={u("stopka")} data-motyw="jasny">
                 <div className="gk2-stopka-dzieci">
                     <Wyc a={P.dzieci} rozmiar={1024} alt="Mała Kulka z balonami w kształcie liczby 10" />
-                    <Szary p={SZARY_CALY} k={1} className="gk2-sz-stoi" />
+                    <Szary p={SZARY_CALY} k={0} className="gk2-sz-stoi" />
                     <span className="gk2-e">10 lat. Dopiero się rozkręcamy.</span>
                 </div>
                 <Wyc a={P.logotyp} rozmiar={2048} className="gk2-stopka-logo" alt="Górka & Kulka" />
@@ -3580,6 +3666,16 @@ export default function KonceptFundusz2(props: Props) {
                     <span>Makieta koncepcyjna. To jeszcze nie jest działający sklep.</span>
                 </div>
             </footer>
+            {przedKoncemZamowien ? (
+                <a className="gk2-pasek-zamow" ref={u("pasekZamow")} href={ZAMOWIENIA}>
+                    <span className="gk2-e">
+                        Wypieki na Święta
+                        <br />
+                        zamówienia do 21.12
+                    </span>
+                    <b className="gk2-e">Zamów →</b>
+                </a>
+            ) : null}
         </div>
     )
 }
