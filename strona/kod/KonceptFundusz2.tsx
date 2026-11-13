@@ -1663,11 +1663,10 @@ const CSS_B = [
     ".gk2-swieta-lep { position: sticky; top: 0; min-height: calc(var(--vh) * 100); overflow: hidden; }",
     ".gk2-swieta-droga { display: none; height: calc(var(--vh) * 230); }",
     ".gk2-js .gk2-swieta-droga { display: block; }",
-    ".gk2-sklep { position: relative; min-height: calc(var(--vh) * 100); padding: 112px var(--m) calc(var(--vh) * 7); display: grid; grid-template-columns: 1.15fr .85fr; grid-template-areas: 'glowa info' 'polka polka'; column-gap: 5vw; row-gap: calc(var(--vh) * 6); align-content: center; background: var(--krem); }",
-    ".gk2-sklep-glowa { grid-area: glowa; align-self: end; position: relative; }",
-    ".gk2-sklep-info { grid-area: info; align-self: end; }",
-    ".gk2-sklep-glowa .gk2-e { margin-bottom: 18px; }",
-    ".gk2-h2-sklep { font-size: clamp(54px, 8.6vw, 150px); }",
+    ".gk2-sklep { position: relative; min-height: calc(var(--vh) * 100); padding: 104px var(--m) calc(var(--vh) * 6); display: grid; grid-template-columns: minmax(0, 1fr); row-gap: calc(var(--vh) * 5); align-content: center; background: var(--krem); }",
+    ".gk2-sklep-glowa { position: relative; }",
+    ".gk2-h2-sklep { font-size: clamp(54px, 7.2vw, 128px); }",
+    ".gk2-sklep-info { opacity: .72; }",
     ".gk2-sklep .gk2-lead { margin-top: 0; }",
     ".gk2-sklep-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; margin-top: 26px; }",
     ".gk2-sklep-link { padding: 6px 0 3px; border-bottom: 1px solid currentColor; }",
@@ -1678,7 +1677,7 @@ const CSS_B = [
     ".gk2-fakty dt { opacity: .6; }",
     ".gk2-fakty dd span { display: block; }",
     ".gk2-fakty dd b { font-weight: 400; white-space: nowrap; }",
-    ".gk2-wypieki { grid-area: polka; --g: 2.4vw; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--g); align-items: start; padding-left: calc((100% - 2 * var(--g)) * .203 + 4px); }",
+    ".gk2-wypieki { --g: 2.4vw; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--g); align-items: start; padding-left: calc((100% - 2 * var(--g)) * .203 + 4px); }",
     ".gk2-sklep-para { position: absolute; right: calc(109% + 4px); bottom: 0; height: 104%; aspect-ratio: 0.83; z-index: 2; }",
     ".gk2-sklep-para .gk2-wyc { width: 100%; height: 100%; }",
     ".gk2-wypiek { display: grid; gap: 8px; align-content: start; }",
@@ -1688,9 +1687,11 @@ const CSS_B = [
     ".gk2-wypiek:last-child .gk2-wypiek-foto::after { right: 0; }",
     ".gk2-wypiek-foto i { position: absolute; left: -9%; top: 0; width: 118%; height: calc(100% - 4px); display: block; z-index: 2; background-repeat: no-repeat; background-size: contain; background-position: 50% 100%; transition: transform .45s cubic-bezier(.3,.7,.3,1); transform-origin: 50% 90%; }",
     "@media (hover: hover) { .gk2-wypiek:hover .gk2-wypiek-foto i { transform: translateY(-4%) scale(1.06) rotate(-2deg); } }",
-    ".gk2-wypiek-nr { margin-top: 14px; display: flex; align-items: center; gap: 8px; }",
+    ".gk2-wypiek-nr { display: flex; align-items: center; gap: 8px; opacity: .72; }",
     ".gk2-wypiek-nr::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--rubin); }",
-    ".gk2-wypiek-nazwa { font-size: clamp(24px, 2.7vw, 46px); line-height: .92; }",
+    ".gk2-wypiek-nazwa { margin-top: 16px; font-size: clamp(24px, 2.5vw, 42px); line-height: .92; }",
+    ".gk2-wypiek-zamow { justify-self: start; margin-top: 10px; padding: 12px 20px; border-radius: 999px; background: var(--tusz); color: var(--maslo); transition: background .25s ease; }",
+    "@media (hover: hover) { .gk2-wypiek:hover .gk2-wypiek-zamow { background: var(--rubin); } }",
     ".gk2-wypiek-opis { font-size: 13px; line-height: 1.5; opacity: .82; }",
     ".gk2-wypiek-link { margin-top: 4px; color: var(--rubin); }",
     ".gk2-js .gk2-s { opacity: 0; transform: translate3d(0, 28px, 0); transition: opacity .7s ease, transform .9s cubic-bezier(.2,.85,.25,1); transition-delay: calc(var(--i, 0) * 80ms); }",
@@ -2010,19 +2011,20 @@ const CSS_B = [
     "  .gk2-kino-meta { display: none; }",
     "  .gk2-sklep { display: flex; flex-direction: column; align-items: stretch; gap: 0; min-height: 0; padding: 84px var(--m) calc(var(--vh) * 6); }",
     "  .gk2-sklep-glowa, .gk2-sklep-info { align-self: stretch; }",
-    "  .gk2-h2-sklep { font-size: 14.6vw; }",
+    "  .gk2-h2-sklep { font-size: 15.4vw; }",
+    "  .gk2-sklep-info { margin-top: 22px; line-height: 1.6; }",
     "  .gk2-sklep-para-m { display: block; border-bottom: 1.5px solid var(--tusz); padding-left: 4vw; margin-bottom: 8px; }",
-    "  .gk2-sklep-para-m .gk2-wyc { width: 30vw; aspect-ratio: 0.83; }",
+    "  .gk2-sklep-para-m .gk2-wyc { width: 22vw; aspect-ratio: 0.83; }",
     "  .gk2-sklep-para { display: none; }",
-    "  .gk2-sklep-info { margin-top: 20px; }",
     "  .gk2-sklep-cta { margin-top: 20px; gap: 12px 18px; }",
-    "  .gk2-wypieki { margin-top: 26px; padding-left: 0; grid-template-columns: minmax(0, 1fr); gap: 12px; }",
+    "  .gk2-wypieki { margin-top: 22px; padding-left: 0; grid-template-columns: minmax(0, 1fr); gap: 14px; }",
     "  .gk2-wypiek-foto::after { display: none; }",
     "  .gk2-fakty { margin: 22px 0 0; font-size: 11px; }",
     "  .gk2-fakty div { grid-template-columns: 7.2em 1fr; padding: 8px 0; }",
-    "  .gk2-wypiek { grid-template-columns: 26vw minmax(0, 1fr); column-gap: 14px; row-gap: 5px; align-items: start; }",
-    "  .gk2-wypiek-foto { grid-row: 1 / span 4; }",
-    "  .gk2-wypiek-nr { margin-top: 2px; }",
+    "  .gk2-wypiek { grid-template-columns: 34vw minmax(0, 1fr); column-gap: 16px; row-gap: 6px; align-items: center; align-content: center; }",
+    "  .gk2-wypiek-foto { grid-row: 1 / span 3; }",
+    "  .gk2-wypiek-nazwa { margin-top: 0; }",
+    "  .gk2-wypiek-zamow { margin-top: 4px; padding: 10px 16px; }",
     "  .gk2-wypiek-nazwa { font-size: 7.2vw; }",
     "  .gk2-wypiek-opis { font-size: 12px; line-height: 1.42; }",
     "  .gk2-wypiek-link { margin-top: 2px; }",
@@ -3224,41 +3226,7 @@ export default function KonceptFundusz2(props: Props) {
                 <h1 className="gk2-sr">Górka & Kulka — lody rzemieślnicze i ciasta z Gorzowa Wielkopolskiego. Wypieki na Święta 2026: zamówienia do 21 grudnia.</h1>
                 <div className="gk2-sklep">
                     <div className="gk2-sklep-glowa">
-                        <div className="gk2-e">{"Górka & Kulka · lody i\u00a0ciasta z\u00a0Gorzowa · Święta 2026"}</div>
                         <Linie linie={["Wypieki", "na Święta."]} className="gk2-h2 gk2-h2-sklep" bezWjazdu />
-                    </div>
-                    <div className="gk2-sklep-info">
-                        <p className="gk2-lead">{"Sernik, makowiec i\u00a0ciasto czekoladowe. Pieczemy sami, na\u00a0zamówienie — po\u00a0dwadzieścia sztuk każdego."}</p>
-                        <div className="gk2-sklep-cta">
-                            <a className="gk2-przycisk" href={ZAMOWIENIA}>
-                                Zamów wypieki →
-                            </a>
-                            <a className="gk2-sklep-link gk2-e" href="#gk2-firmy" onClick={skok("gk2-firmy")}>
-                                Wigilia firmowa
-                            </a>
-                            <a className="gk2-sklep-link gk2-e" href="#gk2-stolik" onClick={skok("gk2-stolik")}>
-                                Stolik
-                            </a>
-                        </div>
-                        <dl className="gk2-fakty">
-                            <div>
-                                <dt>Zamówienia</dt>
-                                <dd>{"do 21\u00a0grudnia, przez stronę"}</dd>
-                            </div>
-                            <div>
-                                <dt>Odbiór</dt>
-                                <dd>
-                                    <span>{"Kawiarnia Centrum, ul.\u00a0Sikorskiego\u00a0126"}</span>
-                                    <span>
-                                        <b>23 grudnia 10–19</b> · <b>24 grudnia 10–12</b>
-                                    </span>
-                                </dd>
-                            </div>
-                            <div>
-                                <dt>Zadatek</dt>
-                                <dd>{"30% płatne online"}</dd>
-                            </div>
-                        </dl>
                     </div>
                     <div className="gk2-wypieki">
                         <div className="gk2-sklep-para-m" aria-hidden="true">
@@ -3274,13 +3242,13 @@ export default function KonceptFundusz2(props: Props) {
                                     ) : null}
                                     <i style={{ backgroundImage: "url(" + obraz(w.wyc) + ")" }} />
                                 </span>
-                                <span className="gk2-e gk2-wypiek-nr">Limit 20 sztuk</span>
                                 <span className="gk2-d gk2-wypiek-nazwa">{w.nazwa}</span>
-                                <span className="gk2-wypiek-opis">{w.opis}</span>
-                                <span className="gk2-e gk2-wypiek-link">Zamawiam →</span>
+                                <span className="gk2-e gk2-wypiek-nr">Limit 20 sztuk</span>
+                                <span className="gk2-e gk2-wypiek-zamow">Zamów →</span>
                             </a>
                         ))}
                     </div>
+                    <p className="gk2-e gk2-sklep-info">{"Zamówienia do 21\u00a0grudnia · odbiór 23–24.12 w\u00a0Kawiarni Centrum, ul.\u00a0Sikorskiego\u00a0126 · 30% zadatku online"}</p>
                 </div>
             </section>
 
