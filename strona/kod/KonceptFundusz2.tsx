@@ -4,7 +4,7 @@ import { addPropertyControls, ControlType, RenderTarget } from "framer"
 
 // Górka & Kulka — koncept strony głównej, wersja 3.
 // Jedna opowieść: Szary Dzień -> kolor. Start z grafiki Szarego Dnia, filmy z kawiarni, sklep świąteczny pod kokardą,
-// wigilie firmowe, smaki z chromowym rożkiem, kubek na wynos, święto marki.
+// wigilie firmowe, smaki spływające na rożek, kubek na wynos, święto marki (tego dnia cała strona jest szara).
 
 const CDN = "https://framerusercontent.com/"
 
@@ -71,15 +71,39 @@ const ZAMOWIENIA = "/kolekcja-swiateczna"
 type Smak = { nr: string; nazwa: string[]; en: string; opis: string; kolor: string; gala: string; tekst: string }
 const SMAKI: Smak[] = [
     { nr: "01", nazwa: ["Śmietanka"], en: "Whipped Cream", opis: "Biała. Uparcie prosta.", kolor: "#F3ECDC", gala: "#FFFFFF", tekst: "#111111" },
-    { nr: "02", nazwa: ["Solony", "karmel"], en: "Salted Caramel", opis: "Z kawałkami czekolady. Słodki, ale z charakterem.", kolor: "#B4652F", gala: "#D58A4F", tekst: "#FFF3E2" },
+    { nr: "02", nazwa: ["Solony", "karmel"], en: "Salted Caramel", opis: "Z kawałkami czekolady. Słodki, ale z charakterem.", kolor: "#C4773B", gala: "#DC9A5E", tekst: "#111111" },
     { nr: "03", nazwa: ["Pistacja"], en: "Pistachio", opis: "Zielona bez kompromisów.", kolor: "#A9BD78", gala: "#C6D79E", tekst: "#111111" },
     { nr: "04", nazwa: ["Mascarpone", "z szafranem"], en: "Mascarpone & Saffron", opis: "I z pomarańczą. Brzmi poważnie, znika od razu.", kolor: "#FFB23E", gala: "#FFCD78", tekst: "#111111" },
     { nr: "05", nazwa: ["Beza", "dacquoise"], en: "Dacquoise Meringue", opis: "Chrupie, zanim się rozpłynie.", kolor: "#EAD2C0", gala: "#F8E9DD", tekst: "#111111" },
     { nr: "06", nazwa: ["Gruszka", "z imbirem"], en: "Pear & Ginger", opis: "Sorbet. Rozgrzewa, choć mrozi.", kolor: "#D3D77C", gala: "#E4E7A8", tekst: "#111111" },
 ]
-// Kolory smaków jako liczby 0–1: chromowy rożek odbija kolor smaku, który jest na ekranie.
-const rgb01 = (hex: string) => [parseInt(hex.slice(1, 3), 16) / 255, parseInt(hex.slice(3, 5), 16) / 255, parseInt(hex.slice(5, 7), 16) / 255]
-const SMAKI_RGB = SMAKI.map((s) => ({ a: rgb01(s.kolor), b: rgb01(s.gala) }))
+// Duży rożek do Smaków, narysowany kreską marki w trzech warstwach: wafel, gałka (biała maska; kolor daje smak) i kreska z blaskiem.
+const ROZEK = { wafel: obraz("1tXQR2kRpyW3eUN5UaEuAN0DSyM.webp"), galka: obraz("1O6uaIA3BVT72ByZAiWMbWebteQ.webp"), kreska: obraz("KHRM61cDiC2R26Uwyhf3LtPGpJY.webp"), w: 1080, h: 1920 }
+// Kapki na brzegu zalewu: położenie (ułamek szerokości), promień, długość (ułamek najdłuższej) i faza falowania.
+const KAPKI = [
+    { x: 0.05, r: 0.017, l: 0.5, f: 0.3 },
+    { x: 0.19, r: 0.022, l: 0.95, f: 1.9 },
+    { x: 0.33, r: 0.013, l: 0.3, f: 4.1 },
+    { x: 0.47, r: 0.021, l: 1, f: 2.6 },
+    { x: 0.6, r: 0.015, l: 0.42, f: 0.9 },
+    { x: 0.75, r: 0.022, l: 0.82, f: 5.3 },
+    { x: 0.9, r: 0.016, l: 0.6, f: 3.7 },
+]
+// Szary Dzień w podróży przez stronę: wycięty z rysunku marki (bez stolika i krzesła).
+// Obrazek to faktura (mnożona przez kolor) z kanałem przezroczystości; ten sam plik jest maską koloru.
+type SzaryPlik = { f: string; w: number; h: number }
+const SZARY_GLOWA: SzaryPlik = { f: obraz("yqgDmA9zqABV5F5VwtsvjcsAQ.webp"), w: 560, h: 395 }
+const SZARY_GLOWA_USMIECH: SzaryPlik = { f: obraz("Ad9fBC6NsgE1kXdd2vs18EdnrA.webp"), w: 560, h: 389 }
+const SZARY_CALY: SzaryPlik = { f: obraz("u70wwFBUSl9qRiD96vtf1wHo1NA.webp"), w: 800, h: 1002 }
+// Z każdą sekcją ma więcej koloru: od szarego do różu marki.
+const SZARY_OD = "#BAB3B1"
+const SZARY_DO = "#F4AFC2"
+const hexRgb = (h: string) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]
+const mieszaj = (a: string, b: string, t: number) => {
+    const x = hexRgb(a)
+    const y = hexRgb(b)
+    return "rgb(" + Math.round(lerp(x[0], y[0], t)) + "," + Math.round(lerp(x[1], y[1], t)) + "," + Math.round(lerp(x[2], y[2], t)) + ")"
+}
 
 // Podpisy pod rysunkiem na starcie: zmieniają się razem z klatkami.
 const RYCINY = [
@@ -751,6 +775,28 @@ function Zapytanie() {
 }
 
 // Kubek na wynos: wycięty z pliku marki, a etykieta jest złożona na nowo (ostra w każdym rozmiarze).
+// Szary Dzień: k = ile koloru już złapał (0 szary, 1 różowy). "zza" = wychyla się zza krawędzi okienka.
+function Szary(props: { p: SzaryPlik; k: number; className?: string; lustro?: boolean }) {
+    const m = "url(" + props.p.f + ")"
+    return (
+        <span className={"gk2-sz" + (props.className ? " " + props.className : "")} data-sz="" aria-hidden="true" style={{ ["--sz" as any]: mieszaj(SZARY_OD, SZARY_DO, props.k), aspectRatio: props.p.w + " / " + props.p.h }}>
+            <span className={"gk2-sz-ruch" + (props.lustro ? " gk2-sz-lustro" : "")}>
+                <i className="gk2-sz-kolor" style={{ WebkitMaskImage: m, maskImage: m }} />
+                <img className="gk2-sz-faktura" src={props.p.f} width={props.p.w} height={props.p.h} alt="" loading="lazy" decoding="async" draggable={false} />
+            </span>
+        </span>
+    )
+}
+
+// Okienko, zza którego Szary Dzień wygląda: dolna krawędź schowana za czymś (taśmą, ciastem, ramką, kubkiem).
+function SzaryZza(props: { p: SzaryPlik; k: number; klasa: string; lustro?: boolean }) {
+    return (
+        <span className={"gk2-sz-okno " + props.klasa} data-wjazd="" aria-hidden="true">
+            <Szary p={props.p} k={props.k} lustro={props.lustro} className="gk2-sz-zza" />
+        </span>
+    )
+}
+
 function Kubek(props: { tiltRef: (el: HTMLDivElement | null) => void }) {
     const [wybrany, ustawWybrany] = useState(0)
     const [zapisany, ustawZapisany] = useState(false)
@@ -778,6 +824,7 @@ function Kubek(props: { tiltRef: (el: HTMLDivElement | null) => void }) {
                 <div className="gk2-kubek-cien" aria-hidden="true" />
                 <div className="gk2-kubek-tilt" ref={props.tiltRef}>
                     <div className="gk2-kubek-obraz">
+                        <SzaryZza p={SZARY_GLOWA_USMIECH} k={0.62} klasa="gk2-sz-okno-kubek" lustro />
                         <img src={KUBEK} width={630} height={668} alt={"Kubek lodów Górka & Kulka 450 ml, smak: " + smak.nazwa.join(" ")} loading="lazy" decoding="async" draggable={false} />
                         <svg className="gk2-etykieta" viewBox="0 0 300 400" aria-hidden="true">
                             <rect x="0" y="0" width="300" height="327" fill="#FFFFFF" />
@@ -1167,7 +1214,70 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
 
     const muu = laka.querySelector("[data-muu]") as HTMLElement | null
     let muuStan = ""
+    // Zabawka: dotknięta krowa mówi „Muu.”, kiwa łbem i macha ogonem.
+    const muu2 = laka.querySelector("[data-muu2]") as HTMLElement | null
+    let muu2Stan = ""
+    let muu2T = -10
+    let tTeraz = 0
+    const lebKlik: number[] = []
+    const ogonKlik: number[] = []
+    const naKrowe = (e: PointerEvent) => {
+        const r = laka.getBoundingClientRect()
+        if (!r.width) return
+        const x = ((e.clientX - r.left) / r.width) * LAKA_W
+        const y = ((e.clientY - r.top) / r.height) * LAKA_H
+        let leb = -1
+        let ld = 320
+        for (let i = 0; i < LAKA_OPIS.length; i++) {
+            const c = LAKA_OPIS[i]
+            if (c[0] !== "g" && c[0] !== "w" && c[0] !== "n") continue
+            const d = Math.hypot(x - (c[7] as number), (y - (c[8] as number)) * 1.3)
+            if (d < ld) {
+                ld = d
+                leb = i
+            }
+        }
+        if (leb < 0) return
+        const h = LAKA_OPIS[leb]
+        lebKlik[leb] = tTeraz
+        let og = -1
+        let od = 560
+        for (let o = 0; o < ogony.length; o++) {
+            if (!ogony[o]) continue
+            const c0 = LAKA_OPIS[ogony[o][0]]
+            const d = Math.hypot((c0[7] as number) - (h[7] as number), ((c0[8] as number) - (h[8] as number)) * 1.6)
+            if (d < od) {
+                od = d
+                og = o
+            }
+        }
+        if (og >= 0) ogonKlik[og] = tTeraz
+        if (muu2) {
+            muu2.style.left = pr(((h[7] as number) / LAKA_W) * 100)
+            muu2.style.top = pr((((h[8] as number) - 34) / LAKA_H) * 100)
+        }
+        muu2T = tTeraz
+    }
+    okno.addEventListener("pointerdown", naKrowe)
+    const kiw = (i: number, t: number) => {
+        const t0 = lebKlik[i]
+        if (t0 === undefined) return 0
+        const u = t - t0
+        if (u < 0 || u > 2.6) return 0
+        return 9 * sin(DWA_PI * 1.7 * u) * Math.exp(-u / 0.55) * (1 - Math.exp(-u / 0.05))
+    }
     const krowy = (t: number, tw: number) => {
+        tTeraz = t
+        if (muu2) {
+            const u = t - muu2T
+            const v = u < 0 || u > 1.9 ? 0 : u < 0.18 ? gl(u / 0.18) : u > 1.6 ? 1 - gl((u - 1.6) / 0.3) : 1
+            const s2 = v <= 0 ? "" : v.toFixed(2)
+            if (s2 !== muu2Stan) {
+                muu2Stan = s2
+                muu2.style.opacity = s2 || "0"
+                muu2.style.transform = "translate(-50%, -100%) scale(" + (0.6 + 0.4 * v + (v > 0 && v < 1 ? 0.08 * sin(Math.PI * v) : 0)).toFixed(3) + ") rotate(3deg)"
+            }
+        }
         if (muu) {
             const x = fazaWachania(tw)
             const v = x < 0.5 || x > 2.85 ? 0 : x < 0.72 ? gl((x - 0.5) / 0.22) : x > 2.6 ? 1 - gl((x - 2.6) / 0.25) : 1
@@ -1195,6 +1305,7 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
                     const wq = wacha(tw)
                     if (wq > 0) a = a * (1 - wq) + wq * (-8.6 + 1.5 * sin(DWA_PI * 3.4 * t))
                 }
+                a += kiw(i, t)
                 e.style.transform = "rotate(" + a.toFixed(2) + "deg)"
             } else if (c[0] === "n") {
                 // krowa z łbem w górze rozgląda się powoli, a na powitanie postaci kiwa łbem
@@ -1202,6 +1313,7 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
                 let a = kat * (0.8 * sin((DWA_PI * f) / rytm) + 0.35 * sin((DWA_PI * f) / (rytm * 0.37) + 0.8))
                 const x = tw - T_SKOK - 0.1
                 if (x > 0 && x < 1.6) a += 2.4 * Math.pow(sin((Math.PI * x) / 1.6), 2)
+                a += kiw(i, t)
                 e.style.transform = "rotate(" + a.toFixed(2) + "deg)"
             } else {
                 // trawa: wiatr idzie przez łąkę od lewej do prawej, raz mocniej, raz słabiej
@@ -1243,6 +1355,11 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
                     // krowa z przodu macha ogonem z przejęcia, gdy wącha loda
                     const wq = wacha(tw)
                     if (wq > 0) a += kat * 0.55 * wq * sin(DWA_PI * 2.1 * t - 0.85 * i)
+                }
+                const ok = ogonKlik[o]
+                if (ok !== undefined) {
+                    const u = t - ok
+                    if (u > 0 && u < 3) a += kat * 0.8 * Math.exp(-u / 0.9) * sin(DWA_PI * 2.4 * u - 0.8 * i) * (1 - Math.exp(-u / 0.05))
                 }
                 // machnięcia: bierzemy też następne (mogło zacząć się odrobinę przed czasem) i poprzednie (jeszcze wygasa)
                 for (let k = -1; k < 2; k++) {
@@ -1323,6 +1440,7 @@ function lakaRuch(laka: HTMLElement, gotowa: () => boolean) {
         dziala = false
         if (raf) cancelAnimationFrame(raf)
         if (io) io.disconnect()
+        okno.removeEventListener("pointerdown", naKrowe)
     }
 }
 
@@ -1405,6 +1523,9 @@ function Laka(props: { oknoRef: (el: HTMLDivElement | null) => void }) {
                 {LAKA_OPIS.map((c, i) => (c[0] === "p" ? <i key={i} data-cz={i} className="gk2-laka-cz" style={czescStyl(c)} aria-hidden="true" /> : null))}
                 <span className="gk2-laka-muu gk2-e" data-muu="1" aria-hidden="true">
                     Muu?
+                </span>
+                <span className="gk2-laka-muu gk2-e" data-muu2="1" aria-hidden="true">
+                    Muu.
                 </span>
             </div>
         </div>
@@ -1509,16 +1630,18 @@ const CSS_A = [
     ".gk2-slowo-szare { color: #85827E; }",
     // Jedyny kolor w szarym manifeście: słowo KOLOR jak zakreślacz, przechodzi przez barwy smaków.
     ".gk2-zakreslacz { color: var(--tusz); background-color: var(--roz); padding: 0 .07em; margin: 0 -.07em; border-radius: .07em; -webkit-box-decoration-break: clone; box-decoration-break: clone; animation: gk2-zakreslacz 9s ease-in-out infinite; }",
-    "@keyframes gk2-zakreslacz { 0%, 13% { background-color: #F7C2CF; color: #111111; } 17%, 30% { background-color: #FFB23E; color: #111111; } 34%, 47% { background-color: #A9BD78; color: #111111; } 51%, 64% { background-color: #B4652F; color: #FFF3E2; } 68%, 81% { background-color: #D3D77C; color: #111111; } 85%, 96% { background-color: #FFE295; color: #111111; } 100% { background-color: #F7C2CF; color: #111111; } }",
+    "@keyframes gk2-zakreslacz { 0%, 13% { background-color: #F7C2CF; color: #111111; } 17%, 30% { background-color: #FFB23E; color: #111111; } 34%, 47% { background-color: #A9BD78; color: #111111; } 51%, 64% { background-color: #C4773B; color: #111111; } 68%, 81% { background-color: #D3D77C; color: #111111; } 85%, 96% { background-color: #FFE295; color: #111111; } 100% { background-color: #F7C2CF; color: #111111; } }",
     ".gk2-plaza { position: relative; margin-top: calc(var(--vh) * 5); height: clamp(190px, 25vw, 400px); pointer-events: none; will-change: transform; }",
     ".gk2-plaza-parasol { position: absolute; right: 19vw; bottom: 3%; width: clamp(150px, 19vw, 310px); transform-origin: 46% 96%; animation: gk2-kolys 7s ease-in-out infinite; }",
     ".gk2-plaza-lezak { position: absolute; right: 1vw; bottom: 0; width: clamp(210px, 27vw, 440px); }",
     ".gk2-plaza-podpis { position: absolute; left: 0; bottom: 8px; }",
 
     "/* Taśmy 10 YEARS */",
-    ".gk2-tasmy { position: relative; height: 0; z-index: 5; }",
+    ".gk2-tasmy { position: relative; height: 0; z-index: 5; --th: clamp(38px, 5vw, 72px); }",
     ".gk2-tasma { position: absolute; left: -6vw; right: -6vw; height: var(--th); overflow: hidden; --th: clamp(38px, 5vw, 72px); --tw: calc(var(--th) * 6.109); box-shadow: 0 12px 30px -18px rgba(0,0,0,.5); }",
     ".gk2-tasma-maslo { background: #FDE59F; }",
+    ".gk2-js .gk2-tasma { touch-action: pan-y; -webkit-user-select: none; user-select: none; }",
+    "@media (hover: hover) { .gk2-js .gk2-tasma { cursor: grab; } .gk2-js .gk2-tasma.gk2-ciagnie { cursor: grabbing; } .gk2-laka-ruch { cursor: pointer; } }",
     ".gk2-tasma-roz { background: #F6C2CF; }",
     ".gk2-tasma div { display: flex; width: max-content; height: 100%; animation: gk2-tasma 17s linear infinite; }",
     ".gk2-tasma i { flex: none; display: block; width: var(--tw); height: 100%; background-repeat: no-repeat; background-size: calc(var(--th) * 15.714) 100%; background-position: calc(var(--th) * -0.6548) 0; }",
@@ -1696,27 +1819,38 @@ const CSS_B = [
     ".gk2-zrodla-link::after { content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 1px; background: currentColor; transform-origin: left; transition: transform .35s ease; }",
     "@media (hover: hover) { .gk2-zrodla-link:hover::after { transform: scaleX(.4); } }",
 
-    "/* 6. Smaki */",
-    ".gk2-smaki { position: relative; height: calc(var(--vh) * 100 + var(--n, 6) * var(--vh) * 64); background: #F3ECDC; }",
-    ".gk2-smaki-scena { position: sticky; top: 0; height: calc(var(--vh) * 100); overflow: hidden; }",
-    ".gk2-smak { position: absolute; inset: 0; display: grid; grid-template-columns: 1.2fr .8fr; align-items: center; gap: 3vw; padding: 0 calc(var(--m) + 3vw) 0 var(--m); will-change: clip-path; }",
-    ".gk2-js .gk2-smak + .gk2-smak { clip-path: circle(0px at 74% 50%); }",
-    ".gk2-smak-tekst { position: relative; z-index: 2; will-change: transform; }",
-    ".gk2-smak-nazwa { font-size: clamp(58px, 9vw, 152px); margin: 20px 0 28px; }",
-    ".gk2-smak-nazwa span { display: block; white-space: nowrap; }",
-    ".gk2-smak .gk2-lead { font-size: clamp(15px, 1.3vw, 20px); }",
-    ".gk2-smak-stopka { margin-top: 34px; opacity: .75; max-width: 36em; }",
-    ".gk2-gala { justify-self: center; width: min(calc(var(--vh) * 64), 34vw); aspect-ratio: 1137 / 1146; will-change: transform;",
-    "  -webkit-mask-image: url(" + KROPKA + "); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;",
-    "  mask-image: url(" + KROPKA + "); mask-size: contain; mask-repeat: no-repeat; mask-position: center; }",
-    ".gk2-rozek { --rh: min(calc(var(--vh) * 76), 47vw); position: absolute; left: 75.8%; top: 50%; height: var(--rh); aspect-ratio: 0.4908; margin: calc(var(--rh) * -.5) 0 0 calc(var(--rh) * -.2454); transform-origin: 50% 55%; will-change: transform; pointer-events: none; z-index: 15; }",
-    ".gk2-rozek .gk2-wyc, .gk2-rozek canvas, .gk2-balony canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }",
-    ".gk2-rozek canvas, .gk2-balony canvas { opacity: 0; transition: opacity .5s ease; }",
-    ".gk2-chrom-1 .gk2-rozek canvas, .gk2-chrom-2 .gk2-balony canvas { opacity: 1; }",
-    ".gk2-chrom-1 .gk2-rozek .gk2-wyc, .gk2-chrom-2 .gk2-balony .gk2-wyc { visibility: hidden; }",
-    ".gk2-smaki-kropki { position: absolute; right: var(--m); top: 50%; transform: translateY(-50%); z-index: 20; display: grid; gap: 10px; color: var(--tusz); transition: color .4s ease; }",
-    ".gk2-smaki-kropki li { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid currentColor; transition: background .3s ease, transform .3s ease; }",
-    ".gk2-smaki-kropki li.gk2-on { background: currentColor; transform: scale(1.35); }",
+    "/* 6. Smaki: jeden rożek; nowy smak spływa z góry jak roztopiony lód */",
+    ".gk2-smaki { position: relative; height: calc(var(--vh) * 100 + (var(--n, 6) - 1) * var(--vh) * 22); }",
+    ".gk2-smaki-scena { position: sticky; top: 0; height: calc(var(--vh) * 100); overflow: hidden; touch-action: pan-y; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }",
+    "@media (hover: hover) { .gk2-js .gk2-smaki-scena { cursor: grab; } .gk2-js .gk2-smaki-scena.gk2-ciagnie { cursor: grabbing; } }",
+    ".gk2-smaki-zalew { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; overflow: visible; }",
+    ".gk2-smaki-gora { position: absolute; left: var(--m); right: var(--m); top: calc(var(--vh) * 12); display: flex; justify-content: space-between; gap: 24px; z-index: 3; pointer-events: none; }",
+    ".gk2-beben { position: absolute; left: var(--m); width: 60vw; top: calc(var(--vh) * 19); height: calc(var(--vh) * 52); z-index: 3; perspective: 1700px; perspective-origin: 30% 50%; pointer-events: none;",
+    "  -webkit-mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent); mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent); }",
+    ".gk2-beben-os { position: absolute; left: 0; right: 0; top: 50%; height: 0; transform-style: preserve-3d; }",
+    ".gk2-beben-nazwa { position: absolute; left: 0; top: 0; font-size: min(8.2vw, calc(var(--vh) * 15)); line-height: .86; opacity: 0; transform: translate3d(0, -50%, 0); backface-visibility: hidden; -webkit-backface-visibility: hidden; will-change: transform, opacity; }",
+    ".gk2-beben-nazwa:first-child { opacity: 1; }",
+    ".gk2-beben-nazwa span { display: block; white-space: nowrap; }",
+    ".gk2-smaki-opisy { position: absolute; left: var(--m); bottom: calc(var(--vh) * 8); width: min(34em, 44vw); z-index: 3; pointer-events: none; }",
+    ".gk2-smaki-opisy-stos { display: grid; }",
+    ".gk2-smaki-opis { grid-area: 1 / 1; opacity: 0; will-change: opacity, transform; }",
+    ".gk2-smaki-opis:first-child { opacity: 1; }",
+    ".gk2-smaki-opis .gk2-lead { font-size: clamp(16px, 1.45vw, 23px); line-height: 1.45; margin-top: 10px; }",
+    ".gk2-smak-stopka { margin-top: 22px; opacity: .7; max-width: 36em; }",
+    ".gk2-rozek2 { --rh: min(calc(var(--vh) * 86), 110vw); position: absolute; left: 72%; top: 50%; height: var(--rh); width: calc(var(--rh) * .5625); margin: calc(var(--rh) * -.5) 0 0 calc(var(--rh) * -.28125); transform-origin: 51% 96%; z-index: 2; will-change: transform; }",
+    ".gk2-rozek2 > * { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; }",
+    ".gk2-rozek2-galka { -webkit-mask-image: url(" + ROZEK.galka + "); -webkit-mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-image: url(" + ROZEK.galka + "); mask-size: 100% 100%; mask-repeat: no-repeat; }",
+    ".gk2-rozek2-galka-b { visibility: hidden; }",
+    "@media (hover: hover) { .gk2-js .gk2-rozek2 { cursor: pointer; } }",
+    ".gk2-js .gk2-rozek2 { pointer-events: auto; }",
+    ".gk2-smaki-kropki { position: absolute; right: var(--m); bottom: calc(var(--vh) * 8); z-index: 4; display: flex; align-items: center; gap: 4px; margin-right: -9px; }",
+    ".gk2-smaki-kropki button { width: 30px; height: 30px; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; display: grid; place-items: center; -webkit-appearance: none; appearance: none; }",
+    ".gk2-smaki-kropki button::before { content: ''; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid currentColor; box-sizing: border-box; transition: background .3s ease, transform .3s ease; }",
+    ".gk2-smaki-kropki button.gk2-on::before { background: currentColor; transform: scale(1.3); }",
+    ".gk2-smaki-kropki button:focus-visible { outline: 1.5px solid currentColor; outline-offset: -3px; border-radius: 50%; }",
+    ".gk2-balony canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; transition: opacity .5s ease; }",
+    ".gk2-chrom-2 .gk2-balony canvas { opacity: 1; }",
+    ".gk2-chrom-2 .gk2-balony .gk2-wyc { visibility: hidden; }",
 
     "/* 7. Kubek */",
     ".gk2-kubek { position: relative; background: var(--krem); padding: calc(var(--vh) * 16) var(--m); display: grid; grid-template-columns: 1fr 1fr; gap: 4vw; align-items: center; }",
@@ -1725,7 +1859,7 @@ const CSS_B = [
     ".gk2-kubek-cien { position: absolute; left: 6%; right: 6%; bottom: -4%; height: 13%; background: radial-gradient(closest-side, rgba(70,45,30,.32), rgba(70,45,30,0)); }",
     ".gk2-kubek-tilt { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; will-change: transform; }",
     ".gk2-kubek-obraz { position: relative; width: 100%; height: 100%; animation: gk2-unoszenie 6s ease-in-out infinite; }",
-    ".gk2-kubek-obraz img { width: 100%; height: 100%; }",
+    ".gk2-kubek-obraz img { position: relative; width: 100%; height: 100%; }",
     ".gk2-etykieta { position: absolute; left: 25.4%; top: 25.75%; width: 46.67%; height: 58.68%; overflow: visible; }",
     ".gk2-et { font-family: 'Fragment Mono', ui-monospace, Menlo, Consolas, monospace; font-size: 9.4px; letter-spacing: 0; fill: #111111; }",
     ".gk2-et-en { font-style: italic; }",
@@ -1782,6 +1916,49 @@ const CSS_B = [
     ".gk2-stopka-dzieci .gk2-wyc { width: clamp(84px, 9vw, 150px); animation: gk2-unoszenie 6s ease-in-out infinite; }",
     ".gk2-stopka-dzieci .gk2-e { padding-bottom: 6px; }",
     ".gk2-stopka-wiersz { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px 28px; margin-top: calc(var(--vh) * 6); }",
+
+    "/* Szary Dzień w podróży przez stronę: z każdą sekcją łapie trochę koloru */",
+    ".gk2-sz { position: absolute; display: block; pointer-events: auto; -webkit-tap-highlight-color: transparent; }",
+    ".gk2-sz-ruch { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; isolation: isolate; transform-origin: 50% 100%; }",
+    ".gk2-sz-kolor, .gk2-sz-faktura { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }",
+    ".gk2-sz-kolor { background: var(--sz); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }",
+    ".gk2-sz-faktura { mix-blend-mode: multiply; }",
+    ".gk2-sz-lustro .gk2-sz-kolor, .gk2-sz-lustro .gk2-sz-faktura { transform: scaleX(-1); }",
+    ".gk2-sz-okno { position: absolute; display: block; overflow: hidden; pointer-events: none; }",
+    ".gk2-sz-okno .gk2-sz { left: 0; bottom: 0; width: 100%; }",
+    ".gk2-js .gk2-sz-zza .gk2-sz-ruch { transform: translate3d(0, 104%, 0); transition: transform .9s cubic-bezier(.34, 1.5, .5, 1); }",
+    ".gk2-js .gk2-sz-okno.gk2-widac .gk2-sz-zza .gk2-sz-ruch { transform: translate3d(0, 0, 0); transition-delay: .35s; }",
+    "@media (hover: hover) { .gk2-js .gk2-sz-okno.gk2-widac .gk2-sz-zza:hover .gk2-sz-ruch, .gk2-js .gk2-wypiek:hover .gk2-sz-okno.gk2-widac .gk2-sz-ruch { transform: translate3d(0, 64%, 0); transition: transform .3s cubic-bezier(.4, 0, .6, 1); } }",
+    ".gk2-js .gk2-sz-okno.gk2-widac .gk2-sz-zza.gk2-sz-chowa .gk2-sz-ruch { transform: translate3d(0, 64%, 0); transition: transform .3s cubic-bezier(.4, 0, .6, 1); }",
+    ".gk2-sz-okno-tasmy { left: 31vw; bottom: calc(var(--th) * .5); width: clamp(112px, 13vw, 210px); aspect-ratio: 560 / 430; }",
+    ".gk2-sz-okno-ciasto { left: 59%; width: 45%; bottom: 40%; aspect-ratio: 560 / 430; }",
+    ".gk2-farma { position: relative; }",
+    ".gk2-sz-okno-laka { right: 7%; bottom: 100%; width: clamp(78px, 13%, 150px); aspect-ratio: 560 / 430; }",
+    ".gk2-sz-okno-kubek { left: 48%; width: 40%; bottom: 87%; aspect-ratio: 560 / 430; }",
+    ".gk2-sz-gosc-okno { position: absolute; left: 33%; top: -38%; width: 46%; aspect-ratio: 800 / 1002; display: block; pointer-events: none; }",
+    ".gk2-sz-gosc { left: 0; top: 0; width: 100%; animation: gk2-sz-unos 7s ease-in-out infinite; }",
+    ".gk2-js .gk2-sz-gosc-okno .gk2-sz-ruch { opacity: 0; transform: translate3d(0, 16%, 0) scale(.94); transition: opacity 1s ease, transform 1.4s cubic-bezier(.2, .9, .25, 1); }",
+    ".gk2-js .gk2-sz-gosc-okno.gk2-widac .gk2-sz-ruch { opacity: 1; transform: none; transition-delay: .3s; }",
+    ".gk2-sz-stoi { position: relative; flex: none; width: clamp(62px, 6.6vw, 112px); margin: 0 6px 0 -10px; animation: gk2-unoszenie 6s ease-in-out -2.2s infinite; }",
+    "@media (hover: hover) { .gk2-sz-stoi:hover .gk2-sz-ruch, .gk2-js .gk2-sz-gosc-okno.gk2-widac .gk2-sz-gosc:hover .gk2-sz-ruch { animation: gk2-sz-tancz .9s ease-in-out infinite; } }",
+    ".gk2-sz-tanczy .gk2-sz-ruch, .gk2-js .gk2-sz-gosc-okno.gk2-widac .gk2-sz-tanczy .gk2-sz-ruch { animation: gk2-sz-tancz .9s ease-in-out 2; }",
+    "@keyframes gk2-sz-unos { 0%, 100% { transform: translate3d(0, 0, 0) rotate(-1.5deg); } 50% { transform: translate3d(0, -3%, 0) rotate(1.8deg); } }",
+    "@keyframes gk2-sz-tancz { 0%, 100% { transform: none; } 25% { transform: translate3d(0, -4%, 0) rotate(-6deg); } 50% { transform: none; } 75% { transform: translate3d(0, -4%, 0) rotate(6deg); } }",
+
+    "/* Najszarszy Dzień: cała strona szara, kulka pod kursorem oddaje kolor */",
+    ".gk2-szaro { position: sticky; top: 0; height: calc(var(--vh) * 100); margin-bottom: calc(var(--vh) * -100); z-index: 70; pointer-events: none; --x: 50%; --y: 45%; --r: 130px;",
+    "  -webkit-backdrop-filter: grayscale(1) contrast(.97); backdrop-filter: grayscale(1) contrast(.97);",
+    "  -webkit-mask-image: radial-gradient(circle var(--r) at var(--x) var(--y), transparent calc(var(--r) - 2.5px), #000 var(--r)); mask-image: radial-gradient(circle var(--r) at var(--x) var(--y), transparent calc(var(--r) - 2.5px), #000 var(--r)); }",
+    ".gk2-szaro-ui { position: sticky; top: 0; height: calc(var(--vh) * 100); margin-bottom: calc(var(--vh) * -100); z-index: 71; pointer-events: none; }",
+    ".gk2-szaro-kula { position: absolute; left: 0; top: 0; width: 200px; height: 200px; border-radius: 50%; will-change: transform; transform: translate3d(-400px, -400px, 0);",
+    "  box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.85), inset 0 0 26px rgba(255,255,255,.45), inset -12px -16px 36px rgba(155,17,30,.12), 0 18px 46px -20px rgba(20,10,10,.55); }",
+    ".gk2-szaro-kula::before { content: ''; position: absolute; left: 15%; top: 10%; width: 36%; height: 22%; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,255,255,.8), rgba(255,255,255,0)); transform: rotate(-28deg); }",
+    ".gk2-szaro-pasek { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; align-items: center; gap: 16px; padding: 7px 7px 7px 18px; border-radius: 999px; background: rgba(17,17,17,.88); color: #F2EFE8; pointer-events: auto; white-space: nowrap; box-shadow: 0 14px 40px -18px rgba(0,0,0,.6); }",
+    ".gk2-szaro-pasek button { font: inherit; letter-spacing: inherit; text-transform: inherit; color: var(--tusz); background: var(--roz); border: 0; border-radius: 999px; padding: 9px 14px; cursor: pointer; }",
+    ".gk2[data-szaro] .gk2-kula { display: none; }",
+    "@supports not ((backdrop-filter: grayscale(1)) or (-webkit-backdrop-filter: grayscale(1))) { .gk2[data-szaro] { filter: grayscale(1); } .gk2-szaro-kula { display: none; } }",
+    ".gk2-szaro-podglad { display: inline-block; margin-top: 18px; padding: 6px 0 4px; font: inherit; font-size: 11px; color: inherit; background: none; border: 0; border-bottom: 1px solid currentColor; cursor: pointer; opacity: .8; }",
+    "@media (hover: hover) { .gk2-szaro-podglad:hover { opacity: 1; } }",
 
     "@keyframes gk2-unoszenie { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(0, -14px, 0); } }",
     "@keyframes gk2-obrot { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }",
@@ -1867,13 +2044,15 @@ const CSS_B = [
     "  .gk2-zrodla-link { padding: 10px 0 5px; margin-top: 0; }",
     "  .gk2-zrodla-lista li { padding: 16px 0; }",
     "  .gk2-zrodla-skad { font-size: 8vw; }",
-    "  .gk2-smak { grid-template-columns: 1fr; grid-template-rows: auto auto; align-content: start; gap: calc(var(--vh) * 3); padding: calc(var(--vh) * 12) var(--m) 0; }",
-    "  .gk2-js .gk2-smak + .gk2-smak { clip-path: circle(0px at 50% 30%); }",
-    "  .gk2-gala { order: -1; width: min(66vw, calc(var(--vh) * 36)); }",
-    "  .gk2-rozek { --rh: calc(var(--vh) * 35); left: 50%; top: 28%; }",
-    "  .gk2-smak-nazwa { font-size: 14.4vw; margin: 14px 0 18px; }",
-    "  .gk2-smak-stopka { margin-top: 20px; }",
-    "  .gk2-smaki-kropki { right: 3.2vw; }",
+    "  .gk2-smaki-gora { top: calc(var(--vh) * 9.5); }",
+    "  .gk2-rozek2 { --rh: min(calc(var(--vh) * 45), 96vw); left: 50%; top: calc(var(--vh) * 37); }",
+    "  .gk2-beben { left: 0; right: 0; width: auto; top: calc(var(--vh) * 58); height: calc(var(--vh) * 22); perspective-origin: 50% 50%; }",
+    "  .gk2-beben-nazwa { left: var(--m); right: var(--m); text-align: center; font-size: min(12.4vw, calc(var(--vh) * 6.6)); }",
+    "  .gk2-smaki-opisy { left: var(--m); right: var(--m); width: auto; bottom: calc(var(--vh) * 10.5); text-align: center; }",
+    "  .gk2-smaki-opis .gk2-lead { font-size: 15px; margin: 6px auto 0; max-width: 26em; }",
+    "  .gk2-smak-stopka { display: none; }",
+    "  .gk2-smaki-kropki { left: 0; right: 0; bottom: calc(var(--vh) * 3); justify-content: center; margin-right: 0; gap: 8px; }",
+    "  .gk2-smaki-kropki button { width: 36px; height: 36px; }",
     "  .gk2-kubek { grid-template-columns: 1fr; padding: calc(var(--vh) * 13) var(--m); }",
     "  .gk2-kubek-foto { order: -1; width: 74vw; }",
     "  .gk2-noc { grid-template-columns: 1fr; padding: calc(var(--vh) * 14) var(--m); }",
@@ -1888,6 +2067,10 @@ const CSS_B = [
     "  .gk2-deptak { height: 46vw; }",
     "  .gk2-deptak-napis { right: auto; left: 0; top: auto; bottom: calc(100% + 10px); display: block; text-align: left; white-space: nowrap; }",
     "  .gk2-stopka { padding-top: calc(var(--vh) * 15); }",
+    "  .gk2-sz-okno-tasmy { left: 6vw; }",
+    "  .gk2-szaro-pasek { left: var(--m); right: var(--m); bottom: 14px; transform: none; white-space: normal; justify-content: space-between; gap: 12px; padding: 8px 8px 8px 16px; border-radius: 22px; line-height: 1.4; }",
+    "  .gk2-szaro-pasek button { flex: none; }",
+    "  .gk2-sz-gosc-okno { left: 52%; top: -26%; width: 34%; }",
     "}",
     "@media (prefers-reduced-motion: reduce) {",
     "  .gk2 *, .gk2 *::before, .gk2 *::after { animation: none !important; transition: none !important; }",
@@ -1895,10 +2078,42 @@ const CSS_B = [
     "  .gk2-js .gk2-opak, .gk2-js .gk2-swieta-droga { display: none !important; }",
     "  .gk2-film-zdjecia img:first-child { opacity: 1; }",
     "  .gk2-js .gk2-hero, .gk2-js .gk2-kino { height: calc(var(--vh) * 100); }",
+    "  .gk2-js .gk2-sz-ruch { transform: none !important; opacity: 1 !important; }",
     "}",
 ].join("\n")
 
 const CSS = CSS_A + "\n" + CSS_B
+
+// Brzeg zalewu w Smakach: falująca linia z kapkami, które rosną, gdy smak spływa w dół ekranu.
+// Współrzędne w pikselach sceny pomniejszone o (ox, oy), żeby ten sam kształt przyciął też gałkę rożka.
+function zalew(w: number, h: number, p: number, czas: number, ox: number, oy: number) {
+    const D = h * 0.2
+    const yb = lerp(-D - 14, h + 4, p) - oy
+    const rzadko = w < 700
+    const ro = rzadko ? w * 1.8 : w
+    const wzrost = 0.55 + 0.45 * clamp(p / 0.6, 0, 1)
+    const X = (v: number) => (v - ox).toFixed(1)
+    const Y = (v: number) => v.toFixed(1)
+    let d = "M" + X(-6) + "," + Y(-6 - oy) + "H" + X(w + 6) + "V" + Y(yb)
+    let px = w + 6
+    for (let k = KAPKI.length - 1; k >= 0; k--) {
+        if (rzadko && k % 2) continue
+        const kp = KAPKI[k]
+        const x = kp.x * w
+        const r = kp.r * ro
+        const b = r * 1.5
+        const L = Math.max(b, kp.l * D * wzrost * (1 + 0.07 * Math.sin(czas * 1.6 + kp.f)) - r)
+        const prawo = x + r + b
+        // między kapkami brzeg lekko faluje
+        d += "Q" + X((px + prawo) / 2) + "," + Y(yb + h * 0.012 * Math.sin(czas * 1.1 + k * 1.7)) + " " + X(prawo) + "," + Y(yb)
+        d += "C" + X(x + r + b * 0.35) + "," + Y(yb) + " " + X(x + r) + "," + Y(yb + b * 0.6) + " " + X(x + r) + "," + Y(yb + L)
+        d += "A" + r.toFixed(1) + "," + r.toFixed(1) + " 0 0 1 " + X(x - r) + "," + Y(yb + L)
+        d += "C" + X(x - r) + "," + Y(yb + b * 0.6) + " " + X(x - r - b * 0.35) + "," + Y(yb) + " " + X(x - r - b) + "," + Y(yb)
+        px = x - r - b
+    }
+    d += "Q" + X(px / 2) + "," + Y(yb + h * 0.01 * Math.sin(czas * 0.9)) + " " + X(-6) + "," + Y(yb) + "Z"
+    return d
+}
 
 // Silnik ruchu: jedna pętla, która czyta przewinięcie i kursor. Zwraca funkcję sprzątającą.
 function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current: Array<HTMLSpanElement | null> }) {
@@ -1932,19 +2147,31 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
         swieta: -1,
         otwarte: false,
         smak: -1,
+        smakG: 0,
+        smakFs: 0,
+        smakV: 0,
+        smakTlo: "",
+        smakZ: "",
+        smakB: "",
+        szX: -1,
+        szY: -1,
+        szLx: -1,
+        szLy: -1,
         farma: "",
         farmaSam: 0,
         farmaT: 0,
     }
-    const geo = { vw: 0, vh: 0, il: 0, it: 0, iw: 0, ih: 0, pw: 150, p1w: 0, p1h: 0, dpr: 1 }
+    const geo = { vw: 0, vh: 0, il: 0, it: 0, iw: 0, ih: 0, pw: 150, p1w: 0, p1h: 0, dpr: 1, zw: 0, zh: 0, rx: 0, ry: 0, bR: 300 }
+    // Napisy w Smakach zmieniają kolor dopiero wtedy, gdy dopłynie do nich nowy smak: środek każdego bloku w pionie.
+    const SMAKI_NAPISY = ["smakiGora", "beben", "smakiOpisy", "smakiKropki"]
+    const napisY: number[] = SMAKI_NAPISY.map(() => 0)
+    const napisKol: string[] = SMAKI_NAPISY.map(() => "")
     const wygl: Record<string, number> = {}
     const gladko = (k: string, cel: number) => {
         if (dotyk || reduce || wygl[k] === undefined) wygl[k] = cel
         else wygl[k] += (cel - wygl[k]) * 0.16
         return wygl[k]
     }
-    const kolA = [0, 0, 0]
-    const kolB = [0, 0, 0]
 
     const ustawPlotno = (c: HTMLCanvasElement | null) => {
         if (!c) return
@@ -1975,12 +2202,25 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
             el.opak.style.setProperty("--sw", el.opak.clientWidth + "px")
             el.opak.style.setProperty("--sh", el.opak.clientHeight + "px")
         }
-        // Chromowy rożek stoi dokładnie na środku kropki smaku.
-        if (el.rozek && el.gala0) {
-            el.rozek.style.left = (el.gala0.offsetLeft + el.gala0.offsetWidth / 2).toFixed(1) + "px"
-            el.rozek.style.top = (el.gala0.offsetTop + el.gala0.offsetHeight / 2).toFixed(1) + "px"
+        // Smaki: rozmiar sceny (zalew), miejsce rożka w scenie (przycięcie gałki) i promień bębna z nazwami.
+        if (el.smakiScena) {
+            geo.zw = el.smakiScena.clientWidth
+            geo.zh = el.smakiScena.clientHeight
+            if (el.smakiZalew) el.smakiZalew.setAttribute("viewBox", "0 0 " + geo.zw + " " + geo.zh)
+            if (el.rozek) {
+                geo.rx = el.rozek.offsetLeft
+                geo.ry = el.rozek.offsetTop
+            }
+            const n0 = el.bebenNazwa0 as HTMLElement | undefined
+            const fz = n0 ? parseFloat(window.getComputedStyle(n0).fontSize) || 100 : 100
+            geo.bR = fz * 3.3
+            SMAKI_NAPISY.forEach((k, i) => {
+                const b = el[k] as HTMLElement | undefined
+                if (b) napisY[i] = b.offsetTop + b.offsetHeight / 2
+            })
+            s.smakZ = "-"
+            s.smakB = "-"
         }
-        ustawPlotno(el.plotnoRozek)
         ustawPlotno(el.plotnoBalony)
         s.swieta = -1
     }
@@ -1998,12 +2238,10 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
     const poCzasie = window.setTimeout(mierz, 1200)
     if ((document as any).fonts && (document as any).fonts.ready) (document as any).fonts.ready.then(mierz).catch(() => {})
 
-    // Żywy chrom
-    let chromRozek: Chrom | null = null
+    // Żywy chrom: jedyny na stronie, w balonach na Najszarszy Dzień.
     let chromBalony: Chrom | null = null
     if (!reduce) {
         const duzy = geo.vh * geo.dpr > 1150
-        if (el.plotnoRozek) chromRozek = stworzChrom(el.plotnoRozek, obraz(P.rozek.f, duzy ? 2048 : 1024), P.rozek.b, () => root.classList.add("gk2-chrom-1"))
         if (el.plotnoBalony) chromBalony = stworzChrom(el.plotnoBalony, obraz(P.balony.f, duzy ? 2048 : 1024), P.balony.b, () => root.classList.add("gk2-chrom-2"))
     }
 
@@ -2033,6 +2271,201 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
     }
     window.addEventListener("pointermove", ruch, { passive: true })
     window.addEventListener("pointerdown", ruch, { passive: true })
+
+    // Smaki: przeciąganie w bok, kropki, klik w rożek i strzałki zmieniają smak (przewijając sekcję).
+    const smakiSek = el.smaki as HTMLElement | undefined
+    const smakiSc = el.smakiScena as HTMLElement | undefined
+    const ciag = { id: -1, x0: 0, y0: 0, przes0: 0, smak0: 0, ruszyl: false, vx: 0, ostX: 0, ostT: 0, tlumKlik: false }
+    // Ile pikseli przeciągnięcia to jeden smak: na telefonie jedno zwykłe machnięcie = jeden smak.
+    const krokSmaku = () => (dotyk ? Math.max(150, geo.vw * 0.6) : clamp(geo.vw * 0.3, 110, 380))
+    const zakresSmakow = () => (smakiSek ? Math.max(1, smakiSek.offsetHeight - window.innerHeight) : 1)
+    const smakTeraz = () => {
+        if (!smakiSek) return 0
+        const n = SMAKI.length
+        return clamp(-smakiSek.getBoundingClientRect().top / zakresSmakow(), 0, 1) * (n - 1)
+    }
+    const naSmak = (i: number, plynnie: boolean) => {
+        if (!smakiSek) return
+        const n = SMAKI.length
+        const k = clamp(Math.round(i), 0, n - 1)
+        const gora = smakiSek.getBoundingClientRect().top + window.scrollY
+        window.scrollTo({ top: Math.round(gora + (k / (n - 1)) * zakresSmakow()), behavior: plynnie && !reduce ? "smooth" : "auto" })
+    }
+    const smakDol = (e: PointerEvent) => {
+        ciag.tlumKlik = false
+        if (e.button > 0) return
+        const cel = e.target as HTMLElement | null
+        if (cel && cel.closest && cel.closest("button, a")) return
+        ciag.id = e.pointerId
+        ciag.x0 = e.clientX
+        ciag.y0 = e.clientY
+        ciag.przes0 = window.scrollY
+        ciag.smak0 = Math.round(smakTeraz())
+        ciag.ruszyl = false
+        ciag.vx = 0
+        ciag.ostX = e.clientX
+        ciag.ostT = performance.now()
+    }
+    const smakRuch = (e: PointerEvent) => {
+        if (e.pointerId !== ciag.id || !smakiSc) return
+        const dx = e.clientX - ciag.x0
+        if (!ciag.ruszyl) {
+            if (Math.abs(dx) < 8) return
+            if (Math.abs(e.clientY - ciag.y0) > Math.abs(dx)) {
+                ciag.id = -1
+                return
+            }
+            ciag.ruszyl = true
+            try {
+                smakiSc.setPointerCapture(e.pointerId)
+            } catch (_) {}
+            smakiSc.classList.add("gk2-ciagnie")
+        }
+        const teraz = performance.now()
+        ciag.vx = lerp(ciag.vx, (e.clientX - ciag.ostX) / Math.max(1, teraz - ciag.ostT), 0.35)
+        ciag.ostX = e.clientX
+        ciag.ostT = teraz
+        window.scrollTo(0, ciag.przes0 - (dx / krokSmaku()) * (zakresSmakow() / (SMAKI.length - 1)))
+    }
+    const smakGora = (e: PointerEvent) => {
+        if (e.pointerId !== ciag.id) return
+        ciag.id = -1
+        if (!ciag.ruszyl) return
+        ciag.ruszyl = false
+        ciag.tlumKlik = true
+        if (smakiSc) smakiSc.classList.remove("gk2-ciagnie")
+        // Dokończ do najbliższego smaku; wyraźny ruch w bok to zawsze co najmniej jeden smak dalej.
+        const dx = ciag.ostX - ciag.x0
+        let cel = Math.round(ciag.smak0 - dx / krokSmaku() + clamp(-ciag.vx * 0.3, -0.45, 0.45))
+        if (cel === ciag.smak0 && Math.abs(dx) > 40) cel = ciag.smak0 + (dx < 0 ? 1 : -1)
+        naSmak(cel, true)
+    }
+    const smakKlik = (e: MouseEvent) => {
+        if (ciag.tlumKlik) {
+            ciag.tlumKlik = false
+            return
+        }
+        const cel = e.target as HTMLElement | null
+        if (!cel || !cel.closest) return
+        const kropka = cel.closest("[data-smak]") as HTMLElement | null
+        if (kropka) {
+            naSmak(parseInt(kropka.getAttribute("data-smak") || "0", 10), true)
+            return
+        }
+        if (cel.closest(".gk2-rozek2")) {
+            const i = Math.round(smakTeraz())
+            naSmak(i >= SMAKI.length - 1 ? 0 : i + 1, true)
+        }
+    }
+    const smakKlawisz = (e: KeyboardEvent) => {
+        if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return
+        const i = clamp(Math.round(smakTeraz()) + (e.key === "ArrowRight" ? 1 : -1), 0, SMAKI.length - 1)
+        naSmak(i, true)
+        const b = el.smakiKropki && (el.smakiKropki.children[i] as HTMLElement | undefined)
+        if (b && b.focus) b.focus({ preventScroll: true })
+        e.preventDefault()
+    }
+    if (smakiSc) {
+        smakiSc.addEventListener("pointerdown", smakDol)
+        smakiSc.addEventListener("pointermove", smakRuch)
+        smakiSc.addEventListener("pointerup", smakGora)
+        smakiSc.addEventListener("pointercancel", smakGora)
+        smakiSc.addEventListener("click", smakKlik)
+    }
+    if (el.smakiKropki) el.smakiKropki.addEventListener("keydown", smakKlawisz)
+
+    // Zabawka: taśmy „10 YEARS” da się pociągnąć; puszczone wracają sprężyście.
+    const tasmy = Array.prototype.slice.call(root.querySelectorAll(".gk2-tasma")).map((e: HTMLElement) => ({
+        e,
+        kat: e.classList.contains("gk2-tasma-a") ? -2.4 : 1.8,
+        x: 0,
+        y: 0,
+        r: 0,
+        vx: 0,
+        vy: 0,
+        vr: 0,
+        id: -1,
+        x0: 0,
+        y0: 0,
+        gx: 0,
+        ruch: false,
+    }))
+    const gumka = (d: number, lim: number) => lim * Math.tanh(d / lim)
+    const tasmaDol = (e: PointerEvent) => {
+        const cel = e.target as HTMLElement | null
+        const te = cel && cel.closest ? (cel.closest(".gk2-tasma") as HTMLElement | null) : null
+        if (!te) return
+        const ta = tasmy.find((q) => q.e === te)
+        if (!ta) return
+        const r = te.getBoundingClientRect()
+        ta.id = e.pointerId
+        ta.x0 = e.clientX - ta.x
+        ta.y0 = e.clientY - ta.y
+        ta.gx = clamp((e.clientX - (r.left + r.width / 2)) / (r.width / 2), -1, 1)
+        ta.ruch = true
+        try {
+            te.setPointerCapture(e.pointerId)
+        } catch (_) {}
+        te.classList.add("gk2-ciagnie")
+    }
+    const tasmaRuch = (e: PointerEvent) => {
+        for (const ta of tasmy) {
+            if (ta.id !== e.pointerId) continue
+            ta.x = gumka(e.clientX - ta.x0, 90)
+            ta.y = dotyk ? 0 : gumka(e.clientY - ta.y0, 70)
+            ta.r = clamp(ta.y * 0.07 * ta.gx, -7, 7)
+            ta.vx = ta.vy = ta.vr = 0
+        }
+    }
+    const tasmaGora = (e: PointerEvent) => {
+        for (const ta of tasmy) {
+            if (ta.id !== e.pointerId) continue
+            ta.id = -1
+            ta.e.classList.remove("gk2-ciagnie")
+        }
+    }
+    root.addEventListener("pointerdown", tasmaDol)
+    root.addEventListener("pointermove", tasmaRuch)
+    root.addEventListener("pointerup", tasmaGora)
+    root.addEventListener("pointercancel", tasmaGora)
+    let tOst = performance.now()
+
+    // Zabawka: słońce na pierwszym ekranie kliknięte kręci się jak bąk.
+    const slonceKlik = (e: MouseEvent) => {
+        const sl = el.slonce as HTMLElement | undefined
+        if (!sl || reduce) return
+        const r = sl.getBoundingClientRect()
+        const cx = r.left + r.width / 2
+        const cy = r.top + r.height / 2
+        if (Math.hypot(e.clientX - cx, e.clientY - cy) > Math.min(r.width, r.height) * 0.5) return
+        const img = sl.querySelector("img") as HTMLElement | null
+        if (img && (img as any).animate) img.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(720deg)" }], { duration: 1700, easing: "cubic-bezier(.12,.7,.2,1)" })
+    }
+    root.addEventListener("click", slonceKlik)
+
+    // Najszarszy Dzień: na telefonie kulka idzie za palcem (dotyk działa też w trakcie przewijania).
+    const palecKuli = (e: TouchEvent) => {
+        const p = e.touches && e.touches[0]
+        if (!p) return
+        s.szX = p.clientX
+        s.szY = p.clientY
+    }
+    window.addEventListener("touchstart", palecKuli, { passive: true })
+    window.addEventListener("touchmove", palecKuli, { passive: true })
+
+    // Szary Dzień: dotknięty chowa się za krawędź (albo tańczy, gdy stoi na widoku).
+    const szaryKlik = (e: MouseEvent) => {
+        const cel = e.target as HTMLElement | null
+        const sz = cel && cel.closest ? (cel.closest("[data-sz]") as HTMLElement | null) : null
+        if (!sz) return
+        e.preventDefault()
+        const klasa = sz.classList.contains("gk2-sz-zza") ? "gk2-sz-chowa" : "gk2-sz-tanczy"
+        sz.classList.remove(klasa)
+        void sz.offsetWidth
+        sz.classList.add(klasa)
+        window.setTimeout(() => sz.classList.remove(klasa), klasa === "gk2-sz-chowa" ? 1400 : 1900)
+    }
+    root.addEventListener("click", szaryKlik)
 
     const sekcje = Array.prototype.slice.call(root.querySelectorAll("[data-motyw]")) as HTMLElement[]
     const napisz = (cel: HTMLElement | undefined, lista: Array<[number, string]>, czas: number, klucz: "nap1" | "nap2") => {
@@ -2272,49 +2705,153 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
             } else if (s.farmaSam) s.farmaSam = 0
         }
 
-        // 6. Smaki: każdy smak zalewa ekran swoim kolorem, a chromowy rożek ten kolor odbija
+        // 6. Smaki: nowy smak spływa z góry jak roztopiony lód i po drodze maluje gałkę rożka
         const smaki = el.smaki as HTMLElement | undefined
-        if (smaki) {
+        const scS = el.smakiScena as HTMLElement | undefined
+        if (smaki && scS) {
             const r = smaki.getBoundingClientRect()
             if (r.bottom > -80 && r.top < vh + 80) {
                 const n = SMAKI.length
-                const f = gladko("smaki", clamp(-r.top / Math.max(1, smaki.offsetHeight - vh), 0, 1)) * (n - 0.35)
-                const maks = Math.hypot(vw, vh) * 1.02
-                let aktywny = 0
-                for (let c = 0; c < 3; c++) {
-                    kolA[c] = SMAKI_RGB[0].a[c]
-                    kolB[c] = SMAKI_RGB[0].b[c]
+                const g = gladko("smaki", clamp(-r.top / Math.max(1, smaki.offsetHeight - vh), 0, 1) * (n - 1))
+                s.smakG = g
+                // Miękkie zatrzaski: przy każdym smaku chwila spokoju, między nimi płynne przejście.
+                const i0 = Math.min(n - 2, Math.floor(g))
+                const u = g - i0
+                const p = reduce ? (u < 0.5 ? 0 : 1) : easeInOut(clamp((u - 0.14) / 0.72, 0, 1))
+                const fs = i0 + p
+                const A = SMAKI[i0]
+                const B = SMAKI[i0 + 1]
+                const trwa = p > 0 && p < 1
+                const tlo = p >= 1 ? B.kolor : A.kolor
+                if (tlo !== s.smakTlo) {
+                    scS.style.background = tlo
+                    s.smakTlo = tlo
                 }
-                for (let i = 0; i < n; i++) {
-                    const w = el["smak" + i] as HTMLElement | undefined
-                    const e = i === 0 ? 1 : reduce ? (f >= i - 0.2 ? 1 : 0) : easeInOut(clamp((f - (i - 0.42)) / 0.42, 0, 1))
-                    if (e > 0.5) aktywny = i
-                    if (i > 0 && e > 0) {
-                        for (let c = 0; c < 3; c++) {
-                            kolA[c] = lerp(kolA[c], SMAKI_RGB[i].a[c], e)
-                            kolB[c] = lerp(kolB[c], SMAKI_RGB[i].b[c], e)
-                        }
+                // Kolor napisów: każdy blok przełącza się, kiedy brzeg zalewu (z kapkami) przechodzi przez jego środek.
+                const D = geo.zh * 0.2
+                const yb = lerp(-D - 14, geo.zh + 4, p)
+                for (let k = 0; k < SMAKI_NAPISY.length; k++) {
+                    const b = el[SMAKI_NAPISY[k]] as HTMLElement | undefined
+                    if (!b) continue
+                    const q = p >= 1 ? 1 : p <= 0 ? 0 : easeInOut(clamp((yb - (napisY[k] - D)) / D, 0, 1))
+                    const kol = A.tekst === B.tekst || q <= 0 ? A.tekst : q >= 1 ? B.tekst : mieszaj(A.tekst, B.tekst, q)
+                    if (kol !== napisKol[k]) {
+                        b.style.color = kol
+                        napisKol[k] = kol
                     }
-                    if (w && i > 0) w.style.clipPath = e >= 1 ? "none" : "circle(" + (e * maks).toFixed(1) + "px at " + (mobile ? "50% 30%" : "74% 50%") + ")"
-                    const gala = el["gala" + i] as HTMLElement | undefined
-                    if (gala && !reduce) gala.style.transform = "rotate(" + ((f - i) * 24).toFixed(2) + "deg) scale(" + (0.86 + 0.14 * e).toFixed(4) + ")"
-                    const tekst = el["smakTekst" + i] as HTMLElement | undefined
-                    if (tekst && !reduce) tekst.style.transform = "translate3d(0," + ((1 - e) * 46).toFixed(1) + "px,0)"
                 }
-                if (aktywny !== s.smak && el.smakiKropki) {
+                const sc = el.smakiZalewSciezka as SVGPathElement | undefined
+                const kap = trwa ? zalew(geo.zw, geo.zh, p, t, 0, 0) : ""
+                if (sc && kap !== s.smakZ) {
+                    sc.setAttribute("d", kap)
+                    sc.style.fill = B.kolor
+                    s.smakZ = kap
+                }
+                const gA = el.galkaA as HTMLElement | undefined
+                const gB = el.galkaB as HTMLElement | undefined
+                if (gA) gA.style.background = p >= 1 ? B.gala : A.gala
+                if (gB) {
+                    const klip = trwa ? "path('" + zalew(geo.zw, geo.zh, p, t, geo.rx, geo.ry) + "')" : ""
+                    if (klip !== s.smakB) {
+                        s.smakB = klip
+                        gB.style.visibility = trwa ? "visible" : "hidden"
+                        gB.style.background = B.gala
+                        gB.style.setProperty("-webkit-clip-path", klip || "none")
+                        gB.style.clipPath = klip || "none"
+                    }
+                }
+                // Bęben z nazwami obraca się razem z przewijaniem.
+                const KROK = 34
+                if (el.bebenOs) el.bebenOs.style.transform = reduce ? "none" : "translateZ(" + (-geo.bR).toFixed(0) + "px)"
+                const aktywny = Math.round(fs)
+                for (let i = 0; i < n; i++) {
+                    const it = el["bebenNazwa" + i] as HTMLElement | undefined
+                    if (it) {
+                        const th = (fs - i) * KROK
+                        const o = reduce ? (i === aktywny ? 1 : 0) : clamp(1 - Math.abs(th) / (KROK * 1.3), 0, 1)
+                        it.style.opacity = o.toFixed(3)
+                        it.style.transform = o > 0 && !reduce ? "translate3d(0,-50%,0) rotateX(" + th.toFixed(2) + "deg) translateZ(" + geo.bR.toFixed(0) + "px)" : "translate3d(0,-50%,0)"
+                    }
+                    const op = el["smakOpis" + i] as HTMLElement | undefined
+                    if (op) {
+                        const d = fs - i
+                        const oo = reduce ? (i === aktywny ? 1 : 0) : clamp(1 - Math.abs(d) * 2.4, 0, 1)
+                        op.style.opacity = oo.toFixed(3)
+                        op.style.transform = reduce ? "none" : "translate3d(0," + (-d * 22).toFixed(1) + "px,0)"
+                        op.style.visibility = oo > 0 ? "visible" : "hidden"
+                    }
+                }
+                if (aktywny !== s.smak) {
                     s.smak = aktywny
-                    const dzieci = el.smakiKropki.children
-                    for (let i = 0; i < dzieci.length; i++) dzieci[i].classList.toggle("gk2-on", i === aktywny)
-                    el.smakiKropki.style.color = SMAKI[aktywny].tekst
+                    if (el.smakiNr) el.smakiNr.textContent = SMAKI[aktywny].nr
+                    if (el.smakiKropki) {
+                        const dzieci = el.smakiKropki.children
+                        for (let i = 0; i < dzieci.length; i++) dzieci[i].classList.toggle("gk2-on", i === aktywny)
+                    }
                 }
+                // Rożek: lekko się kołysze, a przy zmianie smaku przechyla się w stronę ruchu.
                 if (el.rozek && !reduce) {
-                    const odchyl = (f - Math.round(f)) * 12
-                    el.rozek.style.transform =
-                        "perspective(1300px) translate3d(0," + (Math.sin(t * 0.9) * vh * 0.008).toFixed(1) + "px,0) rotateY(" + (s.lx * 7).toFixed(2) + "deg) rotateX(" + (s.ly * 4).toFixed(2) + "deg) rotate(" + (Math.sin(t * 0.6) * 0.8 + odchyl).toFixed(2) + "deg)"
+                    const v = fs - s.smakFs
+                    s.smakFs = fs
+                    s.smakV += (clamp(v * 60, -3, 3) - s.smakV) * 0.12
+                    const kat = Math.sin(t * 1.1) * 1.1 + s.smakV * 3.2 + (maKursor ? s.lx * 2.4 : 0)
+                    el.rozek.style.transform = "translate3d(0," + (Math.sin(t * 0.8) * vh * 0.006).toFixed(1) + "px,0) rotate(" + kat.toFixed(2) + "deg)"
                 }
-                if (chromRozek) chromRozek.rysuj({ czas: t, lx: s.lx, ly: s.ly, kx: 0, ky: 0, kr: 0, caly: 1, A: kolA, B: kolB })
             }
         }
+
+        // 11. Taśmy: sprężyna po puszczeniu (pociągnięte trzymają się palca)
+        const dtT = Math.min(0.05, Math.max(0, (teraz - tOst) / 1000))
+        tOst = teraz
+        for (const ta of tasmy) {
+            if (!ta.ruch) continue
+            if (ta.id < 0) {
+                const K = 170
+                const C = 9
+                ta.vx += (-K * ta.x - C * ta.vx) * dtT
+                ta.vy += (-K * ta.y - C * ta.vy) * dtT
+                ta.vr += (-K * ta.r - C * ta.vr) * dtT
+                ta.x += ta.vx * dtT
+                ta.y += ta.vy * dtT
+                ta.r += ta.vr * dtT
+                if (Math.abs(ta.x) + Math.abs(ta.y) < 0.05 && Math.abs(ta.r) < 0.01 && Math.abs(ta.vx) + Math.abs(ta.vy) < 0.5) {
+                    ta.ruch = false
+                    ta.e.style.transform = ""
+                    continue
+                }
+            }
+            ta.e.style.transform = "rotate(" + ta.kat + "deg) translate3d(" + ta.x.toFixed(1) + "px," + ta.y.toFixed(1) + "px,0) rotate(" + ta.r.toFixed(2) + "deg)"
+        }
+
+        // 10. Najszarszy Dzień: strona szara, kulka pod kursorem (albo nad palcem) oddaje kolor
+        const szaro = el.szaro as HTMLElement | undefined
+        if (szaro) {
+            const r = clamp(Math.min(vw, vh) * 0.17, 84, 170)
+            let cx = 0
+            let cy = 0
+            if (maKursor) {
+                cx = s.mx
+                cy = s.my
+            } else if (s.szX >= 0) {
+                cx = s.szX
+                cy = s.szY - (dotyk ? r * 0.9 : 0)
+            } else {
+                cx = vw * 0.5 + (reduce ? 0 : Math.sin(t * 0.31) * vw * 0.22)
+                cy = vh * 0.42 + (reduce ? 0 : Math.sin(t * 0.47 + 1) * vh * 0.14)
+            }
+            if (s.szLx < 0 || reduce) {
+                s.szLx = cx
+                s.szLy = cy
+            } else {
+                s.szLx += (cx - s.szLx) * 0.22
+                s.szLy += (cy - s.szLy) * 0.22
+            }
+            szaro.style.setProperty("--x", s.szLx.toFixed(1) + "px")
+            szaro.style.setProperty("--y", s.szLy.toFixed(1) + "px")
+            szaro.style.setProperty("--r", r.toFixed(1) + "px")
+            const kula = el.szaroKula as HTMLElement | undefined
+            if (kula) kula.style.transform = "translate3d(" + (s.szLx - 100).toFixed(1) + "px," + (s.szLy - 100).toFixed(1) + "px,0) scale(" + (r / 100).toFixed(4) + ")"
+        } else if (s.szLx >= 0) s.szLx = -1
 
         // 7. Kubek obraca się lekko za kursorem
         if (el.kubekTilt && !reduce) {
@@ -2413,7 +2950,22 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
         window.removeEventListener("pointermove", ruch)
         window.removeEventListener("pointerdown", ruch)
         if (io) io.disconnect()
-        if (chromRozek) chromRozek.usun()
+        if (smakiSc) {
+            smakiSc.removeEventListener("pointerdown", smakDol)
+            smakiSc.removeEventListener("pointermove", smakRuch)
+            smakiSc.removeEventListener("pointerup", smakGora)
+            smakiSc.removeEventListener("pointercancel", smakGora)
+            smakiSc.removeEventListener("click", smakKlik)
+        }
+        if (el.smakiKropki) el.smakiKropki.removeEventListener("keydown", smakKlawisz)
+        root.removeEventListener("click", szaryKlik)
+        window.removeEventListener("touchstart", palecKuli)
+        root.removeEventListener("pointerdown", tasmaDol)
+        root.removeEventListener("pointermove", tasmaRuch)
+        root.removeEventListener("pointerup", tasmaGora)
+        root.removeEventListener("pointercancel", tasmaGora)
+        root.removeEventListener("click", slonceKlik)
+        window.removeEventListener("touchmove", palecKuli)
         if (chromBalony) chromBalony.usun()
     }
 }
@@ -2442,11 +2994,33 @@ export default function KonceptFundusz2(props: Props) {
     const slowaRef = useRef<Array<HTMLSpanElement | null>>([])
     const [pogoda, ustawPogode] = useState<null | { temp: number; chmury: number; rodzaj: string }>(null)
     const [dzien, ustawDzien] = useState({ krotko: "18.01", dlugo: "poniedziałek, 18 stycznia 2027" })
+    // Najszarszy Dzień: tego dnia cała strona jest szara, a kulka pod kursorem (albo palcem) oddaje kolor.
+    // "dzien" = naprawdę dziś, "podglad" = ?szary w adresie albo przycisk w sekcji 18.01.
+    const [szaro, ustawSzaro] = useState<"" | "dzien" | "podglad">("")
 
     useEffect(() => {
-        const w = najszarszy(Date.now())
+        const teraz = Date.now()
+        const w = najszarszy(teraz)
         ustawDzien({ krotko: dwa(w.dzien) + ".01", dlugo: "poniedziałek, " + w.dzien + " stycznia " + w.rok })
+        let tryb: "" | "dzien" | "podglad" = ""
+        if (/[?&](szary|najszarszy)(=|&|$)/.test(window.location.search)) tryb = "podglad"
+        else if (teraz >= w.start && teraz < w.start + 24 * 3600 * 1000) {
+            let wylaczone = false
+            try {
+                wylaczone = window.sessionStorage.getItem("gk2-szaro-wyl") === "1"
+            } catch (_) {}
+            if (!wylaczone) tryb = "dzien"
+        }
+        if (tryb) ustawSzaro(tryb)
     }, [])
+    const koniecSzarosci = () => {
+        if (szaro === "dzien") {
+            try {
+                window.sessionStorage.setItem("gk2-szaro-wyl", "1")
+            } catch (_) {}
+        }
+        ustawSzaro("")
+    }
 
     useEffect(() => {
         const root = rootRef.current
@@ -2546,9 +3120,25 @@ export default function KonceptFundusz2(props: Props) {
     )
 
     return (
-        <div className="gk2" ref={rootRef} style={props.style} data-pogoda={rodzajPogody || undefined}>
+        <div className="gk2" ref={rootRef} style={props.style} data-pogoda={rodzajPogody || undefined} data-szaro={szaro || undefined}>
             <style dangerouslySetInnerHTML={{ __html: CSS }} />
             <div className="gk2-ziarno" aria-hidden="true" />
+            {szaro ? <div className="gk2-szaro" ref={u("szaro")} aria-hidden="true" /> : null}
+            {szaro ? (
+                <div className="gk2-szaro-ui">
+                    <div className="gk2-szaro-kula" ref={u("szaroKula")} aria-hidden="true" />
+                    <div className="gk2-szaro-pasek gk2-e" role="status">
+                        <span>
+                            {szaro === "dzien" ? "Dziś Najszarszy Dzień. " : "Podgląd: tak wygląda strona " + dzien.krotko + ". "}
+                            Kulka oddaje kolor tam, gdzie <span className="gk2-tylko-mysz">patrzysz</span>
+                            <span className="gk2-tylko-dotyk">dotkniesz</span>.
+                        </span>
+                        <button type="button" onClick={koniecSzarosci}>
+                            {szaro === "dzien" ? "Pokaż kolory" : "Zakończ podgląd"}
+                        </button>
+                    </div>
+                </div>
+            ) : null}
 
             <div className="gk2-nav-kotwica">
                 <header className="gk2-nav" ref={u("nav")}>
@@ -2671,6 +3261,7 @@ export default function KonceptFundusz2(props: Props) {
             </section>
 
             <div className="gk2-tasmy" aria-hidden="true">
+                <SzaryZza p={SZARY_GLOWA} k={0} klasa="gk2-sz-okno-tasmy" />
                 <Tasma src={TASMA_MASLO} klasa="gk2-tasma-a gk2-tasma-maslo" />
                 <Tasma src={TASMA_ROZ} klasa="gk2-tasma-b gk2-tasma-roz" />
             </div>
@@ -2748,6 +3339,7 @@ export default function KonceptFundusz2(props: Props) {
                             {WYPIEKI.map((w, i) => (
                                 <a key={w.nazwa} className="gk2-wypiek gk2-s" href={ZAMOWIENIA} style={{ ["--i" as any]: i + 2 }}>
                                     <span className="gk2-wypiek-foto" role="img" aria-label={w.nazwa + " — wypiek świąteczny Górka & Kulka"}>
+                                        {i === 1 ? <SzaryZza p={SZARY_GLOWA} k={0.24} klasa="gk2-sz-okno-ciasto" lustro /> : null}
                                         <i style={{ backgroundImage: "url(" + obraz(w.wyc) + ")" }} />
                                     </span>
                                     <span className="gk2-e gk2-wypiek-nr">
@@ -2820,6 +3412,7 @@ export default function KonceptFundusz2(props: Props) {
                 </div>
                 <div className="gk2-zrodla-rzad">
                     <figure className="gk2-farma">
+                        <SzaryZza p={SZARY_GLOWA_USMIECH} k={0.44} klasa="gk2-sz-okno-laka" lustro />
                         <Laka oknoRef={u("farma")} />
                         <figcaption className="gk2-e">
                             <span>Ryc. 8 — Górka i Kulka u krów z Juchowa.</span>
@@ -2846,34 +3439,60 @@ export default function KonceptFundusz2(props: Props) {
             </section>
 
             <section className="gk2-smaki" ref={u("smaki")} id="gk2-smaki" data-motyw="jasny" style={{ ["--n" as any]: SMAKI.length }}>
-                <div className="gk2-smaki-scena">
+                <div className="gk2-smaki-scena" ref={u("smakiScena")} style={{ background: SMAKI[0].kolor, color: SMAKI[0].tekst }}>
                     <h2 className="gk2-sr">Smaki lodów</h2>
-                    {SMAKI.map((sm, i) => (
-                        <div key={sm.nr} className="gk2-smak" ref={u("smak" + i)} style={{ background: sm.kolor, color: sm.tekst, zIndex: i + 1 }}>
-                            <div className="gk2-smak-tekst" ref={u("smakTekst" + i)}>
-                                <div className="gk2-e">
-                                    06 — Smaki · {sm.nr} / 0{SMAKI.length}
-                                </div>
-                                <h3 className="gk2-d gk2-smak-nazwa">
+                    <ol className="gk2-sr">
+                        {SMAKI.map((sm) => (
+                            <li key={sm.nr}>
+                                {sm.nazwa.join(" ")} ({sm.en}). {sm.opis}
+                            </li>
+                        ))}
+                    </ol>
+                    <svg className="gk2-smaki-zalew" ref={u("smakiZalew")} aria-hidden="true" preserveAspectRatio="none">
+                        <path ref={u("smakiZalewSciezka")} d="" />
+                    </svg>
+                    <div className="gk2-smaki-gora gk2-e" ref={u("smakiGora")} aria-hidden="true">
+                        <span>
+                            06 — Smaki · <span ref={u("smakiNr")}>01</span> / 0{SMAKI.length}
+                        </span>
+                        <span className="gk2-tylko-mysz">← Przeciągnij w bok →</span>
+                        <span className="gk2-tylko-dotyk">← Przesuń palcem →</span>
+                    </div>
+                    <div className="gk2-beben" ref={u("beben")} aria-hidden="true">
+                        <div className="gk2-beben-os" ref={u("bebenOs")}>
+                            {SMAKI.map((sm, i) => (
+                                <div key={sm.nr} className="gk2-d gk2-beben-nazwa" ref={u("bebenNazwa" + i)}>
                                     {sm.nazwa.map((l) => (
                                         <span key={l}>{l}</span>
                                     ))}
-                                </h3>
-                                <p className="gk2-lead">{sm.opis}</p>
-                                <p className="gk2-e gk2-smak-stopka">Karta zmienia się jak pogoda. Dziś gościnnie: pumpkin spice latte i matcha z truskawką.</p>
-                            </div>
-                            <div className="gk2-gala" ref={u("gala" + i)} style={{ backgroundColor: sm.gala }} aria-hidden="true" />
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                    <div className="gk2-rozek" ref={u("rozek")}>
-                        <Wyc a={P.rozek} rozmiar={1024} alt="Chromowy rożek lodów Górka & Kulka" />
-                        <canvas ref={u("plotnoRozek")} aria-hidden="true" />
                     </div>
-                    <ol className="gk2-smaki-kropki" ref={u("smakiKropki")} aria-hidden="true">
-                        {SMAKI.map((sm) => (
-                            <li key={sm.nr} />
+                    <div className="gk2-smaki-opisy" ref={u("smakiOpisy")} aria-hidden="true">
+                        <div className="gk2-smaki-opisy-stos">
+                            {SMAKI.map((sm, i) => (
+                                <div key={sm.nr} className="gk2-smaki-opis" ref={u("smakOpis" + i)}>
+                                    <p className="gk2-e">
+                                        {sm.nr} · {sm.en}
+                                    </p>
+                                    <p className="gk2-lead">{sm.opis}</p>
+                                </div>
+                            ))}
+                        </div>
+                        <p className="gk2-e gk2-smak-stopka">Karta zmienia się jak pogoda. Dziś gościnnie: pumpkin spice latte i matcha z truskawką.</p>
+                    </div>
+                    <div className="gk2-rozek2" ref={u("rozek")} aria-hidden="true">
+                        <img className="gk2-rozek2-wafel" src={ROZEK.wafel} width={ROZEK.w} height={ROZEK.h} alt="" loading="lazy" decoding="async" draggable={false} />
+                        <i className="gk2-rozek2-galka" ref={u("galkaA")} style={{ background: SMAKI[0].gala }} />
+                        <i className="gk2-rozek2-galka gk2-rozek2-galka-b" ref={u("galkaB")} />
+                        <img className="gk2-rozek2-kreska" src={ROZEK.kreska} width={ROZEK.w} height={ROZEK.h} alt="" loading="lazy" decoding="async" draggable={false} />
+                    </div>
+                    <div className="gk2-smaki-kropki" ref={u("smakiKropki")} role="group" aria-label="Wybierz smak">
+                        {SMAKI.map((sm, i) => (
+                            <button key={sm.nr} type="button" data-smak={i} className={i === 0 ? "gk2-on" : undefined} aria-label={"Smak: " + sm.nazwa.join(" ")} />
                         ))}
-                    </ol>
+                    </div>
                 </div>
             </section>
 
@@ -2891,8 +3510,14 @@ export default function KonceptFundusz2(props: Props) {
                     </p>
                     <Odliczanie />
                     <Zapis data={dzien.krotko} />
+                    <button type="button" className="gk2-szaro-podglad gk2-e" onClick={() => (szaro ? koniecSzarosci() : ustawSzaro("podglad"))}>
+                        {szaro ? "Wyłącz szarość" : "Zobacz stronę w dniu " + dzien.krotko + " →"}
+                    </button>
                 </div>
                 <div className="gk2-balony" ref={u("balony")}>
+                    <span className="gk2-sz-gosc-okno" data-wjazd="" aria-hidden="true">
+                        <Szary p={SZARY_CALY} k={0.8} className="gk2-sz-gosc" />
+                    </span>
                     <Wyc a={P.balony} rozmiar={1024} alt="Chromowe balony z monogramem Górka & Kulka" />
                     <canvas ref={u("plotnoBalony")} aria-hidden="true" />
                 </div>
@@ -2943,6 +3568,7 @@ export default function KonceptFundusz2(props: Props) {
             <footer className="gk2-stopka" data-motyw="jasny">
                 <div className="gk2-stopka-dzieci">
                     <Wyc a={P.dzieci} rozmiar={1024} alt="Mała Kulka z balonami w kształcie liczby 10" />
+                    <Szary p={SZARY_CALY} k={1} className="gk2-sz-stoi" />
                     <span className="gk2-e">10 lat. Dopiero się rozkręcamy.</span>
                 </div>
                 <Wyc a={P.logotyp} rozmiar={2048} className="gk2-stopka-logo" alt="Górka & Kulka" />
