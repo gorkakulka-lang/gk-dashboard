@@ -1663,28 +1663,32 @@ const CSS_B = [
     ".gk2-swieta-lep { position: sticky; top: 0; min-height: calc(var(--vh) * 100); overflow: hidden; }",
     ".gk2-swieta-droga { display: none; height: calc(var(--vh) * 230); }",
     ".gk2-js .gk2-swieta-droga { display: block; }",
-    ".gk2-sklep { position: relative; overflow: hidden; min-height: calc(var(--vh) * 100); padding: 92px var(--m) calc(var(--vh) * 6); display: grid; grid-template-columns: .8fr 1.5fr; gap: 4.5vw; align-items: center;",
-    // Rozwinięty papier od środka: jaśniejszy, z zagięciami tam, gdzie szła wstążka, i z ledwo widocznymi kropkami.
-    "  background-color: #F9DCE3; background-image: linear-gradient(90deg, transparent calc(70% - 2px), rgba(130,40,62,.10) calc(70% - 1px), rgba(255,255,255,.55) 70%, transparent calc(70% + 3px)), linear-gradient(180deg, transparent calc(58% - 2px), rgba(130,40,62,.10) calc(58% - 1px), rgba(255,255,255,.55) 58%, transparent calc(58% + 3px)), radial-gradient(120% 90% at 70% 58%, rgba(255,255,255,.35), rgba(255,255,255,0) 60%), radial-gradient(circle, rgba(255,255,255,.3) 0 4.5px, rgba(255,255,255,0) 5.5px), radial-gradient(circle, rgba(255,255,255,.3) 0 4.5px, rgba(255,255,255,0) 5.5px);",
-    "  background-size: 100% 100%, 100% 100%, 100% 100%, 56px 56px, 56px 56px; background-position: 0 0, 0 0, 0 0, 0 0, 28px 28px; }",
-    ".gk2-sklep > *:not(.gk2-sklep-wstazka):not(.gk2-sklep-kokarda) { position: relative; z-index: 1; }",
-    ".gk2-sklep-wstazka { position: absolute; z-index: 0; display: block; height: clamp(30px, 3.4vw, 58px); background: " + ZIARNO + " 0 0 / 200px 200px, linear-gradient(180deg, " + AKSAMIT + "); box-shadow: 0 10px 22px -10px rgba(70,10,20,.5); pointer-events: none; }",
-    ".gk2-sklep-wstazka-a { right: -8vw; top: 9%; width: 38vw; transform: rotate(-17deg); border-radius: 2px; }",
-    ".gk2-sklep-wstazka-b { left: -7vw; bottom: 6%; width: 31vw; transform: rotate(7deg); }",
-    ".gk2-sklep-kokarda { position: absolute; z-index: 0; display: block; right: 1.5vw; top: 1%; width: clamp(110px, 12vw, 210px); aspect-ratio: 1000 / 941; background: url(" + KOKARDA + ") 0 0 / 100% 100% no-repeat; transform: rotate(24deg); filter: drop-shadow(0 12px 14px rgba(70,10,20,.35)); pointer-events: none; }",
-    ".gk2-h2-sklep { font-size: clamp(46px, 7vw, 124px); }",
-    ".gk2-sklep .gk2-lead { margin-top: 24px; }",
-    ".gk2-fakty { margin: 26px 0 30px; border-top: 1.5px solid var(--tusz); font-size: 12px; line-height: 1.5; letter-spacing: .05em; text-transform: uppercase; }",
+    ".gk2-sklep { position: relative; min-height: calc(var(--vh) * 100); padding: 112px var(--m) calc(var(--vh) * 7); display: grid; grid-template-columns: 1.15fr .85fr; grid-template-areas: 'glowa info' 'polka polka'; column-gap: 5vw; row-gap: calc(var(--vh) * 6); align-content: center; background: var(--krem); }",
+    ".gk2-sklep-glowa { grid-area: glowa; align-self: end; position: relative; }",
+    ".gk2-sklep-info { grid-area: info; align-self: end; }",
+    ".gk2-sklep-glowa .gk2-e { margin-bottom: 18px; }",
+    ".gk2-h2-sklep { font-size: clamp(54px, 8.6vw, 150px); }",
+    ".gk2-sklep .gk2-lead { margin-top: 0; }",
+    ".gk2-sklep-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; margin-top: 26px; }",
+    ".gk2-sklep-link { padding: 6px 0 3px; border-bottom: 1px solid currentColor; }",
+    "@media (hover: hover) { .gk2-sklep-link:hover { color: var(--rubin); } }",
+    ".gk2-sklep-para-m { display: none; }",
+    ".gk2-fakty { margin: 30px 0 0; border-top: 1.5px solid var(--tusz); font-size: 12px; line-height: 1.5; letter-spacing: .05em; text-transform: uppercase; }",
     ".gk2-fakty div { display: grid; grid-template-columns: 9em 1fr; gap: 12px; padding: 11px 0; border-bottom: 1.5px solid var(--tusz); }",
     ".gk2-fakty dt { opacity: .6; }",
     ".gk2-fakty dd span { display: block; }",
     ".gk2-fakty dd b { font-weight: 400; white-space: nowrap; }",
-    ".gk2-wypieki { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.8vw; align-items: start; }",
+    ".gk2-wypieki { grid-area: polka; --g: 2.4vw; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--g); align-items: start; padding-left: calc((100% - 2 * var(--g)) * .203 + 4px); }",
+    ".gk2-sklep-para { position: absolute; right: calc(109% + 4px); bottom: 0; height: 104%; aspect-ratio: 0.83; z-index: 2; }",
+    ".gk2-sklep-para .gk2-wyc { width: 100%; height: 100%; }",
     ".gk2-wypiek { display: grid; gap: 8px; align-content: start; }",
     ".gk2-wypiek-foto { position: relative; display: block; aspect-ratio: 1 / .78; }",
-    ".gk2-wypiek-foto i { position: absolute; left: -9%; top: 0; width: 118%; height: 100%; display: block; background-repeat: no-repeat; background-size: contain; background-position: 50% 100%; transition: transform .45s cubic-bezier(.3,.7,.3,1); transform-origin: 50% 90%; }",
+    ".gk2-wypiek-foto::after { content: ''; position: absolute; left: calc(var(--g) * -.5); right: calc(var(--g) * -.5); bottom: 0; height: 1.5px; background: var(--tusz); z-index: 1; }",
+    ".gk2-wypiek:nth-child(2) .gk2-wypiek-foto::after { left: calc(-76.3% - 4px); }",
+    ".gk2-wypiek:last-child .gk2-wypiek-foto::after { right: 0; }",
+    ".gk2-wypiek-foto i { position: absolute; left: -9%; top: 0; width: 118%; height: calc(100% - 4px); display: block; z-index: 2; background-repeat: no-repeat; background-size: contain; background-position: 50% 100%; transition: transform .45s cubic-bezier(.3,.7,.3,1); transform-origin: 50% 90%; }",
     "@media (hover: hover) { .gk2-wypiek:hover .gk2-wypiek-foto i { transform: translateY(-4%) scale(1.06) rotate(-2deg); } }",
-    ".gk2-wypiek-nr { margin-top: 8px; display: flex; align-items: center; gap: 8px; }",
+    ".gk2-wypiek-nr { margin-top: 14px; display: flex; align-items: center; gap: 8px; }",
     ".gk2-wypiek-nr::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--rubin); }",
     ".gk2-wypiek-nazwa { font-size: clamp(24px, 2.7vw, 46px); line-height: .92; }",
     ".gk2-wypiek-opis { font-size: 13px; line-height: 1.5; opacity: .82; }",
@@ -2004,15 +2008,18 @@ const CSS_B = [
     "  .gk2-portal-podpis { font-size: 9px; left: 9px; right: 9px; top: 8px; }",
     "  .gk2-napisy { left: var(--m); right: 48vw; bottom: calc(var(--vh) * 6); text-align: left; font-size: 7.2vw; }",
     "  .gk2-kino-meta { display: none; }",
-    "  .gk2-sklep { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 66px var(--m) calc(var(--vh) * 5); }",
-    "  .gk2-sklep-tekst { display: contents; }",
-    "  .gk2-sklep-tekst > .gk2-e { order: 1; }",
-    "  .gk2-h2-sklep { order: 2; font-size: 14.6vw; margin-top: 12px; }",
-    "  .gk2-sklep .gk2-lead { order: 3; margin-top: 20px; }",
-    "  .gk2-wypieki { order: 4; margin-top: 18px; grid-template-columns: minmax(0, 1fr); gap: 12px; }",
-    "  .gk2-fakty { order: 5; margin: 18px 0 0; font-size: 11px; }",
+    "  .gk2-sklep { display: flex; flex-direction: column; align-items: stretch; gap: 0; min-height: 0; padding: 84px var(--m) calc(var(--vh) * 6); }",
+    "  .gk2-sklep-glowa, .gk2-sklep-info { align-self: stretch; }",
+    "  .gk2-h2-sklep { font-size: 14.6vw; }",
+    "  .gk2-sklep-para-m { display: block; border-bottom: 1.5px solid var(--tusz); padding-left: 4vw; margin-bottom: 8px; }",
+    "  .gk2-sklep-para-m .gk2-wyc { width: 30vw; aspect-ratio: 0.83; }",
+    "  .gk2-sklep-para { display: none; }",
+    "  .gk2-sklep-info { margin-top: 20px; }",
+    "  .gk2-sklep-cta { margin-top: 20px; gap: 12px 18px; }",
+    "  .gk2-wypieki { margin-top: 26px; padding-left: 0; grid-template-columns: minmax(0, 1fr); gap: 12px; }",
+    "  .gk2-wypiek-foto::after { display: none; }",
+    "  .gk2-fakty { margin: 22px 0 0; font-size: 11px; }",
     "  .gk2-fakty div { grid-template-columns: 7.2em 1fr; padding: 8px 0; }",
-    "  .gk2-sklep-tekst > .gk2-przycisk { order: 6; margin-top: 18px; align-self: flex-start; }",
     "  .gk2-wypiek { grid-template-columns: 26vw minmax(0, 1fr); column-gap: 14px; row-gap: 5px; align-items: start; }",
     "  .gk2-wypiek-foto { grid-row: 1 / span 4; }",
     "  .gk2-wypiek-nr { margin-top: 2px; }",
@@ -2925,7 +2932,7 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
             if (mobile && window.scrollY > vh * 0.6) {
                 const sw = el.swieta as HTMLElement | undefined
                 const rs = sw ? sw.getBoundingClientRect() : null
-                const sklep = !!rs && s.otwarte && rs.bottom > vh * 0.35 && rs.top < vh * 0.65
+                const sklep = !!rs && rs.bottom > vh * 0.35 && rs.top < vh * 0.65
                 const st = el.stopka as HTMLElement | undefined
                 const stopka = !!st && st.getBoundingClientRect().top < vh * 0.92
                 // na przypiętych scenach (opowieść, filmy, smaki) pasek zasłaniałby podpisy i kropki
@@ -3164,21 +3171,6 @@ export default function KonceptFundusz2(props: Props) {
     // Klatka rysunku: grafika na białym tle mnożona z kolorem warstwy, pod nią miękka poświata (kończy się przed krawędzią).
     const klatkaTlo = (src: string): React.CSSProperties => ({ backgroundImage: "url(" + src + "), radial-gradient(closest-side at 58% 58%, rgba(255,255,255,.5), rgba(255,255,255,0))" })
 
-    // Papier do pakowania: ta sama treść w czterech ćwiartkach, każda pokazuje swój kawałek.
-    const papier = (
-        <div className="gk2-papier">
-            <div className="gk2-papier-gora gk2-e">
-                <span>01 — Święta 2026</span>
-                <span>Zamówienia do 21.12 · odbiór 23–24.12</span>
-            </div>
-            <div className="gk2-d gk2-papier-napis">
-                <span>Rozpakuj</span>
-                <span>Święta.</span>
-            </div>
-            <div className="gk2-e gk2-papier-dol">Przewijaj. Kokarda puści ↓</div>
-        </div>
-    )
-
     return (
         <div className="gk2" ref={rootRef} style={props.style} data-pogoda={rodzajPogody || undefined} data-szaro={szaro || undefined}>
             <style dangerouslySetInnerHTML={{ __html: CSS }} />
@@ -3228,88 +3220,68 @@ export default function KonceptFundusz2(props: Props) {
                 </header>
             </div>
 
-            <section className="gk2-swieta" ref={u("swieta")} id="gk2-swieta" data-motyw="jasny">
+            <section className="gk2-swieta gk2-swieta-otwarte" ref={u("swieta")} id="gk2-swieta" data-motyw="jasny">
                 <h1 className="gk2-sr">Górka & Kulka — lody rzemieślnicze i ciasta z Gorzowa Wielkopolskiego. Wypieki na Święta 2026: zamówienia do 21 grudnia.</h1>
-                <div className="gk2-swieta-lep">
-                    <div className="gk2-sklep">
-                        <i className="gk2-sklep-wstazka gk2-sklep-wstazka-a" aria-hidden="true" />
-                        <i className="gk2-sklep-wstazka gk2-sklep-wstazka-b" aria-hidden="true" />
-                        <i className="gk2-sklep-kokarda" aria-hidden="true" />
-                        <div className="gk2-sklep-tekst">
-                            <div className="gk2-e gk2-s">01 — Święta 2026</div>
-                            <Linie linie={["Wypieki", "na Święta."]} className="gk2-h2 gk2-h2-sklep" bezWjazdu />
-                            <p className="gk2-lead gk2-s" style={{ ["--i" as any]: 1 }}>
-                                {"Sernik, makowiec i\u00a0ciasto czekoladowe. Pieczemy sami, na\u00a0zamówienie — po\u00a0dwadzieścia sztuk każdego."}
-                            </p>
-                            <dl className="gk2-fakty gk2-s" style={{ ["--i" as any]: 2 }}>
-                                <div>
-                                    <dt>Zamówienia</dt>
-                                    <dd>{"1–21\u00a0grudnia, przez stronę"}</dd>
-                                </div>
-                                <div>
-                                    <dt>Odbiór</dt>
-                                    <dd>
-                                        <span>{"Kawiarnia Centrum, ul.\u00a0Sikorskiego\u00a0126"}</span>
-                                        <span>
-                                            <b>23 grudnia 10–19</b> · <b>24 grudnia 10–12</b>
-                                        </span>
-                                    </dd>
-                                </div>
-                                <div>
-                                    <dt>Zadatek</dt>
-                                    <dd>{"30% płatne online"}</dd>
-                                </div>
-                            </dl>
-                            <a className="gk2-przycisk gk2-s" href={ZAMOWIENIA} style={{ ["--i" as any]: 3 }}>
-                                Zamów wypieki →
-                            </a>
-                        </div>
-                        <div className="gk2-wypieki">
-                            {WYPIEKI.map((w, i) => (
-                                <a key={w.nazwa} className="gk2-wypiek gk2-s" href={ZAMOWIENIA} style={{ ["--i" as any]: i + 2 }}>
-                                    <span className="gk2-wypiek-foto" role="img" aria-label={w.nazwa + " — wypiek świąteczny Górka & Kulka"}>
-                                        <i style={{ backgroundImage: "url(" + obraz(w.wyc) + ")" }} />
-                                    </span>
-                                    <span className="gk2-e gk2-wypiek-nr">
-                                        Nr 0{i + 1} · limit 20 sztuk
-                                    </span>
-                                    <span className="gk2-d gk2-wypiek-nazwa">{w.nazwa}</span>
-                                    <span className="gk2-wypiek-opis">{w.opis}</span>
-                                    <span className="gk2-e gk2-wypiek-link">Zamawiam →</span>
-                                </a>
-                            ))}
-                        </div>
+                <div className="gk2-sklep">
+                    <div className="gk2-sklep-glowa">
+                        <div className="gk2-e">{"Górka & Kulka · lody i\u00a0ciasta z\u00a0Gorzowa · Święta 2026"}</div>
+                        <Linie linie={["Wypieki", "na Święta."]} className="gk2-h2 gk2-h2-sklep" bezWjazdu />
                     </div>
-                    <div className="gk2-opak" ref={u("opak")} aria-hidden="true">
-                        {["a", "b", "c", "d"].map((k) => (
-                            <div key={k} className={"gk2-cw gk2-cw-" + k} ref={u("cw_" + k)}>
-                                {papier}
-                            </div>
-                        ))}
-                        <i className="gk2-pas gk2-pas-h gk2-pas-hl" ref={u("pasHL")} />
-                        <i className="gk2-pas gk2-pas-h gk2-pas-hp" ref={u("pasHP")} />
-                        <i className="gk2-pas gk2-pas-v gk2-pas-vg" ref={u("pasVG")} />
-                        <i className="gk2-pas gk2-pas-v gk2-pas-vd" ref={u("pasVD")} />
-                        <div className="gk2-kok-cien" ref={u("kokCien")} />
-                        <Kokarda u={u} />
-                    </div>
-                    <div className="gk2-prezent" ref={u("prezent")}>
-                        <p className="gk2-e gk2-prezent-kto">{"Górka & Kulka · lody i\u00a0ciasta z\u00a0Gorzowa · od\u00a02016"}</p>
-                        <p className="gk2-e gk2-prezent-termin">{"Zamówienia do 21\u00a0grudnia · odbiór 23–24.12 w\u00a0Kawiarni Centrum"}</p>
-                        <div className="gk2-prezent-cta">
+                    <div className="gk2-sklep-info">
+                        <p className="gk2-lead">{"Sernik, makowiec i\u00a0ciasto czekoladowe. Pieczemy sami, na\u00a0zamówienie — po\u00a0dwadzieścia sztuk każdego."}</p>
+                        <div className="gk2-sklep-cta">
                             <a className="gk2-przycisk" href={ZAMOWIENIA}>
                                 Zamów wypieki →
                             </a>
-                            <a className="gk2-prezent-link gk2-e" href="#gk2-firmy" onClick={skok("gk2-firmy")}>
+                            <a className="gk2-sklep-link gk2-e" href="#gk2-firmy" onClick={skok("gk2-firmy")}>
                                 Wigilia firmowa
                             </a>
-                            <a className="gk2-prezent-link gk2-e" href="#gk2-stolik" onClick={skok("gk2-stolik")}>
-                                Stolik w Kawiarni Centrum
+                            <a className="gk2-sklep-link gk2-e" href="#gk2-stolik" onClick={skok("gk2-stolik")}>
+                                Stolik
                             </a>
                         </div>
+                        <dl className="gk2-fakty">
+                            <div>
+                                <dt>Zamówienia</dt>
+                                <dd>{"do 21\u00a0grudnia, przez stronę"}</dd>
+                            </div>
+                            <div>
+                                <dt>Odbiór</dt>
+                                <dd>
+                                    <span>{"Kawiarnia Centrum, ul.\u00a0Sikorskiego\u00a0126"}</span>
+                                    <span>
+                                        <b>23 grudnia 10–19</b> · <b>24 grudnia 10–12</b>
+                                    </span>
+                                </dd>
+                            </div>
+                            <div>
+                                <dt>Zadatek</dt>
+                                <dd>{"30% płatne online"}</dd>
+                            </div>
+                        </dl>
+                    </div>
+                    <div className="gk2-wypieki">
+                        <div className="gk2-sklep-para-m" aria-hidden="true">
+                            <Wyc a={P.para} rozmiar={1024} />
+                        </div>
+                        {WYPIEKI.map((w, i) => (
+                            <a key={w.nazwa} className="gk2-wypiek" href={ZAMOWIENIA}>
+                                <span className="gk2-wypiek-foto" role="img" aria-label={w.nazwa + " — wypiek świąteczny Górka & Kulka"}>
+                                    {i === 0 ? (
+                                        <span className="gk2-sklep-para" aria-hidden="true">
+                                            <Wyc a={P.para} rozmiar={1024} />
+                                        </span>
+                                    ) : null}
+                                    <i style={{ backgroundImage: "url(" + obraz(w.wyc) + ")" }} />
+                                </span>
+                                <span className="gk2-e gk2-wypiek-nr">Limit 20 sztuk</span>
+                                <span className="gk2-d gk2-wypiek-nazwa">{w.nazwa}</span>
+                                <span className="gk2-wypiek-opis">{w.opis}</span>
+                                <span className="gk2-e gk2-wypiek-link">Zamawiam →</span>
+                            </a>
+                        ))}
                     </div>
                 </div>
-                <div className="gk2-swieta-droga" ref={u("swietaDroga")} aria-hidden="true" />
             </section>
 
             <section className="gk2-firmy" id="gk2-firmy" data-motyw="jasny">
@@ -3321,7 +3293,6 @@ export default function KonceptFundusz2(props: Props) {
                     <div className="gk2-firmy-okno" ref={u("firmyOkno")}>
                         <img ref={u("firmyObraz")} src={FOTO.ciasto} alt="Sernik na paterze i ciasto czekoladowe na marmurowym stole, goście nakładają sobie po kawałku" loading="lazy" decoding="async" />
                     </div>
-                    <i className="gk2-firmy-kokarda" aria-hidden="true" />
                     <figcaption className="gk2-e">Kawiarnia Centrum, ul. Sikorskiego 126</figcaption>
                 </figure>
                 <div className="gk2-firmy-tresc">
