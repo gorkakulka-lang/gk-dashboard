@@ -1820,7 +1820,7 @@ const CSS_B = [
     "@media (hover: hover) { .gk2-zrodla-link:hover::after { transform: scaleX(.4); } }",
 
     "/* 6. Smaki: jeden rożek; nowy smak spływa z góry jak roztopiony lód */",
-    ".gk2-smaki { position: relative; height: calc(var(--vh) * 100 + (var(--n, 6) - 1) * var(--vh) * 22); }",
+    ".gk2-smaki { position: relative; height: calc(var(--vh) * 100 + (var(--n, 6) - 1) * var(--vh) * 22); background: #F3ECDC; }",
     ".gk2-smaki-scena { position: sticky; top: 0; height: calc(var(--vh) * 100); overflow: hidden; touch-action: pan-y; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }",
     "@media (hover: hover) { .gk2-js .gk2-smaki-scena { cursor: grab; } .gk2-js .gk2-smaki-scena.gk2-ciagnie { cursor: grabbing; } }",
     ".gk2-smaki-zalew { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; overflow: visible; }",
@@ -2725,6 +2725,7 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
                 const tlo = p >= 1 ? B.kolor : A.kolor
                 if (tlo !== s.smakTlo) {
                     scS.style.background = tlo
+                    smaki.style.background = tlo
                     s.smakTlo = tlo
                 }
                 // Kolor napisów: każdy blok przełącza się, kiedy brzeg zalewu (z kapkami) przechodzi przez jego środek.
