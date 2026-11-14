@@ -1659,11 +1659,11 @@ const CSS_A = [
 
 const CSS_B = [
     "/* 4. Święta: sklep z wypiekami pod papierem i kokardą */",
-    ".gk2-swieta { position: relative; background: var(--krem); }",
+    ".gk2-swieta { position: relative; background: var(--roz); }",
     ".gk2-swieta-lep { position: sticky; top: 0; min-height: calc(var(--vh) * 100); overflow: hidden; }",
     ".gk2-swieta-droga { display: none; height: calc(var(--vh) * 230); }",
     ".gk2-js .gk2-swieta-droga { display: block; }",
-    ".gk2-sklep { position: relative; min-height: calc(var(--vh) * 100); padding: 104px var(--m) calc(var(--vh) * 6); display: grid; grid-template-columns: minmax(0, 1fr); row-gap: calc(var(--vh) * 5); align-content: center; background: var(--krem); }",
+    ".gk2-sklep { position: relative; min-height: calc(var(--vh) * 100); padding: 104px var(--m) calc(var(--vh) * 6); display: grid; grid-template-columns: minmax(0, 1fr); row-gap: calc(var(--vh) * 5); align-content: center; background: var(--roz); }",
     ".gk2-sklep-glowa { position: relative; }",
     ".gk2-h2-sklep { font-size: clamp(54px, 7.2vw, 128px); }",
     ".gk2-sklep-info { opacity: .72; }",
