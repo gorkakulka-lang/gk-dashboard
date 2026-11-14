@@ -44,7 +44,7 @@ const FOTO = {
 // podskakuje do połowy zdjęcia i zostaje tam, lewitując. Ten sam ruch co w rolce na Instagram.
 // Jednostki: piksele zdjęcia sali (2160 x 2700, kadr 4:5).
 const SALA_BALONY = obraz("wafItp2F3awkS2U5dUcoYl6N9O4.jpg", 2048)
-const BALONY = { szer: 2160, x: 994, cel: 1350, podloga: 2600, wys: 1102, start: -60, tSpadek: 1.0, tStyk: 0.1, tWzlot: 0.75, amp: 46, okres: 3.2 }
+const BALONY = { szer: 2160, x: 994, cel: 1350, podloga: 2600, wys: 1374, start: -60, tSpadek: 1.35, tStyk: 0.12, tWzlot: 1.05, amp: 46, okres: 3.6 }
 
 // Stan kupki dt sekund po puszczeniu (dt < 0: jeszcze nad kadrem). x i y liczone od miejsca lewitacji.
 function stanBalonow(dt: number) {
@@ -74,7 +74,7 @@ function stanBalonow(dt: number) {
         const delta = ycPodloga - (B.cel - B.amp)
         const p = Math.max(1.5, (g * B.tSpadek * 0.5 * B.tWzlot) / Math.max(delta, 1))
         yc = ycPodloga - delta * (1 - Math.pow(1 - u, p))
-        const r = 0.06 * (1 - u) * (1 - u)
+        const r = (0.06 * (u * (1 - u) * (1 - u))) / 0.1481
         sy = 1 + r
         sx = 1 - 0.5 * r
     } else {
@@ -82,10 +82,10 @@ function stanBalonow(dt: number) {
     }
     const d = dt - tSzczyt
     const ramp = Math.min(1, Math.max(0, (d + 0.4) / 1.2))
-    const x = -30 * Math.max(0, 1 - Math.max(0, dt) / B.tSpadek) + 14 * Math.sin((2 * Math.PI * d) / 5.6) * ramp
-    let kat = dt < tUd ? -7 + 11 * Math.max(0, dt / B.tSpadek) : 4 * Math.exp(-(dt - tUd) / 0.4) * Math.cos((2 * Math.PI * (dt - tUd)) / 0.75)
-    kat += 1.8 * Math.sin((2 * Math.PI * d) / 4.4) * ramp
-    const phi = dt < tUd ? 24 * Math.pow(1 - Math.max(0, dt / B.tSpadek), 1.5) : 4.5 * Math.sin((2 * Math.PI * d) / 6.2) * ramp
+    const x = -30 * Math.max(0, 1 - Math.max(0, dt) / B.tSpadek) + 16 * Math.sin((2 * Math.PI * d) / 6.4) * ramp
+    let kat = dt < tUd ? -7 + 11 * Math.max(0, dt / B.tSpadek) : 4 * Math.exp(-(dt - tUd) / 0.5) * Math.cos((2 * Math.PI * (dt - tUd)) / 0.9)
+    kat += 1.8 * Math.sin((2 * Math.PI * d) / 5.0) * ramp
+    const phi = dt < tUd ? 24 * Math.pow(1 - Math.max(0, dt / B.tSpadek), 1.5) : 4.5 * Math.sin((2 * Math.PI * d) / 7.0) * ramp
     sx *= Math.cos((phi * Math.PI) / 180)
     const h = Math.max(0, B.podloga - (yc + (B.wys * sy) / 2))
     return { x, y: yc - B.cel, sx, sy, kat, h }
@@ -1926,8 +1926,8 @@ const CSS_B = [
     ".gk2-balon-scena { position: relative; justify-self: center; width: min(100%, calc(var(--vh) * 60), 560px); margin: 0; }",
     ".gk2-balon-okno { position: relative; z-index: 1; aspect-ratio: 4 / 5; border-radius: 24px; overflow: hidden; background: #2B1C14; transform: translateZ(0); }",
     ".gk2-balon-foto { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }",
-    ".gk2-balon-cien { position: absolute; left: 25.23%; top: 92.93%; width: 41.57%; height: 7.33%; border-radius: 50%; background: radial-gradient(closest-side, rgba(24,12,6,.55), rgba(24,12,6,.25) 55%, rgba(24,12,6,0)); opacity: 0; pointer-events: none; will-change: transform, opacity; }",
-    ".gk2-balon { position: absolute; left: 20.02%; top: 29.59%; width: 51.99%; will-change: transform; pointer-events: none; }",
+    ".gk2-balon-cien { position: absolute; left: 20.09%; top: 92.04%; width: 51.85%; height: 9.13%; border-radius: 50%; background: radial-gradient(closest-side, rgba(24,12,6,.55), rgba(24,12,6,.25) 55%, rgba(24,12,6,0)); opacity: 0; pointer-events: none; will-change: transform, opacity; }",
+    ".gk2-balon { position: absolute; left: 13.61%; top: 24.56%; width: 64.81%; will-change: transform; pointer-events: none; }",
     ".gk2-balon .gk2-wyc { width: 100%; }",
     ".gk2-zapis { display: grid; gap: 14px; max-width: 600px; }",
     ".gk2-zapis-wiersz { display: flex; gap: 12px; align-items: center; }",
