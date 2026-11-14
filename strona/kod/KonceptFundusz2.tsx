@@ -40,40 +40,62 @@ const FOTO = {
 }
 
 
-// Najszarszy Dzień: cała kupka chromowych balonów z sygnetem spada na salę Kawiarni Centrum, odbija się od podłogi,
-// podskakuje do połowy zdjęcia i zostaje tam, lewitując. Ten sam ruch co w rolce na Instagram.
-// Jednostki: piksele zdjęcia sali (2160 x 2700, kadr 4:5).
+// Najszarszy Dzień: cała kupka chromowych balonów z sygnetem spada na salę Kawiarni Centrum, odbija się od podłogi
+// dwa razy jak piłka (pierwsze odbicie wyżej niż połowa zdjęcia), po drugim dochodzi do połowy zdjęcia i zostaje tam,
+// lewitując. Ten sam ruch co w rolce na Instagram. Jednostki: piksele zdjęcia sali (2160 x 2700, kadr 4:5).
 const SALA_BALONY = obraz("wafItp2F3awkS2U5dUcoYl6N9O4.jpg", 2048)
-const BALONY = { szer: 2160, x: 994, cel: 1350, podloga: 2600, wys: 1374, start: -60, tSpadek: 1.35, tStyk: 0.12, tWzlot: 1.05, amp: 46, okres: 3.6 }
+const BALONY = { szer: 2160, x: 994, cel: 1350, podloga: 2600, wys: 1374, start: -60, tSpadek: 1.35, tStyk: 0.12, tStyk2: 0.1, kOdb1: 1.7, eOdb2: 0.72, tWzlot: 1.05, amp: 46, okres: 3.6 }
 
 // Stan kupki dt sekund po puszczeniu (dt < 0: jeszcze nad kadrem). x i y liczone od miejsca lewitacji.
 function stanBalonow(dt: number) {
     const B = BALONY
     const g = (2 * (B.podloga - B.start)) / (B.tSpadek * B.tSpadek)
-    const tUd = B.tSpadek
-    const tOdb = tUd + B.tStyk
-    const tSzczyt = tOdb + B.tWzlot
-    const ycPodloga = B.podloga - B.wys / 2
+    const ycPod = B.podloga - B.wys / 2
+    const delta = ycPod - (B.cel - B.amp)
+    const vUd = g * B.tSpadek
+    const v1 = Math.sqrt(2 * g * B.kOdb1 * delta)
+    const tLot1 = (2 * v1) / g
+    const p = Math.max(1.5, (B.eOdb2 * v1 * B.tWzlot) / Math.max(delta, 1))
+    const tUd1 = B.tSpadek
+    const tOdb1 = tUd1 + B.tStyk
+    const tUd2 = tOdb1 + tLot1
+    const tOdb2 = tUd2 + B.tStyk2
+    const tSzczyt = tOdb2 + B.tWzlot
+    const rUd1 = 0.045
+    const rUd2 = 0.05
     let yc = 0
     let sx = 1
     let sy = 1
     if (dt < 0) {
         yc = B.start - B.wys / 2
-    } else if (dt < tUd) {
-        yc = B.start + 0.5 * g * dt * dt - B.wys / 2
-        const r = 0.045 * Math.min(1, dt / B.tSpadek)
+    } else if (dt < tUd1) {
+        const r = rUd1 * Math.min(1, (g * dt) / vUd)
         sy = 1 + r
         sx = 1 - 0.5 * r
-    } else if (dt < tOdb) {
-        const z = Math.sin((Math.PI * (dt - tUd)) / B.tStyk)
-        sy = 1 - 0.15 * z
-        sx = 1 + 0.09 * z
+        yc = B.start + 0.5 * g * dt * dt - (B.wys * sy) / 2
+    } else if (dt < tOdb1) {
+        const f = (dt - tUd1) / B.tStyk
+        const z = Math.sin(Math.PI * f)
+        sy = 1 + rUd1 * (1 - f) * (1 - f) - 0.15 * z
+        sx = 1 - 0.5 * rUd1 * (1 - f) * (1 - f) + 0.09 * z
+        yc = B.podloga - (B.wys * sy) / 2
+    } else if (dt < tUd2) {
+        // pierwsze odbicie: zwykły rzut w górę i z powrotem na podłogę
+        const tau = dt - tOdb1
+        const r = rUd2 * (Math.abs(v1 - g * tau) / v1) * Math.min(1, tau / 0.12)
+        sy = 1 + r
+        sx = 1 - 0.5 * r
+        yc = B.podloga - (v1 * tau - 0.5 * g * tau * tau) - (B.wys * sy) / 2
+    } else if (dt < tOdb2) {
+        const f = (dt - tUd2) / B.tStyk2
+        const z = Math.sin(Math.PI * f) * 0.15 * (v1 / vUd)
+        sy = 1 + rUd2 * (1 - f) * (1 - f) - z
+        sx = 1 - 0.5 * rUd2 * (1 - f) * (1 - f) + 0.6 * z
         yc = B.podloga - (B.wys * sy) / 2
     } else if (dt < tSzczyt) {
-        const u = (dt - tOdb) / B.tWzlot
-        const delta = ycPodloga - (B.cel - B.amp)
-        const p = Math.max(1.5, (g * B.tSpadek * 0.5 * B.tWzlot) / Math.max(delta, 1))
-        yc = ycPodloga - delta * (1 - Math.pow(1 - u, p))
+        // drugie odbicie: wzlot do połowy zdjęcia, tam łapie je lewitacja
+        const u = (dt - tOdb2) / B.tWzlot
+        yc = ycPod - delta * (1 - Math.pow(1 - u, p))
         const r = (0.06 * (u * (1 - u) * (1 - u))) / 0.1481
         sy = 1 + r
         sx = 1 - 0.5 * r
@@ -82,10 +104,15 @@ function stanBalonow(dt: number) {
     }
     const d = dt - tSzczyt
     const ramp = Math.min(1, Math.max(0, (d + 0.4) / 1.2))
-    const x = -30 * Math.max(0, 1 - Math.max(0, dt) / B.tSpadek) + 16 * Math.sin((2 * Math.PI * d) / 6.4) * ramp
-    let kat = dt < tUd ? -7 + 11 * Math.max(0, dt / B.tSpadek) : 4 * Math.exp(-(dt - tUd) / 0.5) * Math.cos((2 * Math.PI * (dt - tUd)) / 0.9)
+    const sLot = dt >= tOdb1 && dt < tUd2 ? Math.sin((Math.PI * (dt - tOdb1)) / tLot1) : 0
+    const x = -30 * Math.max(0, 1 - Math.max(0, dt) / B.tSpadek) + 14 * sLot + 16 * Math.sin((2 * Math.PI * d) / 6.4) * ramp
+    let kat = -7 + 11 * Math.max(0, dt / B.tSpadek)
+    if (dt >= tUd1) {
+        kat = 4 * Math.exp(-(dt - tUd1) / 0.5) * Math.cos((2 * Math.PI * (dt - tUd1)) / 0.9)
+        if (dt >= tUd2) kat -= 2.5 * Math.exp(-(dt - tUd2) / 0.45) * Math.sin((2 * Math.PI * (dt - tUd2)) / 0.9)
+    }
     kat += 1.8 * Math.sin((2 * Math.PI * d) / 5.0) * ramp
-    const phi = dt < tUd ? 24 * Math.pow(1 - Math.max(0, dt / B.tSpadek), 1.5) : 4.5 * Math.sin((2 * Math.PI * d) / 7.0) * ramp
+    const phi = dt < tUd1 ? 24 * Math.pow(1 - Math.max(0, dt / B.tSpadek), 1.5) : 14 * sLot + 4.5 * Math.sin((2 * Math.PI * d) / 7.0) * ramp
     sx *= Math.cos((phi * Math.PI) / 180)
     const h = Math.max(0, B.podloga - (yc + (B.wys * sy) / 2))
     return { x, y: yc - B.cel, sx, sy, kat, h }
