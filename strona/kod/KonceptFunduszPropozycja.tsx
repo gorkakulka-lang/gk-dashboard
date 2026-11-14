@@ -39,6 +39,58 @@ const FOTO = {
     ciasto: obraz("0NCCWCqa0Ep8SmT5AztREO4KPA.jpg", 1024),
 }
 
+
+// Najszarszy Dzień: cała kupka chromowych balonów z sygnetem spada na salę Kawiarni Centrum, odbija się od podłogi,
+// podskakuje do połowy zdjęcia i zostaje tam, lewitując. Ten sam ruch co w rolce na Instagram.
+// Jednostki: piksele zdjęcia sali (2160 x 2700, kadr 4:5).
+const SALA_BALONY = obraz("wafItp2F3awkS2U5dUcoYl6N9O4.jpg", 2048)
+const BALONY = { szer: 2160, x: 994, cel: 1350, podloga: 2600, wys: 1102, start: -60, tSpadek: 1.0, tStyk: 0.1, tWzlot: 0.75, amp: 46, okres: 3.2 }
+
+// Stan kupki dt sekund po puszczeniu (dt < 0: jeszcze nad kadrem). x i y liczone od miejsca lewitacji.
+function stanBalonow(dt: number) {
+    const B = BALONY
+    const g = (2 * (B.podloga - B.start)) / (B.tSpadek * B.tSpadek)
+    const tUd = B.tSpadek
+    const tOdb = tUd + B.tStyk
+    const tSzczyt = tOdb + B.tWzlot
+    const ycPodloga = B.podloga - B.wys / 2
+    let yc = 0
+    let sx = 1
+    let sy = 1
+    if (dt < 0) {
+        yc = B.start - B.wys / 2
+    } else if (dt < tUd) {
+        yc = B.start + 0.5 * g * dt * dt - B.wys / 2
+        const r = 0.045 * Math.min(1, dt / B.tSpadek)
+        sy = 1 + r
+        sx = 1 - 0.5 * r
+    } else if (dt < tOdb) {
+        const z = Math.sin((Math.PI * (dt - tUd)) / B.tStyk)
+        sy = 1 - 0.15 * z
+        sx = 1 + 0.09 * z
+        yc = B.podloga - (B.wys * sy) / 2
+    } else if (dt < tSzczyt) {
+        const u = (dt - tOdb) / B.tWzlot
+        const delta = ycPodloga - (B.cel - B.amp)
+        const p = Math.max(1.5, (g * B.tSpadek * 0.5 * B.tWzlot) / Math.max(delta, 1))
+        yc = ycPodloga - delta * (1 - Math.pow(1 - u, p))
+        const r = 0.06 * (1 - u) * (1 - u)
+        sy = 1 + r
+        sx = 1 - 0.5 * r
+    } else {
+        yc = B.cel - B.amp * Math.cos((2 * Math.PI * (dt - tSzczyt)) / B.okres)
+    }
+    const d = dt - tSzczyt
+    const ramp = Math.min(1, Math.max(0, (d + 0.4) / 1.2))
+    const x = -30 * Math.max(0, 1 - Math.max(0, dt) / B.tSpadek) + 14 * Math.sin((2 * Math.PI * d) / 5.6) * ramp
+    let kat = dt < tUd ? -7 + 11 * Math.max(0, dt / B.tSpadek) : 4 * Math.exp(-(dt - tUd) / 0.4) * Math.cos((2 * Math.PI * (dt - tUd)) / 0.75)
+    kat += 1.8 * Math.sin((2 * Math.PI * d) / 4.4) * ramp
+    const phi = dt < tUd ? 24 * Math.pow(1 - Math.max(0, dt / B.tSpadek), 1.5) : 4.5 * Math.sin((2 * Math.PI * d) / 6.2) * ramp
+    sx *= Math.cos((phi * Math.PI) / 180)
+    const h = Math.max(0, B.podloga - (yc + (B.wys * sy) / 2))
+    return { x, y: yc - B.cel, sx, sy, kat, h }
+}
+
 // Szary Dzień przy stoliku: sześć klatek z grafiki marki (białe tło, nakładane mnożeniem na kolor strony).
 const SZARY = [
     "VCgccjDlx1qkFJmv9yduVkUV8.webp",
@@ -1786,10 +1838,10 @@ const CSS_B = [
     "  -webkit-mask-image: url(" + KROPKA + "); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;",
     "  mask-image: url(" + KROPKA + "); mask-size: contain; mask-repeat: no-repeat; mask-position: center; }",
     ".gk2-rozek { --rh: min(calc(var(--vh) * 76), 47vw); position: absolute; left: 75.8%; top: 50%; height: var(--rh); aspect-ratio: 0.4908; margin: calc(var(--rh) * -.5) 0 0 calc(var(--rh) * -.2454); transform-origin: 50% 55%; will-change: transform; pointer-events: none; z-index: 15; }",
-    ".gk2-rozek .gk2-wyc, .gk2-rozek canvas, .gk2-balony canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }",
-    ".gk2-rozek canvas, .gk2-balony canvas { opacity: 0; transition: opacity .5s ease; }",
-    ".gk2-chrom-1 .gk2-rozek canvas, .gk2-chrom-2 .gk2-balony canvas { opacity: 1; }",
-    ".gk2-chrom-1 .gk2-rozek .gk2-wyc, .gk2-chrom-2 .gk2-balony .gk2-wyc { visibility: hidden; }",
+    ".gk2-rozek .gk2-wyc, .gk2-rozek canvas, .gk2-balon canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }",
+    ".gk2-rozek canvas, .gk2-balon canvas { opacity: 0; transition: opacity .5s ease; }",
+    ".gk2-chrom-1 .gk2-rozek canvas, .gk2-chrom-2 .gk2-balon canvas { opacity: 1; }",
+    ".gk2-chrom-1 .gk2-rozek .gk2-wyc, .gk2-chrom-2 .gk2-balon .gk2-wyc { visibility: hidden; }",
     ".gk2-smaki-kropki { position: absolute; right: var(--m); top: 50%; transform: translateY(-50%); z-index: 20; display: grid; gap: 10px; color: var(--tusz); transition: color .4s ease; }",
     ".gk2-smaki-kropki li { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid currentColor; transition: background .3s ease, transform .3s ease; }",
     ".gk2-smaki-kropki li.gk2-on { background: currentColor; transform: scale(1.35); }",
@@ -1823,8 +1875,12 @@ const CSS_B = [
     ".gk2-noc .gk2-lead { margin-top: 30px; color: #CFCBC4; }",
     ".gk2-odliczanie { font-size: clamp(30px, 3.4vw, 56px); line-height: 1; display: flex; flex-wrap: wrap; gap: .35em .6em; margin: calc(var(--vh) * 7) 0 calc(var(--vh) * 6); }",
     ".gk2-odliczanie small { font-family: 'Fragment Mono', ui-monospace, monospace; font-weight: 400; font-size: 11px; letter-spacing: .07em; color: #8E8E8E; margin-left: .45em; vertical-align: .9em; }",
-    ".gk2-balony { position: relative; justify-self: center; width: min(100%, calc(var(--vh) * 74)); aspect-ratio: 1.019; will-change: transform; }",
-    ".gk2-balony .gk2-wyc { width: 100%; }",
+    ".gk2-balon-scena { position: relative; justify-self: center; width: min(100%, calc(var(--vh) * 60), 560px); margin: 0; }",
+    ".gk2-balon-okno { position: relative; z-index: 1; aspect-ratio: 4 / 5; border-radius: 24px; overflow: hidden; background: #2B1C14; transform: translateZ(0); }",
+    ".gk2-balon-foto { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }",
+    ".gk2-balon-cien { position: absolute; left: 25.23%; top: 92.93%; width: 41.57%; height: 7.33%; border-radius: 50%; background: radial-gradient(closest-side, rgba(24,12,6,.55), rgba(24,12,6,.25) 55%, rgba(24,12,6,0)); opacity: 0; pointer-events: none; will-change: transform, opacity; }",
+    ".gk2-balon { position: absolute; left: 20.02%; top: 29.59%; width: 51.99%; will-change: transform; pointer-events: none; }",
+    ".gk2-balon .gk2-wyc { width: 100%; }",
     ".gk2-zapis { display: grid; gap: 14px; max-width: 600px; }",
     ".gk2-zapis-wiersz { display: flex; gap: 12px; align-items: center; }",
     ".gk2-zapis input[type='email'] { flex: 1; min-width: 0; background: transparent; border: 0; border-bottom: 1.5px solid #5B5B5B; border-radius: 0; color: #EDEAE4; padding: 15px 2px; font: inherit; font-size: 16px; outline: none; transition: border-color .25s ease; }",
@@ -1972,7 +2028,7 @@ const CSS_B = [
     "  .gk2-kubek-foto { order: -1; width: 74vw; }",
     "  .gk2-noc { grid-template-columns: 1fr; padding: calc(var(--vh) * 14) var(--m); }",
     "  .gk2-data { font-size: 36vw; }",
-    "  .gk2-balony { order: -1; width: 86vw; }",
+    "  .gk2-balon-scena { order: -1; width: 86vw; }",
     "  .gk2-zapis-wiersz { flex-direction: column; align-items: stretch; }",
     "  .gk2-lokale { padding-top: calc(var(--vh) * 14); }",
     "  .gk2-lokale-gora { grid-template-columns: 1fr; gap: 34px; }",
@@ -2009,6 +2065,7 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
     const dotyk = mm("(hover: none)")
     const s = {
         t0: performance.now(),
+        balonT0: -1,
         mx: -1,
         my: -1,
         lx: 0,
@@ -2424,15 +2481,23 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
             el.kubekTilt.style.transform = "rotateY(" + (s.kx * 9).toFixed(2) + "deg) rotateX(" + (-s.ky * 7).toFixed(2) + "deg)"
         }
 
-        // 8. Najszarszy Dzień: balony z chromu
+        // 8. Najszarszy Dzień: kupka chromowych balonów spada na salę, odbija się i lewituje w połowie zdjęcia
         const noc = el.noc as HTMLElement | undefined
-        if (noc && el.balony) {
+        if (noc && el.balon && el.balonOkno) {
             const r = noc.getBoundingClientRect()
             if (r.bottom > -80 && r.top < vh + 80) {
-                const p = clamp((vh - r.top) / (vh + r.height), 0, 1)
-                if (!reduce) el.balony.style.transform = "translate3d(0," + ((0.5 - p) * 16 + Math.sin(t * 0.7) * 0.8).toFixed(2) + "vh,0) rotate(" + ((p - 0.5) * 14 + Math.sin(t * 0.5) * 1.5).toFixed(2) + "deg)"
+                const ro = (el.balonOkno as HTMLElement).getBoundingClientRect()
+                if (s.balonT0 < 0 && ro.top < vh * 0.8 && ro.bottom > vh * 0.25) s.balonT0 = t
+                const dt = reduce ? 30 : s.balonT0 < 0 ? -1 : t - s.balonT0
+                const b = stanBalonow(dt)
+                const k = ro.width / BALONY.szer
+                el.balon.style.transform = "translate3d(" + (b.x * k).toFixed(2) + "px," + (b.y * k).toFixed(2) + "px,0) rotate(" + b.kat.toFixed(2) + "deg) scale(" + b.sx.toFixed(4) + "," + b.sy.toFixed(4) + ")"
+                if (el.balonCien) {
+                    el.balonCien.style.opacity = dt < 0 ? "0" : Math.pow(Math.max(0, 1 - b.h / 2200), 1.5).toFixed(3)
+                    el.balonCien.style.transform = "translate3d(" + ((b.x + 0.1 * b.h) * k).toFixed(2) + "px,0,0) scale(" + (1 + b.h / 1400).toFixed(3) + ")"
+                }
                 if (chromBalony) chromBalony.rysuj({ czas: t, lx: s.lx, ly: s.ly, kx: 0, ky: 0, kr: 0, caly: 1, A: ROZ_RGB, B: MASLO_RGB })
-            }
+            } else if (s.balonT0 >= 0 && t - s.balonT0 > 3) s.balonT0 = -1
         }
 
         // 9. Lokale: okno z witryną i para na deptaku
@@ -3056,10 +3121,16 @@ export default function KonceptFunduszPropozycja(props: Props) {
                     <Odliczanie />
                     <Zapis data={dzien.krotko} />
                 </div>
-                <div className="gk2-balony" ref={u("balony")}>
-                    <Wyc a={P.balony} rozmiar={1024} alt="Chromowe balony z monogramem Górka & Kulka" />
-                    <canvas ref={u("plotnoBalony")} aria-hidden="true" />
-                </div>
+                <figure className="gk2-balon-scena" ref={u("balony")}>
+                    <div className="gk2-balon-okno" ref={u("balonOkno")}>
+                        <img className="gk2-balon-foto" src={SALA_BALONY} alt="Sala Kawiarni Centrum" loading="lazy" decoding="async" draggable={false} />
+                        <i className="gk2-balon-cien" ref={u("balonCien")} aria-hidden="true" />
+                        <div className="gk2-balon" ref={u("balon")}>
+                            <Wyc a={P.balony} rozmiar={2048} alt="Chromowe balony z sygnetem Górka & Kulka" />
+                            <canvas ref={u("plotnoBalony")} aria-hidden="true" />
+                        </div>
+                    </div>
+                </figure>
             </section>
 
             <section className="gk2-lokale" ref={u("lokale")} id="gk2-lokale" data-motyw="jasny">
