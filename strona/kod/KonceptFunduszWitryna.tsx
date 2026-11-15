@@ -820,15 +820,29 @@ function Stolik() {
     )
 }
 
-// Witryna świąteczna: szklana lada cukiernicza. Dotknięte ciasto kamera przybliża, obok karta i koszyk.
-// Scena ma stałe wymiary (1200 × 620 jednostek); kamera to przesunięcie i skala całej sceny.
-const WIT_W = 1200
-const WIT_H = 620
-const WIT_X = [200, 600, 1000]
-const WIT_CIASTO = 330
-const WIT_KROTKO = ["Sernik", "Makowiec", "Czekoladowe"]
-const KOSZYK_KLUCZ = "gk2-koszyk-swieta"
-const MAKS_SZTUK = 5
+// Witryna: prawdziwe zdjęcie lady z Kawiarni Centrum. Dotknięte ciasto kamera przybliża, obok karta i koszyk.
+// Scena to samo zdjęcie w jego pikselach; kamera to przesunięcie i skala całej sceny.
+// Ceny i nazwy przepisane z etykiet na zdjęciu (próba z 15.11; w grudniu na środkowej półce staną ciasta świąteczne).
+const LADA = { f: "KIWRAhCEwByXZ4mdrMi3GGZ4CWA.jpg", w: 1300, h: 1080 }
+const LADA_P = [
+    { nazwa: "Tartaletka malina & pistacja", cena: 18, x: 290, y: 175, w: 230, h: 60 },
+    { nazwa: "Słodki słoiczek", cena: 10, x: 535, y: 145, w: 275, h: 80 },
+    { nazwa: "Mini torcik z kremem biała czekolada", cena: 20, x: 850, y: 130, w: 250, h: 75 },
+    { nazwa: "Monosernik Lotus", cena: 21, x: 290, y: 345, w: 115, h: 115 },
+    { nazwa: "Monosernik Oreo", cena: 21, x: 400, y: 330, w: 140, h: 120 },
+    { nazwa: "Sernik pistacjowy", cena: 20, x: 540, y: 345, w: 290, h: 110 },
+    { nazwa: "Brownie z kremem mascarpone", cena: 18, x: 855, y: 345, w: 125, h: 90 },
+    { nazwa: "Brownie w polewie biała czekolada", cena: 18, x: 975, y: 350, w: 115, h: 80 },
+    { nazwa: "Monosernik pistacja z maliną", cena: 22, x: 280, y: 530, w: 180, h: 125 },
+    { nazwa: "Tort marchewkowy", cena: 21, x: 605, y: 515, w: 225, h: 135 },
+    { nazwa: "Cake pop marchewkowy", cena: 9, x: 870, y: 500, w: 110, h: 140 },
+    { nazwa: "Cake pop brownie", cena: 9, x: 975, y: 500, w: 115, h: 140 },
+    { nazwa: "Sernik mleczna czekolada z kremem mascarpone", cena: 28, x: 585, y: 760, w: 235, h: 140 },
+    { nazwa: "Brownie cookie dough", cena: 18, x: 870, y: 720, w: 160, h: 200 },
+]
+const KOSZYK_KLUCZ = "gk2-koszyk-lada"
+const MAKS_SZTUK = 9
+const LADA_SMAX = 1.45
 
 function IkonaTorba() {
     return (
@@ -854,15 +868,17 @@ function IkonaZamknij() {
     )
 }
 
+const zl = (n: number) => n + " zł"
+
 function Witryna() {
     const okno = useRef<HTMLDivElement>(null)
-    const koszykRef = useRef<number[]>([0, 0, 0])
+    const koszykRef = useRef<number[]>(LADA_P.map(() => 0))
     const zegar = useRef(0)
     const [wym, ustawWym] = useState({ w: 0, h: 0, tel: false })
     const [ruch, ustawRuch] = useState(false)
     const [wybrane, ustawWybrane] = useState(-1)
     const [panel, ustawPanel] = useState("")
-    const [koszyk, ustawKoszyk] = useState<number[]>([0, 0, 0])
+    const [koszyk, ustawKoszyk] = useState<number[]>(LADA_P.map(() => 0))
     const [ilosc, ustawIlosc] = useState(1)
     const [dodano, ustawDodano] = useState(false)
     const [hop, ustawHop] = useState(0)
@@ -877,7 +893,6 @@ function Witryna() {
         const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(mierz) : null
         if (ro) ro.observe(e)
         window.addEventListener("resize", mierz)
-        // płynny ruch kamery dopiero po pierwszym ustawieniu (bez odjazdu przy wejściu)
         const t = window.setTimeout(() => ustawRuch(!window.matchMedia("(prefers-reduced-motion: reduce)").matches), 120)
         return () => {
             if (ro) ro.disconnect()
@@ -891,11 +906,16 @@ function Witryna() {
     useEffect(() => {
         try {
             const z = JSON.parse(window.localStorage.getItem(KOSZYK_KLUCZ) || "null")
-            if (Array.isArray(z) && z.length === 3) ustawKoszyk(z.map((n) => clamp(Math.round(Number(n) || 0), 0, MAKS_SZTUK)))
+            if (Array.isArray(z) && z.length === LADA_P.length) ustawKoszyk(z.map((n) => clamp(Math.round(Number(n) || 0), 0, MAKS_SZTUK)))
         } catch (e) {}
     }, [])
 
-    const suma = koszyk[0] + koszyk[1] + koszyk[2]
+    let suma = 0
+    let razem = 0
+    koszyk.forEach((n, i) => {
+        suma += n
+        razem += n * LADA_P[i].cena
+    })
     useEffect(() => {
         koszykRef.current = koszyk
         try {
@@ -912,8 +932,7 @@ function Witryna() {
     // „Zamów na Święta” w menu i pasek na telefonie otwierają koszyk, jeśli coś w nim jest.
     useEffect(() => {
         const otworz = () => {
-            const k = koszykRef.current
-            if (k[0] + k[1] + k[2] > 0) {
+            if (koszykRef.current.some((n) => n > 0)) {
                 ustawWybrane(-1)
                 ustawPanel("koszyk")
             }
@@ -932,10 +951,11 @@ function Witryna() {
         ustawWybrane(-1)
         ustawPanel("")
     }
-    const przesun = (d: number) => wybierz((Math.max(wybrane, 0) + d + 3) % 3)
-    const zmien = (i: number, n: number) => {
+    const n = LADA_P.length
+    const przesun = (d: number) => wybierz((Math.max(wybrane, 0) + d + n) % n)
+    const zmien = (i: number, ile: number) => {
         const k = koszyk.slice()
-        k[i] = clamp(n, 0, MAKS_SZTUK)
+        k[i] = clamp(ile, 0, MAKS_SZTUK)
         ustawKoszyk(k)
     }
     const dodaj = () => {
@@ -955,48 +975,43 @@ function Witryna() {
         ustawPanel("koszyk")
     }
 
-    // Kamera: ogólny widok mieści całą ladę; przybliżenie stawia ciasto po lewej (na telefonie na środku).
+    // Kamera: ogólny widok mieści całe zdjęcie; przybliżenie stawia ciasto po lewej (na telefonie na środku).
     const tel = wym.tel
-    // na telefonie okno rośnie przy przybliżeniu (ogólny widok jest niski, żeby nie było pustki nad ladą)
-    const gora = tel ? 34 : 46
-    const hOkna = tel ? Math.round(wybrane >= 0 ? wym.w * 0.75 : (wym.w * WIT_H) / WIT_W + gora) : wym.h
-    let s = 0.5
+    let s = 0.3
     let tx = 0
     let ty = 0
     if (wym.w > 0) {
-        s = Math.min(wym.w / WIT_W, (hOkna - gora) / WIT_H)
-        tx = (wym.w - WIT_W * s) / 2
-        ty = hOkna - WIT_H * s
+        const s0 = Math.min(wym.w / LADA.w, wym.h / LADA.h)
+        s = s0
+        tx = (wym.w - LADA.w * s) / 2
+        ty = (wym.h - LADA.h * s) / 2
         if (wybrane >= 0) {
-            s = Math.min((hOkna * 0.64) / 214, (wym.w * (tel ? 0.86 : 0.5)) / WIT_CIASTO, 2.3)
-            tx = wym.w * (tel ? 0.5 : 0.3) - WIT_X[wybrane] * s
-            ty = hOkna * 0.5 - 284 * s
+            const p = LADA_P[wybrane]
+            s = Math.max(s0, Math.min((wym.h * 0.6) / p.h, (wym.w * (tel ? 0.8 : 0.46)) / p.w, LADA_SMAX))
+            tx = wym.w * (tel ? 0.5 : 0.3) - (p.x + p.w / 2) * s
+            ty = wym.h * 0.5 - (p.y + p.h / 2) * s
         } else if (panel === "koszyk" && !tel) {
-            s = Math.min((wym.w * 0.54) / WIT_W, (hOkna - gora) / WIT_H)
-            tx = wym.w * 0.035
-            ty = hOkna - WIT_H * s
+            s = Math.min((wym.w * 0.56) / LADA.w, wym.h / LADA.h)
+            tx = wym.w * 0.03
+            ty = (wym.h - LADA.h * s) / 2
         }
     }
-    const scena: React.CSSProperties = { transform: "translate(" + tx.toFixed(1) + "px, " + ty.toFixed(1) + "px) scale(" + s.toFixed(4) + ")" }
+    const scena: React.CSSProperties = { width: LADA.w, height: LADA.h, transform: "translate(" + tx.toFixed(1) + "px, " + ty.toFixed(1) + "px) scale(" + s.toFixed(4) + ")" }
     ;(scena as any)["--s"] = s.toFixed(4)
-    const w = wybrane >= 0 ? WYPIEKI[wybrane] : null
+    const w = wybrane >= 0 ? LADA_P[wybrane] : null
 
     const karta = w ? (
         <div className="gk2-wit-panel gk2-wit-karta" role="dialog" aria-label={w.nazwa} key={"k" + wybrane}>
-            <button type="button" className="gk2-wit-zamknij" onClick={zamknij} aria-label="Wróć do całej witryny">
+            <button type="button" className="gk2-wit-zamknij" onClick={zamknij} aria-label="Wróć do całej lady">
                 <IkonaZamknij />
             </button>
-            <span className="gk2-e gk2-wit-nr">Nr 0{wybrane + 1} · limit 20 sztuk</span>
+            <span className="gk2-e gk2-wit-nr">Z lady · Kawiarnia Centrum</span>
             <h3 className="gk2-d gk2-wit-nazwa">{w.nazwa}</h3>
-            <p className="gk2-wit-opis">{w.opis}</p>
+            <div className="gk2-d gk2-wit-cena">{zl(w.cena)}</div>
             <dl className="gk2-wit-fakty">
                 <div>
-                    <dt>Cena</dt>
-                    <dd>wkrótce</dd>
-                </div>
-                <div>
                     <dt>Odbiór</dt>
-                    <dd>{"23–24 grudnia, Kawiarnia Centrum"}</dd>
+                    <dd>{"Kawiarnia Centrum, ul. Sikorskiego 126"}</dd>
                 </div>
             </dl>
             <div className="gk2-wit-dodaj">
@@ -1024,23 +1039,26 @@ function Witryna() {
                 </button>
                 <h3 className="gk2-d gk2-wit-nazwa gk2-wit-nazwa-koszyk">Koszyk</h3>
                 {suma === 0 ? (
-                    <p className="gk2-wit-opis">{"Na razie pusto. Dotknij ciasta w witrynie i dodaj je tutaj."}</p>
+                    <p className="gk2-wit-opis">{"Na razie pusto. Dotknij ciasta na ladzie i dodaj je tutaj."}</p>
                 ) : (
                     <ul className="gk2-wit-lista">
-                        {koszyk.map((n, i) =>
-                            n > 0 ? (
+                        {koszyk.map((ile, i) =>
+                            ile > 0 ? (
                                 <li key={i}>
-                                    <span className="gk2-d gk2-wit-lista-nazwa">{WYPIEKI[i].nazwa}</span>
-                                    <div className="gk2-wit-ilosc" role="group" aria-label={"Ilość: " + WYPIEKI[i].nazwa}>
-                                        <button type="button" onClick={() => zmien(i, n - 1)} aria-label="Mniej">
+                                    <span className="gk2-wit-lista-nazwa">
+                                        <b className="gk2-d">{LADA_P[i].nazwa}</b>
+                                        <small className="gk2-e">{ile + " × " + zl(LADA_P[i].cena)}</small>
+                                    </span>
+                                    <div className="gk2-wit-ilosc" role="group" aria-label={"Ilość: " + LADA_P[i].nazwa}>
+                                        <button type="button" onClick={() => zmien(i, ile - 1)} aria-label="Mniej">
                                             −
                                         </button>
-                                        <output aria-live="polite">{n}</output>
-                                        <button type="button" onClick={() => zmien(i, n + 1)} aria-label="Więcej">
+                                        <output aria-live="polite">{ile}</output>
+                                        <button type="button" onClick={() => zmien(i, ile + 1)} aria-label="Więcej">
                                             +
                                         </button>
                                     </div>
-                                    <button type="button" className="gk2-wit-usun" onClick={() => zmien(i, 0)} aria-label={"Usuń: " + WYPIEKI[i].nazwa}>
+                                    <button type="button" className="gk2-wit-usun" onClick={() => zmien(i, 0)} aria-label={"Usuń: " + LADA_P[i].nazwa}>
                                         <IkonaZamknij />
                                     </button>
                                 </li>
@@ -1048,14 +1066,16 @@ function Witryna() {
                         )}
                     </ul>
                 )}
+                {suma > 0 ? (
+                    <div className="gk2-wit-razem">
+                        <span className="gk2-e">Razem</span>
+                        <b className="gk2-d">{zl(razem)}</b>
+                    </div>
+                ) : null}
                 <dl className="gk2-wit-fakty">
                     <div>
                         <dt>Odbiór</dt>
-                        <dd>{"23.12 10–19 · 24.12 10–12, Kawiarnia Centrum"}</dd>
-                    </div>
-                    <div>
-                        <dt>Zadatek</dt>
-                        <dd>{"30% online przy zamówieniu"}</dd>
+                        <dd>{"Kawiarnia Centrum, ul. Sikorskiego 126"}</dd>
                     </div>
                 </dl>
                 <a className="gk2-wit-do-koszyka gk2-wit-dalej" href={ZAMOWIENIA} aria-disabled={suma === 0 ? "true" : undefined} tabIndex={suma === 0 ? -1 : undefined}>
@@ -1069,52 +1089,41 @@ function Witryna() {
         (wym.w > 0 ? " gk2-wit-gotowa" : "") +
         (ruch ? " gk2-wit-ruch" : "") +
         (wybrane >= 0 ? " gk2-wit-blisko" : "") +
-        (panel === "koszyk" ? " gk2-wit-z-koszykiem" : "") +
-        (s < 0.5 ? " gk2-wit-maly" : "")
+        (panel === "koszyk" ? " gk2-wit-z-koszykiem" : "")
 
     return (
         <div
             className="gk2-witryna gk2-s"
-            style={{ ["--i" as any]: 2, ["--okno-h" as any]: hOkna + "px" }}
+            style={{ ["--i" as any]: 2, ["--okno-h" as any]: wym.h + "px" }}
             onKeyDown={(e) => {
                 if (e.key === "Escape") zamknij()
                 else if (wybrane >= 0 && e.key === "ArrowLeft") przesun(-1)
                 else if (wybrane >= 0 && e.key === "ArrowRight") przesun(1)
             }}
         >
-            <div className={klasy} ref={okno} style={tel && wym.w > 0 ? { height: hOkna } : undefined}>
-                <p className="gk2-e gk2-wit-wskazowka">
-                    <span className="gk2-tylko-mysz">Kliknij ciasto, żeby je przybliżyć</span>
-                    <span className="gk2-tylko-dotyk">Dotknij ciasta, żeby je przybliżyć</span>
-                </p>
+            <div className={klasy} ref={okno}>
                 <div className="gk2-wit-scena" style={scena}>
-                    <i className="gk2-wit-cien-lady" />
-                    <div className="gk2-wit-wnetrze" />
-                    <i className="gk2-wit-lampa" />
-                    <i className="gk2-wit-blat" />
-                    {WYPIEKI.map((c, i) => (
+                    <img className="gk2-wit-foto" src={obraz(LADA.f)} width={LADA.w} height={LADA.h} alt="Lada z ciastami w Kawiarni Centrum Górka & Kulka" draggable={false} decoding="async" />
+                    {LADA_P.map((c, i) => (
                         <button
                             key={c.nazwa}
                             type="button"
                             className={"gk2-wit-ciasto" + (wybrane === i ? " gk2-wit-wybrane" : "")}
-                            style={{ left: WIT_X[i] - WIT_CIASTO / 2 }}
+                            style={{ left: c.x, top: c.y, width: c.w, height: c.h }}
                             onClick={() => (wybrane === i ? zamknij() : wybierz(i))}
-                            aria-label={(wybrane === i ? "Oddal: " : "Przybliż: ") + c.nazwa}
+                            aria-label={(wybrane === i ? "Oddal: " : "Przybliż: ") + c.nazwa + ", " + zl(c.cena)}
                         >
-                            <i className="gk2-wit-cien" />
-                            <img src={obraz(c.wyc)} alt="" draggable={false} decoding="async" />
+                            <i className="gk2-wit-kropka" aria-hidden="true" />
+                            <span className="gk2-e gk2-wit-dymek" aria-hidden="true">
+                                {c.nazwa + " · " + zl(c.cena)}
+                            </span>
                         </button>
                     ))}
-                    <div className="gk2-wit-szyba" aria-hidden="true" />
-                    <div className="gk2-wit-podstawa" aria-hidden="true">
-                        <Wyc a={P.logotyp} rozmiar={1024} alt="" className="gk2-wit-logo" />
-                    </div>
-                    {WYPIEKI.map((c, i) => (
-                        <span key={c.nazwa} className="gk2-e gk2-wit-cena" style={{ left: WIT_X[i] }} aria-hidden="true">
-                            {"0" + (i + 1) + " · " + c.nazwa}
-                        </span>
-                    ))}
                 </div>
+                <p className="gk2-e gk2-wit-wskazowka">
+                    <span className="gk2-tylko-mysz">Kliknij ciasto, żeby je przybliżyć</span>
+                    <span className="gk2-tylko-dotyk">Dotknij ciasta, żeby je przybliżyć</span>
+                </p>
                 {wybrane >= 0 ? (
                     <>
                         <button type="button" className="gk2-wit-strzalka gk2-wit-strzalka-l" onClick={() => przesun(-1)} aria-label="Poprzednie ciasto">
@@ -1128,23 +1137,19 @@ function Witryna() {
             </div>
             <div className="gk2-wit-pigulki">
                 <div className="gk2-wit-pigulki-w">
-                    <button type="button" className={"gk2-wit-pig gk2-wit-pig-cala" + (wybrane < 0 && panel !== "koszyk" ? " gk2-wit-pig-on" : "")} onClick={zamknij}>
-                        Witryna
+                    <button type="button" className={"gk2-wit-pig" + (wybrane < 0 && panel !== "koszyk" ? " gk2-wit-pig-on" : "")} onClick={zamknij}>
+                        Cała lada
                     </button>
-                    {WIT_KROTKO.map((k, i) => (
-                        <button key={k} type="button" className={"gk2-wit-pig" + (wybrane === i ? " gk2-wit-pig-on" : "")} onClick={() => wybierz(i)}>
-                            {k}
-                        </button>
-                    ))}
                     <span className="gk2-wit-pig-kreska" aria-hidden="true" />
                     <button
                         type="button"
                         key={"t" + hop}
                         className={"gk2-wit-pig gk2-wit-torba" + (panel === "koszyk" ? " gk2-wit-pig-on" : "") + (hop > 0 ? " gk2-wit-hop" : "")}
                         onClick={pokazKoszyk}
-                        aria-label={"Koszyk, " + suma + (suma === 1 ? " ciasto" : suma > 1 && suma < 5 ? " ciasta" : " ciast")}
+                        aria-label={"Koszyk, " + suma + " szt."}
                     >
                         <IkonaTorba />
+                        <span>Koszyk</span>
                         {suma > 0 ? <b>{suma}</b> : null}
                     </button>
                 </div>
@@ -1991,46 +1996,39 @@ const CSS_B = [
     ".gk2-wypiek-nazwa { font-size: clamp(24px, 2.7vw, 46px); line-height: .92; }",
     ".gk2-wypiek-opis { font-size: 13px; line-height: 1.5; opacity: .82; }",
     ".gk2-wypiek-link { margin-top: 4px; color: var(--rubin); }",
-    "/* Witryna: szklana lada cukiernicza, kamera przybliża ciasta, koszyk */",
+    "/* Witryna: prawdziwe zdjęcie lady, kamera przybliża ciasta, koszyk */",
     "@property --s { syntax: '<number>'; inherits: true; initial-value: 1; }",
     ".gk2-witryna { position: relative; }",
-    ".gk2-wit-okno { position: relative; aspect-ratio: 1200 / 700; overflow: hidden; border-radius: 10px; -webkit-tap-highlight-color: transparent; }",
-    ".gk2-wit-wskazowka { position: absolute; left: 0; right: 0; top: 12px; z-index: 2; text-align: center; opacity: .7; transition: opacity .35s ease; pointer-events: none; }",
-    ".gk2-wit-blisko .gk2-wit-wskazowka, .gk2-wit-z-koszykiem .gk2-wit-wskazowka { opacity: 0; }",
-    ".gk2-wit-scena { position: absolute; left: 0; top: 0; width: 1200px; height: 620px; transform-origin: 0 0; visibility: hidden; --l: calc(1.5px / var(--s)); }",
+    ".gk2-wit-okno { position: relative; aspect-ratio: 1300 / 1080; overflow: hidden; border-radius: 16px; background: #2A2622; box-shadow: 0 30px 60px -36px rgba(80,20,40,.55); -webkit-tap-highlight-color: transparent; }",
+    ".gk2-wit-scena { position: absolute; left: 0; top: 0; transform-origin: 0 0; visibility: hidden; }",
     ".gk2-wit-gotowa .gk2-wit-scena { visibility: visible; }",
     ".gk2-wit-ruch .gk2-wit-scena { transition: transform 1s cubic-bezier(.22,.8,.18,1), --s 1s cubic-bezier(.22,.8,.18,1); }",
-    ".gk2-wit-scena > * { position: absolute; display: block; }",
-    // cień lady na podłodze
-    ".gk2-wit-cien-lady { left: 30px; right: 30px; top: 590px; height: 34px; border-radius: 50%; background: radial-gradient(closest-side, rgba(90,30,48,.30), rgba(90,30,48,0)); }",
-    // wnętrze: kremowa ściana, ciepłe światło z góry
-    ".gk2-wit-wnetrze { left: 0; top: 34px; width: 1200px; height: 364px; border-radius: 16px 16px 0 0; background: radial-gradient(64% 70% at 50% 0%, rgba(255,226,149,.62), rgba(255,226,149,0) 72%), linear-gradient(180deg, #FCF3E3 0%, #F3E4CB 58%, #E8D4B6 100%); }",
-    ".gk2-wit-lampa { left: 46px; top: 46px; width: 1108px; height: 9px; border-radius: 5px; background: #FFFDF6; box-shadow: 0 0 22px 7px rgba(255,226,149,.95), 0 0 70px 24px rgba(255,236,186,.55); }",
-    // blat: pozioma półka widziana z góry, z przednią krawędzią
-    ".gk2-wit-blat { left: 0; top: 344px; width: 1200px; height: 54px; background: linear-gradient(180deg, rgba(255,255,255,.2) 0%, #FFFDF7 30%, #F3E6CF 100%); border-top: var(--l) solid rgba(17,17,17,.25); border-bottom: var(--l) solid var(--tusz); }",
-    // ciasta
-    ".gk2-wit-ciasto { bottom: 238px; width: 330px; padding: 0; margin: 0; border: 0; background: none; cursor: pointer; z-index: 1; -webkit-tap-highlight-color: transparent; }",
-    ".gk2-wit-ciasto img { position: relative; display: block; width: 100%; height: auto; transform-origin: 50% 100%; transition: transform .5s cubic-bezier(.3,.7,.3,1); pointer-events: none; }",
-    ".gk2-wit-cien { position: absolute; left: 7%; right: 7%; bottom: -6px; height: 36px; border-radius: 50%; background: radial-gradient(closest-side, rgba(70,32,18,.34), rgba(70,32,18,0)); transition: transform .5s cubic-bezier(.3,.7,.3,1), opacity .5s ease; }",
-    "@media (hover: hover) { .gk2-wit-okno:not(.gk2-wit-blisko) .gk2-wit-ciasto:hover img { transform: translateY(-4%) scale(1.03); } .gk2-wit-okno:not(.gk2-wit-blisko) .gk2-wit-ciasto:hover .gk2-wit-cien { transform: scale(.9); opacity: .7; } }",
-    ".gk2-wit-ciasto:focus-visible { outline: var(--l) solid var(--tusz); outline-offset: calc(6px / var(--s)); border-radius: calc(10px / var(--s)); }",
-    // szyba: lekki połysk w dwóch pasach i cienka krawędź tuszem
-    ".gk2-wit-szyba { left: 0; top: 34px; width: 1200px; height: 364px; z-index: 2; pointer-events: none; border: var(--l) solid var(--tusz); border-bottom: 0; border-radius: 16px 16px 0 0; background: linear-gradient(104deg, rgba(255,255,255,0) 12%, rgba(255,255,255,.46) 17.5%, rgba(255,255,255,.1) 22%, rgba(255,255,255,0) 27%, rgba(255,255,255,0) 61%, rgba(255,255,255,.3) 65%, rgba(255,255,255,0) 70%), linear-gradient(180deg, rgba(206,222,230,.2), rgba(206,222,230,.04) 46%, rgba(206,222,230,.12)); box-shadow: inset 0 calc(3px / var(--s)) 0 rgba(255,255,255,.75); }",
-    // podstawa lady: masło, logo z pliku
-    ".gk2-wit-podstawa { left: 0; top: 398px; width: 1200px; height: 196px; z-index: 2; border: var(--l) solid var(--tusz); border-top: 0; border-radius: 0 0 6px 6px; background: linear-gradient(180deg, #FFE8A8 0%, var(--maslo) 45%, #F6D774 100%); }",
-    ".gk2-wit-logo { position: absolute; left: 50%; top: 104px; width: 230px; margin-left: -115px; }",
-    // etykiety cen na listwie
-    ".gk2-wit-cena { top: 414px; z-index: 3; transform: translateX(-50%); padding: 8px 14px 7px; border: var(--l) solid var(--tusz); border-radius: 5px; background: #FFFDF8; font-size: 14px; letter-spacing: .07em; white-space: nowrap; transition: opacity .35s ease; }",
-    ".gk2-wit-maly .gk2-wit-cena { opacity: 0; }",
+    ".gk2-wit-foto { position: absolute; left: 0; top: 0; display: block; max-width: none; user-select: none; -webkit-user-select: none; }",
+    // obszary ciast: niewidoczne przyciski na zdjęciu, z kropką na środku
+    ".gk2-wit-ciasto { position: absolute; display: block; padding: 0; margin: 0; border: 0; background: none; cursor: zoom-in; -webkit-tap-highlight-color: transparent; }",
+    ".gk2-wit-blisko .gk2-wit-ciasto { cursor: pointer; }",
+    ".gk2-wit-kropka { position: absolute; left: 50%; top: 50%; width: calc(14px / var(--s)); height: calc(14px / var(--s)); margin: calc(-7px / var(--s)) 0 0 calc(-7px / var(--s)); border-radius: 50%; background: var(--roz); border: calc(2.5px / var(--s)) solid #fff; box-sizing: border-box; box-shadow: 0 0 0 calc(1px / var(--s)) rgba(0,0,0,.25), 0 calc(3px / var(--s)) calc(8px / var(--s)) rgba(0,0,0,.35); transition: opacity .35s ease, transform .35s ease; }",
+    ".gk2-wit-kropka::after { content: ''; position: absolute; inset: calc(-6px / var(--s)); border-radius: 50%; border: calc(1.5px / var(--s)) solid rgba(255,255,255,.85); animation: gk2-wit-puls 2.4s ease-out infinite; }",
+    "@keyframes gk2-wit-puls { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(1.8); opacity: 0; } }",
+    ".gk2-wit-blisko .gk2-wit-kropka { opacity: .55; }",
+    ".gk2-wit-wybrane .gk2-wit-kropka { opacity: 0; transform: scale(.4); }",
+    ".gk2-wit-z-koszykiem .gk2-wit-kropka { opacity: 0; }",
+    // dymek z nazwą i ceną po najechaniu (komputer)
+    ".gk2-wit-dymek { position: absolute; left: 50%; bottom: calc(50% + 16px / var(--s)); transform: translateX(-50%); padding: calc(6px / var(--s)) calc(10px / var(--s)); border-radius: calc(6px / var(--s)); background: #FFFCF4; color: var(--tusz); font-size: calc(11px / var(--s)); white-space: nowrap; box-shadow: 0 calc(6px / var(--s)) calc(16px / var(--s)) rgba(0,0,0,.25); opacity: 0; pointer-events: none; transition: opacity .2s ease; }",
+    "@media (hover: hover) { .gk2-wit-okno:not(.gk2-wit-blisko) .gk2-wit-ciasto:hover .gk2-wit-dymek { opacity: 1; } }",
+    ".gk2-wit-ciasto:focus-visible { outline: calc(2px / var(--s)) solid #fff; outline-offset: calc(2px / var(--s)); border-radius: calc(8px / var(--s)); }",
+    // podpowiedź na górze zdjęcia
+    ".gk2-wit-wskazowka { position: absolute; left: 50%; top: 12px; z-index: 2; margin: 0; transform: translateX(-50%); padding: 7px 12px 6px; border-radius: 999px; background: rgba(255,252,244,.9); color: var(--tusz); white-space: nowrap; transition: opacity .35s ease; pointer-events: none; }",
+    ".gk2-wit-blisko .gk2-wit-wskazowka, .gk2-wit-z-koszykiem .gk2-wit-wskazowka { opacity: 0; }",
     // strzałki przy przybliżeniu
     ".gk2-wit-strzalka { position: absolute; top: 50%; z-index: 3; width: 42px; height: 42px; margin-top: -21px; border-radius: 50%; border: 1.5px solid var(--tusz); background: rgba(255,252,244,.94); color: var(--tusz); display: grid; place-items: center; cursor: pointer; padding: 0; animation: gk2-wit-wjazd .5s ease both; }",
     ".gk2-wit-strzalka-l { left: 12px; }",
     ".gk2-wit-strzalka-p { right: calc(min(330px, 42%) + 30px); }",
     "@media (hover: hover) { .gk2-wit-strzalka:hover { background: var(--tusz); color: var(--maslo); } }",
-    // pigułki pod witryną (jak w TALUS): cała witryna, trzy ciasta, koszyk
+    // pigułki pod witryną: cała lada i koszyk
     ".gk2-wit-pigulki { margin-top: 14px; display: flex; justify-content: center; }",
     ".gk2-wit-pigulki-w { display: inline-flex; align-items: center; gap: 2px; padding: 4px; border: 1.5px solid var(--tusz); border-radius: 999px; background: rgba(255,252,244,.94); }",
-    ".gk2-wit-pig { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border: 0; border-radius: 999px; background: none; color: var(--tusz); font: inherit; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; cursor: pointer; white-space: nowrap; transition: background .25s ease, color .25s ease; }",
+    ".gk2-wit-pig { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 15px; border: 0; border-radius: 999px; background: none; color: var(--tusz); font: inherit; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; cursor: pointer; white-space: nowrap; transition: background .25s ease, color .25s ease; }",
     ".gk2-wit-pig-on { background: var(--tusz); color: var(--maslo); }",
     "@media (hover: hover) { .gk2-wit-pig:not(.gk2-wit-pig-on):hover { background: rgba(17,17,17,.08); } }",
     ".gk2-wit-pig-kreska { width: 1.5px; height: 18px; background: rgba(17,17,17,.3); margin: 0 4px; }",
@@ -2038,12 +2036,13 @@ const CSS_B = [
     ".gk2-wit-hop { animation: gk2-wit-hop .6s cubic-bezier(.3,1.6,.5,1); }",
     "@keyframes gk2-wit-hop { 0% { transform: scale(1); } 35% { transform: scale(1.18); } 100% { transform: scale(1); } }",
     "@keyframes gk2-wit-wjazd { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }",
-    // karta ciasta i koszyk (na komputerze nad witryną po prawej, na telefonie pod nią)
-    ".gk2-wit-panel { position: absolute; top: 14px; right: 14px; z-index: 4; width: min(330px, 42%); max-height: calc(var(--okno-h) - 28px); overflow: auto; box-sizing: border-box; padding: 20px 20px 18px; border: 1.5px solid var(--tusz); border-radius: 14px; background: #FFFCF4; box-shadow: 0 26px 50px -28px rgba(90,25,45,.5); animation: gk2-wit-wjazd .55s cubic-bezier(.2,.8,.2,1) both; }",
+    // karta ciasta i koszyk (na komputerze na zdjęciu po prawej, na telefonie pod nim)
+    ".gk2-wit-panel { position: absolute; top: 14px; right: 14px; z-index: 4; width: min(330px, 42%); max-height: calc(var(--okno-h) - 28px); overflow: auto; box-sizing: border-box; padding: 20px 20px 18px; border: 1.5px solid var(--tusz); border-radius: 14px; background: #FFFCF4; box-shadow: 0 26px 50px -28px rgba(20,10,5,.6); animation: gk2-wit-wjazd .55s cubic-bezier(.2,.8,.2,1) both; }",
     ".gk2-wit-zamknij { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; padding: 0; border-radius: 50%; border: 1.5px solid var(--tusz); background: none; color: var(--tusz); display: grid; place-items: center; cursor: pointer; }",
     ".gk2-wit-nr { display: flex; align-items: center; gap: 8px; padding-right: 40px; }",
     ".gk2-wit-nr::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--rubin); }",
-    ".gk2-wit-nazwa { margin: 10px 0 0; font-size: clamp(30px, 2.5vw, 42px); padding-right: 30px; }",
+    ".gk2-wit-nazwa { margin: 10px 0 0; font-size: clamp(28px, 2.4vw, 40px); padding-right: 30px; }",
+    ".gk2-wit-cena { margin-top: 10px; font-size: clamp(26px, 2.2vw, 36px); color: var(--rubin); }",
     ".gk2-wit-opis { margin: 10px 0 0; font-size: 13px; line-height: 1.5; opacity: .85; }",
     ".gk2-wit-fakty { margin: 14px 0 0; border-top: 1.5px solid var(--tusz); font-size: 11px; line-height: 1.45; letter-spacing: .05em; text-transform: uppercase; }",
     ".gk2-wit-fakty div { display: grid; grid-template-columns: 6.4em 1fr; gap: 10px; padding: 8px 0; border-bottom: 1.5px solid var(--tusz); }",
@@ -2060,11 +2059,15 @@ const CSS_B = [
     ".gk2-wit-dalej[aria-disabled='true'] { opacity: .3; pointer-events: none; }",
     ".gk2-wit-lista { list-style: none; margin: 14px 0 0; padding: 0; border-top: 1.5px solid var(--tusz); }",
     ".gk2-wit-lista li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1.5px solid var(--tusz); }",
-    ".gk2-wit-lista-nazwa { font-size: 19px; line-height: .95; }",
+    ".gk2-wit-lista-nazwa { display: grid; gap: 4px; }",
+    ".gk2-wit-lista-nazwa b { font-size: 17px; line-height: .95; font-weight: 700; }",
+    ".gk2-wit-lista-nazwa small { font-size: 10px; opacity: .7; }",
     ".gk2-wit-lista .gk2-wit-ilosc button { height: 34px; width: 30px; }",
     ".gk2-wit-usun { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--tusz); display: grid; place-items: center; opacity: .55; cursor: pointer; }",
     "@media (hover: hover) { .gk2-wit-usun:hover { opacity: 1; background: rgba(17,17,17,.08); } }",
     ".gk2-wit-nazwa-koszyk { margin-top: 2px; }",
+    ".gk2-wit-razem { display: flex; align-items: baseline; justify-content: space-between; margin-top: 12px; }",
+    ".gk2-wit-razem b { font-size: 30px; }",
     // licznik koszyka w menu i na pasku telefonu (liczbę podaje witryna przez licznik CSS)
     ".gk2-licznik { display: none; min-width: 18px; height: 18px; padding: 0 5px; margin-right: -6px; border-radius: 9px; background: var(--rubin); color: #fff; font-size: 10px; line-height: 18px; letter-spacing: 0; text-align: center; font-weight: 400; box-sizing: border-box; }",
     ".gk2-licznik::before, .gk2-licznik-tekst::before { content: counter(gk2koszyk); }",
@@ -2353,18 +2356,15 @@ const CSS_B = [
     "  .gk2-wypiek-nazwa { font-size: 7.2vw; }",
     "  .gk2-wypiek-opis { font-size: 12px; line-height: 1.42; }",
     "  .gk2-wypiek-link { margin-top: 2px; }",
-    "  .gk2-witryna { order: 4; margin-top: 22px; }",
-    "  .gk2-wit-okno { aspect-ratio: auto; }",
-    "  .gk2-wit-ruch.gk2-wit-okno { transition: height .8s cubic-bezier(.22,.8,.18,1); }",
-    "  .gk2-sklep-tekst > * { position: relative; z-index: 1; }",
+    "  .gk2-witryna { order: 4; margin-top: 22px; margin-left: calc(var(--m) * -1 + 8px); margin-right: calc(var(--m) * -1 + 8px); }",
+    "  .gk2-wit-okno { border-radius: 12px; }",
     "  .gk2-wit-wskazowka { top: 8px; }",
-    "  .gk2-wit-panel { position: relative; top: auto; right: auto; width: auto; max-height: none; margin-top: 12px; }",
+    "  .gk2-wit-panel { position: relative; top: auto; right: auto; width: auto; max-height: none; margin: 12px calc(var(--m) - 8px) 0; }",
+    "  .gk2-wit-pigulki { margin-left: calc(var(--m) - 8px); margin-right: calc(var(--m) - 8px); }",
     "  .gk2-wit-strzalka { width: 38px; height: 38px; margin-top: -19px; }",
     "  .gk2-wit-strzalka-l { left: 8px; }",
     "  .gk2-wit-strzalka-p { right: 8px; }",
-    "  .gk2-wit-pig-cala { display: none; }",
-    "  .gk2-wit-pig { padding: 0 11px; }",
-    "  .gk2-wit-pig-kreska { margin: 0 2px; }",
+    "  .gk2-sklep-tekst > * { position: relative; z-index: 1; }",
     "  .gk2-opak { --kx: calc(var(--sw) * .5); --ky: calc(var(--sh) * .6); --kw: calc(var(--sw) * .66); }",
     "  .gk2-pas-v { display: none; }",
     "  .gk2-papier-gora { top: 64px; }",
@@ -2994,7 +2994,7 @@ interface Props {
 }
 
 /**
- * Górka & Kulka — propozycja ze szklaną witryną świąteczną (Szary Dzień na start, duży przycisk „Zamów na Święta”).
+ * Górka & Kulka — propozycja z witryną: prawdziwe zdjęcie lady z Kawiarni Centrum, przybliżanie ciast, koszyk.
  *
  * @framerIntrinsicWidth 1440
  * @framerSupportedLayoutWidth any
