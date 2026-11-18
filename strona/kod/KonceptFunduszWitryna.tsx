@@ -820,30 +820,38 @@ function Stolik() {
     )
 }
 
-// Sklep świąteczny: zdjęcie stołu z ciastami przy lampkach jest sceną. Dotknięte ciasto kamera przybliża,
-// a karta z „Dodaj do koszyka” wjeżdża pod nim. Sernik z Lotusem ma własne zdjęcie (druga scena, przenikanie).
-// Nazwy robocze, ceny do uzupełnienia (cena 0 = „wkrótce”).
-const SCENY = [
-    { f: "yoc1FG7TrzbBj6CCOXS0M1Sb7o.jpg", w: 998, h: 1488 },
-    { f: "BqkqgaBiMFYFZvMG5QEVNcKuyHM.jpg", w: 1179, h: 1554 },
+// Sklep świąteczny „Scena ciast”: każde ciasto leży na różu RAL 3015, spod niego w poprzek sceny wychodzi aksamitna
+// wstęga (ten sam aksamit co na paczce z kokardą). Przejście między ciastami steruje jedna zmienna --t (0..1):
+// ciasta jadą po wstędze jak po taśmie. Palec prowadzi --t bezpośrednio, po puszczeniu domyka sprężyna.
+type ScCiasto = { f: string; pw: number; ph: number; w: number; obr: number; cien: string; bx: number; by: number; bd: number; ba: number; lustro?: boolean }
+type ScProdukt = { id: string; nr: string; krotko: string; tytul: string; reszta: string; sklad?: string[]; cena: number; miara: string; ciasto: ScCiasto; zast?: boolean }
+const SC_P: ScProdukt[] = [
+    {"id": "baskijski", "nr": "01", "krotko": "Baskijski", "tytul": "Sernik baskijski", "reszta": "na korzennym spodzie", "cena": 220, "miara": "24 cm", "zast": true, "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "aKhZ5Ex6DuMnZmya8csDwtl7zLQ.webp", "pw": 1100, "ph": 970, "bx": 0.5032, "by": 0.6528, "bd": 0.9918, "ba": 0.4601, "lustro": true}},
+    {"id": "smietankowy", "nr": "02", "krotko": "Śmietankowy", "tytul": "Sernik śmietankowy", "reszta": "z polewą z białej czekolady z pomarańczą i ganache z białej czekolady", "cena": 220, "miara": "24 cm", "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "aKhZ5Ex6DuMnZmya8csDwtl7zLQ.webp", "pw": 1100, "ph": 970, "bx": 0.4968, "by": 0.6528, "bd": 0.9918, "ba": 0.4601}},
+    {"id": "czekoladowy", "nr": "03", "krotko": "Czekoladowy", "tytul": "Sernik z polewą czekoladową", "reszta": "i czekoladowym ganache", "cena": 220, "miara": "24 cm", "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "w6ccdFYLNdUt5VcsUkEWWEJVxrY.webp", "pw": 1100, "ph": 1032, "bx": 0.4991, "by": 0.7063, "bd": 0.9922, "ba": 0.4379}},
+    {"id": "tarta", "nr": "04", "krotko": "Tarta", "tytul": "Tarta pistacjowa", "reszta": "z malinami", "cena": 190, "miara": "24 cm", "ciasto": {"w": 64, "obr": 58, "cien": "dysk", "f": "e9LdZK2SAn0XT6xJePN95umsrE.webp", "pw": 1100, "ph": 1061, "bx": 0.4945, "by": 0.5119, "bd": 0.9925, "ba": 0.4754}},
+    {"id": "tort", "nr": "05", "krotko": "Tort", "tytul": "Tort czekoladowy", "reszta": "", "cena": 0, "miara": "24 cm", "zast": true, "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "w6ccdFYLNdUt5VcsUkEWWEJVxrY.webp", "pw": 1100, "ph": 1032, "bx": 0.5009, "by": 0.7063, "bd": 0.9922, "ba": 0.4379, "lustro": true}},
+    {"id": "box", "nr": "06", "krotko": "Box", "tytul": "Box dla dwojga", "reszta": "", "sklad": ["2× ptyś Lotus z owocami leśnymi", "2× brownie pistacjowe w białej czekoladzie", "2× ciastko NYC o smaku sernika cynamonowego", "2× cake pop marchewkowy"], "cena": 125, "miara": "8 sztuk", "zast": true, "ciasto": {"w": 64, "obr": 58, "cien": "dysk", "f": "e9LdZK2SAn0XT6xJePN95umsrE.webp", "pw": 1100, "ph": 1061, "bx": 0.5055, "by": 0.5119, "bd": 0.9925, "ba": 0.4754, "lustro": true}},
 ]
-// kadr całego stołu: na komputerze niższy (stół i trochę lampek), na telefonie wyższy (więcej lampek)
-const KADR_D = { x: 0, y: 520, w: 998, h: 907 }
-const KADR_T = { x: 0, y: 330, w: 998, h: 1158 }
-const STOL_P = [
-    { nazwa: "Tort czekoladowy", krotko: "Tort", s: 0, x: 0, y: 710, w: 345, h: 460, kx: 170, ky: 790, cena: 0 },
-    { nazwa: "Sernik z żurawiną", krotko: "Sernik", s: 0, x: 370, y: 600, w: 530, h: 400, kx: 640, ky: 690, cena: 0 },
-    { nazwa: "Tarta pistacjowa z malinami", krotko: "Tarta", s: 0, x: 280, y: 1010, w: 718, h: 430, kx: 640, ky: 1160, cena: 0 },
-    { nazwa: "Sernik czekoladowy z Lotusem", krotko: "Lotus", s: 1, x: 440, y: 330, w: 739, h: 1100, kx: 0, ky: 0, cena: 0 },
+// scena otwiera się na pierwszym cieście z prawdziwym zdjęciem
+const SC_START = Math.max(0, SC_P.findIndex((q) => !q.zast))
+const SC_ODBIORY = [
+    { kiedy: "23.12 od 14:00", gdzie: "Kawiarnia Centrum", adres: "ul. Sikorskiego 126" },
+    { kiedy: "23.12 od 14:00", gdzie: "Nova Park", adres: "" },
+    { kiedy: "24.12 do 12:00", gdzie: "Nova Park", adres: "" },
 ]
-const KOSZYK_KLUCZ = "gk2-koszyk-swieta-2026"
-const MAKS_SZTUK = 5
-const STOL_SMAX = 1.4
-const KARTA_D = 132
+const SC_KLUCZ = "gk2-koszyk-swieta-v2"
+const SC_MAKS = 5
+const SC_ZADATEK = 0.3
+// sprężyna domykająca przejście: sztywność i tłumienie (lekko niedotłumiona, ciasto minimalnie „dobija”)
+const SC_SZT = 74
+const SC_TLU = 13.6
+
+const wnZl = (n: number) => n + " zł"
 
 function IkonaTorba() {
     return (
-        <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
             <path d="M4.8 8.2h14.4l-1.3 12.3H6.1L4.8 8.2zM8.8 8.2V6.6a3.2 3.2 0 0 1 6.4 0v1.6" fill="none" stroke="currentColor" strokeWidth="1.7" />
         </svg>
     )
@@ -865,327 +873,862 @@ function IkonaZamknij() {
     )
 }
 
-const zl = (n: number) => n + " zł"
+function IkonaDalej() {
+    return (
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path d="M3 12h17M13.5 5.5L20 12l-6.5 6.5" fill="none" stroke="currentColor" strokeWidth="1.9" />
+        </svg>
+    )
+}
 
-// Kamera dla jednej sceny: skala s, środek celu w punkcie (cx, cy) okna; zdjęcie zawsze przykrywa całe okno.
-function ujecie(sc: { w: number; h: number }, W: number, H: number, cel: { x: number; y: number; w: number; h: number }, cx: number, cy: number, s: number) {
-    const ss = Math.max(s, W / sc.w, H / sc.h)
-    let tx = cx - (cel.x + cel.w / 2) * ss
-    let ty = cy - (cel.y + cel.h / 2) * ss
-    tx = Math.min(0, Math.max(W - sc.w * ss, tx))
-    ty = Math.min(0, Math.max(H - sc.h * ss, ty))
-    return { s: ss, tx, ty }
+function IkonaJest() {
+    return (
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+            <path d="M4.5 12.5l5 5L19.5 7" fill="none" stroke="currentColor" strokeWidth="2" />
+        </svg>
+    )
+}
+
+// Jedno ciasto: wielki napis, zdjęcie ciasta (środek podstawy stoi na wstędze) i opis.
+// Plakat nie tworzy własnej warstwy: jego części przeplatają się ze wstęgą sceny (napis pod nią, ciasto nad nią).
+function ScSlajd(props: { p: ScProdukt; rola: string; zywa: boolean }) {
+    const p = props.p
+    const c = p.ciasto
+    const pelna = p.tytul + (p.reszta ? " " + p.reszta : "")
+    const cien = c.ba * 2 * 0.92
+    return (
+        <div className={"gk2-sc-sl gk2-sc-" + props.rola} data-p={p.id} aria-hidden={props.rola === "we" ? true : undefined}>
+            <div className="gk2-sc-slowo gk2-d" aria-hidden="true">
+                <span style={{ animationDuration: Math.round(p.tytul.length * 2.4 + 10) + "s" }}>
+                    {[0, 1, 2, 3].map((i) => (
+                        <b key={i}>
+                            {p.tytul}
+                            <i>•</i>
+                        </b>
+                    ))}
+                </span>
+            </div>
+            <div className="gk2-sc-pole" aria-hidden="true">
+                <div className="gk2-sc-ciasto" style={{ ["--cw" as any]: c.w, ["--bx" as any]: c.bx, ["--by" as any]: c.by, ["--cr" as any]: c.obr + "deg" }}>
+                    {c.cien === "bryla" ? <i className="gk2-sc-cien" style={{ left: (c.bx * 100).toFixed(1) + "%", top: ((c.bd + 0.025) * 100).toFixed(1) + "%", width: (cien * 100).toFixed(1) + "%", height: (((cien * 0.19 * c.pw) / c.ph) * 100).toFixed(1) + "%" }} /> : null}
+                    <img className={"gk2-sc-foto gk2-sc-foto-" + c.cien + (c.lustro ? " gk2-sc-foto-lustro" : "")} src={props.zywa ? obraz(c.f) : undefined} width={c.pw} height={c.ph} alt="" decoding="async" draggable={false} />
+                </div>
+                {p.zast ? <span className="gk2-e gk2-sc-zast">Zdjęcie zastępcze</span> : null}
+            </div>
+            <div className="gk2-sc-opis">
+                <div className="gk2-sc-opis-g">
+                    <span className="gk2-e gk2-sc-nr">{"Nr " + p.nr + " · " + p.miara}</span>
+                    <h3 className="gk2-d gk2-sc-tytul">{p.tytul}</h3>
+                    {p.reszta ? <p className="gk2-sc-reszta">{p.reszta}</p> : null}
+                    {p.sklad ? (
+                        <ul className="gk2-sc-sklad">
+                            {p.sklad.map((s) => (
+                                <li key={s}>{s}</li>
+                            ))}
+                        </ul>
+                    ) : null}
+                </div>
+                <b className="gk2-d gk2-sc-cena">{p.cena ? p.cena + " zł" : "Wkrótce"}</b>
+                <span className="gk2-sr">{"Zdjęcie: " + pelna}</span>
+            </div>
+        </div>
+    )
 }
 
 function Witryna() {
-    const okno = useRef<HTMLDivElement>(null)
-    const koszykRef = useRef<number[]>(STOL_P.map(() => 0))
-    const zegar = useRef(0)
-    const [wym, ustawWym] = useState({ w: 0, h: 0, tel: false })
-    const [ruch, ustawRuch] = useState(false)
-    const [wybrane, ustawWybrane] = useState(-1)
+    const korzen = useRef<HTMLDivElement>(null)
+    const scena = useRef<HTMLDivElement>(null)
+    const torbaRef = useRef<HTMLButtonElement>(null)
+    const pigRef = useRef<HTMLDivElement>(null)
+    const biletRef = useRef<HTMLDivElement>(null)
+    const koszykEl = useRef<HTMLDivElement>(null)
+    const koszykRef = useRef<Record<string, number>>({})
+    const zegary = useRef<Record<string, number>>({})
+    const naped = useRef<{ t: number; v: number; cel: number; raf: number; ost: number; kolejka: { i: number; k: number } | null }>({ t: 0, v: 0, cel: 0, raf: 0, ost: 0, kolejka: null })
+    const chwyt = useRef({ on: false, id: -1, x: 0, y: 0, poziom: 0, w: 1, px: 0, pt: 0, vx: 0, ruszyl: false, wLocie: false })
+    const mysz = useRef({ x: 0, y: 0, cx: 0, cy: 0, raf: 0 })
+    const stan = useRef({ akt: SC_START, cel: -1, kier: 1 })
+    const widziana = useRef(false)
+    const [akt, ustawAkt] = useState(SC_START)
+    const [cel, ustawCel] = useState(-1)
+    const [kier, ustawKier] = useState(1)
+    const [tel, ustawTel] = useState(false)
+    const [zywa, ustawZywa] = useState(false)
     const [panel, ustawPanel] = useState("")
-    const [koszyk, ustawKoszyk] = useState<number[]>(STOL_P.map(() => 0))
+    const [koszyk, ustawKoszyk] = useState<Record<string, number>>({})
+    const [odbior, ustawOdbior] = useState(-1)
     const [ilosc, ustawIlosc] = useState(1)
-    const [dodano, ustawDodano] = useState(false)
+    const [bilet, ustawBilet] = useState<{ i: number; n: number; k: number } | null>(null)
+    const [leci, ustawLeci] = useState(false)
     const [hop, ustawHop] = useState(0)
+    const [dodano, ustawDodano] = useState(false)
+    const [otwarte, ustawOtwarte] = useState(true)
+    const [wczytany, ustawWczytany] = useState(false)
 
-    // Wymiary okna (kamera liczy się od nich) i to, czy jesteśmy w układzie telefonu.
+    const pozniej = (klucz: string, fn: () => void, ms: number) => {
+        window.clearTimeout(zegary.current[klucz])
+        zegary.current[klucz] = window.setTimeout(fn, ms)
+    }
+    const ruchOk = () => typeof window !== "undefined" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const ustawT = (t: number) => {
+        naped.current.t = t
+        if (scena.current) scena.current.style.setProperty("--t", t.toFixed(4))
+    }
+    // zdjęcia sąsiednich ciast czekają w pamięci, zanim palec zacznie przesuwać
+    const wczytajSasiadow = (i: number) => {
+        const n = SC_P.length
+        ;[1, n - 1].forEach((d) => {
+            const q = SC_P[(i + d) % n]
+            const im = new Image()
+            im.decoding = "async"
+            im.src = obraz(q.ciasto.f)
+            if (im.decode) im.decode().catch(() => {})
+        })
+    }
+
+    // Start: koszyk z przeglądarki, termin zamówień, jednostki sceny, wejście sceny przy pierwszym pokazaniu.
     useEffect(() => {
-        const e = okno.current
-        if (!e || typeof window === "undefined") return
+        if (typeof window === "undefined") return
+        try {
+            const z = JSON.parse(window.localStorage.getItem(SC_KLUCZ) || "null")
+            if (z && typeof z === "object") {
+                const k: Record<string, number> = {}
+                SC_P.forEach((p) => {
+                    const n = clamp(Math.round(Number(z.k && z.k[p.id]) || 0), 0, SC_MAKS)
+                    if (n > 0 && p.cena > 0) k[p.id] = n
+                })
+                ustawKoszyk(k)
+                if (typeof z.o === "number" && z.o >= 0 && z.o < SC_ODBIORY.length) ustawOdbior(z.o)
+            }
+        } catch (e) {}
+        ustawWczytany(true)
+        ustawOtwarte(Date.now() < KONIEC_ZAMOWIEN)
+        const s = scena.current
+        const k = korzen.current
         const mq = window.matchMedia("(max-width: 809px), (max-aspect-ratio: 21/20)")
-        const mierz = () => ustawWym({ w: e.clientWidth, h: e.clientHeight, tel: mq.matches })
+        const mierz = () => {
+            if (!s || !k) return
+            const sw = s.clientWidth / 100
+            if (sw > 0) {
+                k.style.setProperty("--sw", sw.toFixed(3) + "px")
+                k.style.setProperty("--u", (mq.matches ? sw : sw * 0.62).toFixed(3) + "px")
+            }
+            ustawTel(mq.matches)
+        }
         mierz()
-        const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(mierz) : null
-        if (ro) ro.observe(e)
+        const ro = typeof ResizeObserver !== "undefined" && s ? new ResizeObserver(mierz) : null
+        if (ro && s) ro.observe(s)
         window.addEventListener("resize", mierz)
-        const t = window.setTimeout(() => ustawRuch(!window.matchMedia("(prefers-reduced-motion: reduce)").matches), 120)
+        const ruch = !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        const maIO = typeof IntersectionObserver !== "undefined"
+        // Wejście sceny (gdy sklep jest odsłonięty, czyli kokarda rozwiązana, i scena stoi na ekranie): wstęga rozwija się od lewej,
+        // ciasto wjeżdża po niej z prawej. Tu idzie tylko liniowy postęp, krzywe są w CSS.
+        // Po zejściu z ekranu scena zasypia, a przy powrocie rozkwita jeszcze raz.
+        const sekcja = k ? (k.closest(".gk2-swieta") as HTMLElement | null) : null
+        let rafB = 0
+        let wKadrze = !maIO
+        let naEkranie = !maIO
+        let rozkwitla = !maIO
+        let wejsc = 0
+        // wejście czeka na zdjęcie pierwszego ciasta (najwyżej 1,5 s), żeby ciasto nie wjechało puste
+        let fotoJest = !ruch || !maIO
+        let fotoZegar = 0
+        if (s && ruch && maIO) s.style.setProperty("--b", "0")
+        const sprawdz = () => {
+            if (!s) return
+            if (maIO) {
+                // widoczność liczymy prosto z układu: wpisy obserwatora potrafią przyjść paczką i z opóźnieniem
+                const r = s.getBoundingClientRect()
+                const wys = Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0)
+                wKadrze = r.height > 0 && wys > 0
+                // próg nieco niższy niż w obserwatorze (0,2), żeby jego sygnał zawsze wystarczył
+                naEkranie = wKadrze && wys >= r.height * 0.15
+            }
+            const odslonieta = !ruch || !sekcja || sekcja.classList.contains("gk2-swieta-otwarte")
+            if (naEkranie && odslonieta && !rozkwitla) {
+                if (!fotoJest) {
+                    if (!fotoZegar) fotoZegar = window.setTimeout(fotoGotowe, 1500)
+                    return
+                }
+                rozkwitla = true
+                if (!widziana.current) {
+                    widziana.current = true
+                    wczytajSasiadow(stan.current.akt)
+                }
+                if (!ruch) return
+                window.cancelAnimationFrame(rafB)
+                // pierwsze wejście gra w całości, powroty na scenę idą szybciej
+                wejsc += 1
+                const czas = wejsc > 1 ? 1150 : 1750
+                let t0 = 0
+                const krok = (teraz: number) => {
+                    if (!t0) t0 = teraz + (wejsc > 1 ? 60 : 220)
+                    const x = clamp((teraz - t0) / czas, 0, 1)
+                    s.style.setProperty("--b", x.toFixed(4))
+                    rafB = x < 1 ? window.requestAnimationFrame(krok) : 0
+                }
+                rafB = window.requestAnimationFrame(krok)
+            } else if (rozkwitla && ruch && (!wKadrze || !odslonieta)) {
+                rozkwitla = false
+                window.cancelAnimationFrame(rafB)
+                rafB = 0
+                s.style.setProperty("--b", "0")
+            }
+        }
+        const fotoGotowe = () => {
+            if (fotoJest) return
+            fotoJest = true
+            sprawdz()
+        }
+        // z daleka (scena 900 px od ekranu): wczytaj zdjęcie ciasta, od którego scena zaczyna
+        const wczytajPierwsze = () => {
+            ustawZywa(true)
+            if (fotoJest) return
+            const im = new Image()
+            im.decoding = "async"
+            im.onload = fotoGotowe
+            im.onerror = fotoGotowe
+            im.src = obraz(SC_P[stan.current.akt].ciasto.f)
+            if (im.decode) im.decode().then(fotoGotowe, fotoGotowe)
+        }
+        const ioDaleko = maIO && s
+            ? new IntersectionObserver(
+                  (w) => {
+                      if (!w.some((e) => e.isIntersecting)) return
+                      wczytajPierwsze()
+                      if (ioDaleko) ioDaleko.disconnect()
+                  },
+                  { rootMargin: "900px 0px" }
+              )
+            : null
+        if (ioDaleko && s) ioDaleko.observe(s)
+        else wczytajPierwsze()
+        const io = maIO && s
+            ? new IntersectionObserver(
+                  (w) => {
+                      // liczy się ostatni wpis (pierwszy w paczce bywa nieaktualny); samą widoczność mierzy sprawdz()
+                      s.classList.toggle("gk2-sc-spi", !w[w.length - 1].isIntersecting)
+                      sprawdz()
+                  },
+                  { threshold: [0, 0.2] }
+              )
+            : null
+        if (io && s) io.observe(s)
+        const mo = sekcja && typeof MutationObserver !== "undefined" ? new MutationObserver(sprawdz) : null
+        if (mo && sekcja) mo.observe(sekcja, { attributes: true, attributeFilter: ["class"] })
+        const z = zegary.current
+        const np = naped.current
+        const ms = mysz.current
         return () => {
             if (ro) ro.disconnect()
+            if (io) io.disconnect()
+            if (mo) mo.disconnect()
+            if (ioDaleko) ioDaleko.disconnect()
+            window.clearTimeout(fotoZegar)
             window.removeEventListener("resize", mierz)
-            window.clearTimeout(t)
-            window.clearTimeout(zegar.current)
+            if (rafB) window.cancelAnimationFrame(rafB)
+            if (np.raf) window.cancelAnimationFrame(np.raf)
+            if (ms.raf) window.cancelAnimationFrame(ms.raf)
+            Object.keys(z).forEach((klucz) => window.clearTimeout(z[klucz]))
         }
-    }, [])
-
-    // Koszyk pamiętany w przeglądarce (tylko wygoda; zamówienie i tak idzie przez formularz).
-    useEffect(() => {
-        try {
-            const z = JSON.parse(window.localStorage.getItem(KOSZYK_KLUCZ) || "null")
-            if (Array.isArray(z) && z.length === STOL_P.length) ustawKoszyk(z.map((n) => clamp(Math.round(Number(n) || 0), 0, MAKS_SZTUK)))
-        } catch (e) {}
     }, [])
 
     let suma = 0
     let razem = 0
-    let sameCeny = true
-    koszyk.forEach((n, i) => {
+    SC_P.forEach((p) => {
+        const n = koszyk[p.id] || 0
         suma += n
-        razem += n * STOL_P[i].cena
-        if (n > 0 && !STOL_P[i].cena) sameCeny = false
+        razem += n * p.cena
     })
+    const zadatek = Math.ceil(razem * SC_ZADATEK)
+
+    // Koszyk: zapis w przeglądarce i licznik w menu oraz na pasku telefonu (bez przerysowywania całej strony).
     useEffect(() => {
         koszykRef.current = koszyk
+        if (!wczytany) return
         try {
-            window.localStorage.setItem(KOSZYK_KLUCZ, JSON.stringify(koszyk))
+            window.localStorage.setItem(SC_KLUCZ, JSON.stringify({ k: koszyk, o: odbior }))
         } catch (e) {}
-        // licznik w menu i na pasku telefonu (bez przerysowywania całej strony)
-        const root = okno.current ? (okno.current.closest(".gk2") as HTMLElement | null) : null
+        const root = korzen.current ? (korzen.current.closest(".gk2") as HTMLElement | null) : null
         if (root) {
             root.setAttribute("data-koszyk", String(suma))
             root.style.setProperty("counter-reset", "gk2koszyk " + suma)
         }
-    }, [koszyk, suma])
+    }, [koszyk, odbior, suma, wczytany])
 
-    // „Zamów na Święta” w menu i pasek na telefonie otwierają koszyk, jeśli coś w nim jest.
+    // „Zamów na Święta” w menu, na pierwszym ekranie i na pasku telefonu otwiera koszyk, jeśli coś w nim jest.
     useEffect(() => {
-        const otworz = () => {
-            if (koszykRef.current.some((n) => n > 0)) {
-                ustawWybrane(-1)
-                ustawPanel("koszyk")
-            }
+        const otworzKoszyk = () => {
+            if (Object.keys(koszykRef.current).some((k) => koszykRef.current[k] > 0)) ustawPanel("koszyk")
         }
-        window.addEventListener("gk2-koszyk-otworz", otworz)
-        return () => window.removeEventListener("gk2-koszyk-otworz", otworz)
+        window.addEventListener("gk2-koszyk-otworz", otworzKoszyk)
+        return () => window.removeEventListener("gk2-koszyk-otworz", otworzKoszyk)
     }, [])
 
-    const wybierz = (i: number) => {
-        ustawWybrane(i)
-        ustawPanel("karta")
-        ustawIlosc(1)
-        ustawDodano(false)
+    // Esc zamyka koszyk.
+    useEffect(() => {
+        if (panel !== "koszyk") return
+        const esc = (e: KeyboardEvent) => {
+            if (e.key !== "Escape") return
+            ustawPanel("")
+            if (torbaRef.current) torbaRef.current.focus({ preventScroll: true })
+        }
+        window.addEventListener("keydown", esc)
+        return () => window.removeEventListener("keydown", esc)
+    }, [panel])
+
+    // Koszyk na telefonie jest pod sceną: po otwarciu podjeżdżamy do niego.
+    useEffect(() => {
+        if (panel !== "koszyk" || !koszykEl.current || !tel) return
+        const el = koszykEl.current
+        const t = window.setTimeout(() => {
+            const r = el.getBoundingClientRect()
+            if (r.top > window.innerHeight * 0.55 || r.top < 0) window.scrollBy({ top: r.top - 90, behavior: ruchOk() ? "smooth" : "auto" })
+        }, 60)
+        return () => window.clearTimeout(t)
+    }, [panel, tel])
+
+    useEffect(() => {
+        if (widziana.current) wczytajSasiadow(akt)
+    }, [akt])
+
+    // ---------- przejście między ciastami ----------
+    const koniecNapedu = () => {
+        const n = naped.current
+        const s = scena.current
+        const st = stan.current
+        n.v = 0
+        if (n.cel === 1 && st.cel >= 0) {
+            // nowe ciasto zostaje: role zamieniamy od razu w drzewie strony, żeby żadna klatka nie pokazała starego układu
+            if (s) {
+                const stary = s.querySelector(".gk2-sc-wy") as HTMLElement | null
+                const nowy = s.querySelector(".gk2-sc-we") as HTMLElement | null
+                if (stary && nowy) {
+                    stary.classList.remove("gk2-sc-wy")
+                    stary.classList.add("gk2-sc-zegnaj")
+                    nowy.classList.remove("gk2-sc-we")
+                    nowy.classList.add("gk2-sc-wy")
+                }
+            }
+            ustawT(0)
+            stan.current = { akt: st.cel, cel: -1, kier: st.kier }
+            ustawAkt(st.cel)
+            ustawCel(-1)
+            ustawIlosc(1)
+            ustawDodano(false)
+        } else {
+            ustawT(0)
+            stan.current = { akt: st.akt, cel: -1, kier: st.kier }
+            ustawCel(-1)
+        }
+        if (n.kolejka) {
+            const q = n.kolejka
+            n.kolejka = null
+            window.setTimeout(() => idz(q.i, q.k), 30)
+        }
     }
-    const zamknij = () => {
-        ustawWybrane(-1)
-        ustawPanel("")
+    // Przejście w toku: jeśli już dobiega końca, domykamy je od razu, żeby kolejny gest nie czekał na wybrzmienie sprężyny.
+    const domknij = () => {
+        const n = naped.current
+        if (stan.current.cel < 0) return true
+        if (chwyt.current.on && chwyt.current.poziom === 1 && !chwyt.current.wLocie) return false
+        if (!n.raf || (n.cel === 1 ? n.t < 0.88 : n.t > 0.12)) return false
+        window.cancelAnimationFrame(n.raf)
+        n.raf = 0
+        n.t = n.cel
+        n.kolejka = null
+        koniecNapedu()
+        return true
     }
-    const n = STOL_P.length
-    const przesun = (d: number) => wybierz((Math.max(wybrane, 0) + d + n) % n)
-    const zmien = (i: number, ile: number) => {
-        const k = koszyk.slice()
-        k[i] = clamp(ile, 0, MAKS_SZTUK)
+    const klatka = (teraz: number) => {
+        const n = naped.current
+        const dt = n.ost ? Math.min(0.04, (teraz - n.ost) / 1000) : 0.016
+        n.ost = teraz
+        const kroki = Math.max(1, Math.round(dt / 0.004))
+        const h = dt / kroki
+        for (let i = 0; i < kroki; i++) {
+            n.v += (-SC_SZT * (n.t - n.cel) - SC_TLU * n.v) * h
+            n.t += n.v * h
+        }
+        if (Math.abs(n.t - n.cel) < 0.0004 && Math.abs(n.v) < 0.01) {
+            n.raf = 0
+            n.t = n.cel
+            koniecNapedu()
+            return
+        }
+        ustawT(n.t)
+        n.raf = window.requestAnimationFrame(klatka)
+    }
+    const ruszNaped = (doCelu: number) => {
+        const n = naped.current
+        n.cel = doCelu
+        if (!ruchOk()) {
+            n.t = doCelu
+            koniecNapedu()
+            return
+        }
+        if (n.raf) return
+        n.ost = 0
+        n.raf = window.requestAnimationFrame(klatka)
+    }
+    const idz = (i: number, k: number) => {
+        if (!domknij()) {
+            naped.current.kolejka = { i, k }
+            return
+        }
+        const st = stan.current
+        if (i === st.akt) return
+        stan.current = { akt: st.akt, cel: i, kier: k }
+        ustawKier(k)
+        ustawCel(i)
+        naped.current.t = 0
+        naped.current.v = 0
+        ruszNaped(1)
+    }
+    const przesun = (d: number) => {
+        const n = SC_P.length
+        // liczymy od ciasta, do którego scena właśnie zmierza
+        const st = stan.current
+        const baza = st.cel >= 0 && naped.current.cel === 1 ? st.cel : st.akt
+        idz((baza + d + n) % n, d > 0 ? 1 : -1)
+    }
+
+    // palec (albo mysz) prowadzi przejście: w poziomie my, w pionie zwykłe przewijanie strony
+    const chwytDol = (e: React.PointerEvent) => {
+        if (e.pointerType === "mouse" && e.button !== 0) return
+        const s = scena.current
+        if (!s) return
+        const c = chwyt.current
+        c.on = true
+        c.id = e.pointerId
+        c.x = e.clientX
+        c.y = e.clientY
+        c.poziom = 0
+        c.w = s.clientWidth || 1
+        c.px = e.clientX
+        c.pt = performance.now()
+        c.vx = 0
+        c.ruszyl = false
+        c.wLocie = false
+    }
+    const myszKrok = () => {
+        const m = mysz.current
+        const s = scena.current
+        m.cx += (m.x - m.cx) * 0.09
+        m.cy += (m.y - m.cy) * 0.09
+        if (s) {
+            s.style.setProperty("--mx", m.cx.toFixed(4))
+            s.style.setProperty("--my", m.cy.toFixed(4))
+        }
+        m.raf = Math.abs(m.x - m.cx) + Math.abs(m.y - m.cy) > 0.003 ? window.requestAnimationFrame(myszKrok) : 0
+    }
+    const chwytRuch = (e: React.PointerEvent) => {
+        const c = chwyt.current
+        const s = scena.current
+        if (!s) return
+        if (!c.on) {
+            // sama mysz nad sceną: warstwy lekko uciekają od kursora
+            if (e.pointerType !== "mouse" || !ruchOk()) return
+            const r = s.getBoundingClientRect()
+            const m = mysz.current
+            m.x = clamp(((e.clientX - r.left) / r.width) * 2 - 1, -1, 1)
+            m.y = clamp(((e.clientY - r.top) / r.height) * 2 - 1, -1, 1)
+            if (!m.raf) m.raf = window.requestAnimationFrame(myszKrok)
+            return
+        }
+        if (e.pointerId !== c.id) return
+        let dx = e.clientX - c.x
+        const dy = e.clientY - c.y
+        if (c.poziom === 0) {
+            if (Math.abs(dx) < 9 && Math.abs(dy) < 9) return
+            if (Math.abs(dx) < Math.abs(dy) * 1.15) {
+                c.on = false
+                return
+            }
+            // drogę liczymy od miejsca, w którym gest został rozpoznany: scena rusza spod palca bez skoku o próg
+            c.x = e.clientX - (dx < 0 ? -1 : 1)
+            dx = e.clientX - c.x
+            c.poziom = 1
+            c.ruszyl = true
+            c.wLocie = true
+            c.wLocie = !domknij()
+            try {
+                s.setPointerCapture(e.pointerId)
+            } catch (er) {}
+            s.classList.add("gk2-sc-chwyt")
+        }
+        const teraz = performance.now()
+        const dt = teraz - c.pt
+        if (dt > 0) {
+            c.vx = c.vx * 0.55 + ((e.clientX - c.px) / dt) * 0.45
+            c.px = e.clientX
+            c.pt = teraz
+        }
+        if (c.wLocie) return
+        const k = dx < 0 ? 1 : -1
+        const st = stan.current
+        const n = SC_P.length
+        const nowy = (st.akt + k + n) % n
+        if (st.cel !== nowy || st.kier !== k) {
+            stan.current = { akt: st.akt, cel: nowy, kier: k }
+            ustawKier(k)
+            ustawCel(nowy)
+        }
+        ustawT(clamp(Math.abs(dx) / (c.w * 0.82), 0, 1))
+    }
+    const chwytGora = (e: React.PointerEvent) => {
+        const c = chwyt.current
+        const s = scena.current
+        if (!c.on || e.pointerId !== c.id) return
+        c.on = false
+        if (s) s.classList.remove("gk2-sc-chwyt")
+        window.setTimeout(() => {
+            c.ruszyl = false
+        }, 80)
+        if (c.poziom !== 1) return
+        const dx = e.clientX - c.x
+        if (c.wLocie) {
+            if (Math.abs(dx) > 36) przesun(dx < 0 ? 1 : -1)
+            return
+        }
+        const st = stan.current
+        if (st.cel < 0) return
+        const n = naped.current
+        // prędkość palca w jednostkach przejścia na sekundę, dodatnia w stronę nowego ciasta
+        const stoi = performance.now() - c.pt > 90
+        const predkosc = stoi ? 0 : ((-c.vx * st.kier) / (c.w * 0.82)) * 1000
+        const dalej = e.type !== "pointercancel" && (n.t > 0.3 || predkosc > 0.9) && predkosc > -0.6
+        n.v = clamp(predkosc, -4, 6)
+        ruszNaped(dalej ? 1 : 0)
+    }
+    const myszPoza = (e: React.PointerEvent) => {
+        if (e.pointerType !== "mouse") return
+        const m = mysz.current
+        m.x = 0
+        m.y = 0
+        if (!m.raf && ruchOk()) m.raf = window.requestAnimationFrame(myszKrok)
+    }
+
+    // ---------- koszyk ----------
+    const zmien = (id: string, ile: number) => {
+        const k = Object.assign({}, koszyk)
+        const n = clamp(ile, 0, SC_MAKS)
+        if (n > 0) k[id] = n
+        else delete k[id]
         ustawKoszyk(k)
     }
     const dodaj = () => {
-        if (wybrane < 0) return
-        zmien(wybrane, koszyk[wybrane] + ilosc)
+        const p = SC_P[akt]
+        const mam = koszyk[p.id] || 0
+        if (!p.cena || !otwarte || mam >= SC_MAKS) return
+        const ile = Math.min(ilosc, SC_MAKS - mam)
+        zmien(p.id, mam + ile)
+        ustawIlosc(1)
         ustawDodano(true)
-        ustawHop((h) => h + 1)
-        window.clearTimeout(zegar.current)
-        zegar.current = window.setTimeout(() => ustawDodano(false), 1700)
-    }
-    const pokazKoszyk = () => {
-        if (panel === "koszyk") {
-            ustawPanel("")
+        pozniej("dodano", () => ustawDodano(false), 2600)
+        if (!ruchOk()) {
+            ustawHop((h) => h + 1)
             return
         }
-        ustawWybrane(-1)
-        ustawPanel("koszyk")
+        // bilecik: drukuje się u góry sceny, potem składa się i leci do torby
+        ustawLeci(false)
+        ustawBilet({ i: akt, n: ile, k: Date.now() })
+        pozniej(
+            "lot",
+            () => {
+                const b = biletRef.current
+                const t = torbaRef.current
+                if (b && t) {
+                    const rb = b.getBoundingClientRect()
+                    const rt = t.getBoundingClientRect()
+                    b.style.setProperty("--bx", (rt.left + rt.width / 2 - (rb.left + rb.width / 2)).toFixed(1) + "px")
+                    b.style.setProperty("--by", (rt.top + rt.height / 2 - rb.top).toFixed(1) + "px")
+                }
+                ustawLeci(true)
+            },
+            1750
+        )
+        pozniej(
+            "bilet",
+            () => {
+                ustawBilet(null)
+                ustawLeci(false)
+                ustawHop((h) => h + 1)
+            },
+            2380
+        )
     }
 
-    // Kamera: ogólny widok pokazuje cały stół; przybliżenie stawia ciasto na środku nad kartą.
-    const tel = wym.tel
-    const W = wym.w
-    const H = wym.h
-    const kadr = tel ? KADR_T : KADR_D
-    const aktywna = wybrane >= 0 ? STOL_P[wybrane].s : 0
-    const ujecia = SCENY.map((sc, i) => {
-        if (W <= 0) return { s: 0.3, tx: 0, ty: 0 }
-        const s0 = Math.min(W / kadr.w, H / kadr.h)
-        const ogolny = ujecie(sc, W, H, kadr, W / 2, H / 2, s0)
-        if (i === 0 && (wybrane < 0 || aktywna !== 0)) {
-            // cały stół (gdy oglądamy inne zdjęcie, stół lekko odjeżdża w głąb)
-            return aktywna === 0 ? ogolny : ujecie(sc, W, H, kadr, W / 2, H / 2, s0 * 1.05)
+    stan.current.akt = akt
+    const p = SC_P[akt]
+    const mamP = koszyk[p.id] || 0
+    const wolneP = SC_MAKS - mamP
+    const wskaz = cel >= 0 ? cel : akt
+    // pasek pigułek przewija się sam, tak żeby wybrane ciasto było widać (na telefonie nie mieszczą się wszystkie naraz)
+    useEffect(() => {
+        const el = pigRef.current
+        if (!el) return
+        const b = el.children[wskaz] as HTMLElement | undefined
+        const max = el.scrollWidth - el.clientWidth
+        if (!b || max <= 0) return
+        const od = el.scrollLeft
+        const dokad = clamp(b.offsetLeft - (el.clientWidth - b.offsetWidth) / 2, 0, max)
+        if (Math.abs(dokad - od) < 1) return
+        if (!ruchOk()) {
+            el.scrollLeft = dokad
+            return
         }
-        // przybliżone ciasto tej sceny (albo jego ujęcie spoczynkowe, gdy scena jest schowana)
-        const p = wybrane >= 0 && STOL_P[wybrane].s === i ? STOL_P[wybrane] : STOL_P.filter((q) => q.s === i)[0]
-        const hDost = tel ? H : H - KARTA_D
-        let s = Math.min((hDost * 0.88) / p.h, (W * (tel ? 0.94 : 0.86)) / p.w, STOL_SMAX)
-        if (i === 0) s = Math.max(s, s0 * 1.15)
-        const u = ujecie(sc, W, H, p, W / 2, hDost / 2, s)
-        return i === aktywna ? u : ujecie(sc, W, H, p, W / 2, hDost / 2, u.s * 1.06)
-    })
-    const w = wybrane >= 0 ? STOL_P[wybrane] : null
-
-    const karta = w ? (
-        <div className="gk2-wit-panel gk2-wit-karta" role="dialog" aria-label={w.nazwa} key={"k" + wybrane}>
-            <button type="button" className="gk2-wit-zamknij" onClick={zamknij} aria-label="Wróć do całego stołu">
-                <IkonaZamknij />
-            </button>
-            <div className="gk2-wit-karta-opis">
-                <span className="gk2-e gk2-wit-nr">Święta 2026 · na zamówienie</span>
-                <h3 className="gk2-d gk2-wit-nazwa">{w.nazwa}</h3>
-            </div>
-            <div className="gk2-wit-karta-cena">
-                <span className="gk2-e">Cena</span>
-                <b className="gk2-d">{w.cena ? zl(w.cena) : "wkrótce"}</b>
-            </div>
-            <dl className="gk2-wit-fakty gk2-wit-karta-fakty">
-                <div>
-                    <dt>Odbiór</dt>
-                    <dd>{"23–24 grudnia, Kawiarnia Centrum"}</dd>
-                </div>
-            </dl>
-            <div className="gk2-wit-dodaj">
-                <div className="gk2-wit-ilosc" role="group" aria-label="Ilość">
-                    <button type="button" onClick={() => ustawIlosc(Math.max(1, ilosc - 1))} aria-label="Mniej">
-                        −
-                    </button>
-                    <output aria-live="polite">{ilosc}</output>
-                    <button type="button" onClick={() => ustawIlosc(Math.min(MAKS_SZTUK, ilosc + 1))} aria-label="Więcej">
-                        +
-                    </button>
-                </div>
-                <button type="button" className={"gk2-wit-do-koszyka" + (dodano ? " gk2-wit-dodano" : "")} onClick={dodaj}>
-                    {dodano ? "W koszyku ✓" : "Dodaj do koszyka"}
-                </button>
-            </div>
-        </div>
-    ) : null
+        let raf = 0
+        let t0 = 0
+        const krok = (teraz: number) => {
+            if (!t0) t0 = teraz
+            const x = clamp((teraz - t0) / 420, 0, 1)
+            el.scrollLeft = od + (dokad - od) * (1 - Math.pow(1 - x, 3))
+            if (x < 1) raf = window.requestAnimationFrame(krok)
+        }
+        raf = window.requestAnimationFrame(krok)
+        return () => window.cancelAnimationFrame(raf)
+    }, [wskaz])
+    const widoczne = cel >= 0 && cel !== akt ? (akt < cel ? [akt, cel] : [cel, akt]) : [akt]
+    const pozycje = SC_P.filter((q) => (koszyk[q.id] || 0) > 0)
+    const bp = bilet ? SC_P[bilet.i] : null
 
     const koszykPanel =
         panel === "koszyk" ? (
-            <div className="gk2-wit-panel gk2-wit-koszyk" role="dialog" aria-label="Koszyk" key="koszyk">
-                <button type="button" className="gk2-wit-zamknij" onClick={() => ustawPanel("")} aria-label="Zamknij koszyk">
-                    <IkonaZamknij />
+            <div className="gk2-wn-koszyk" role="dialog" aria-label="Koszyk" ref={koszykEl} key="koszyk">
+                <button type="button" className="gk2-wn-x" onClick={() => ustawPanel("")} aria-label="Zamknij koszyk">
+                    <span>
+                        <IkonaZamknij />
+                    </span>
                 </button>
-                <h3 className="gk2-d gk2-wit-nazwa gk2-wit-nazwa-koszyk">Koszyk</h3>
+                <div className="gk2-wn-koszyk-glowa">
+                    <Wyc a={P.logotyp} rozmiar={1024} alt="Górka & Kulka" className="gk2-wn-koszyk-logo" />
+                    <span className="gk2-e">Bilecik odbioru · Święta 2026</span>
+                </div>
                 {suma === 0 ? (
-                    <p className="gk2-wit-opis">{"Na razie pusto. Dotknij ciasta na stole i dodaj je tutaj."}</p>
+                    <p className="gk2-wn-pusto">{"Bilecik jest jeszcze pusty. Wybierz ciasto i dodaj je tutaj."}</p>
                 ) : (
-                    <ul className="gk2-wit-lista">
-                        {koszyk.map((ile, i) =>
-                            ile > 0 ? (
-                                <li key={i}>
-                                    <span className="gk2-wit-lista-nazwa">
-                                        <b className="gk2-d">{STOL_P[i].nazwa}</b>
-                                        <small className="gk2-e">{STOL_P[i].cena ? ile + " × " + zl(STOL_P[i].cena) : ile + " szt. · cena wkrótce"}</small>
-                                    </span>
-                                    <div className="gk2-wit-ilosc" role="group" aria-label={"Ilość: " + STOL_P[i].nazwa}>
-                                        <button type="button" onClick={() => zmien(i, ile - 1)} aria-label="Mniej">
-                                            −
-                                        </button>
-                                        <output aria-live="polite">{ile}</output>
-                                        <button type="button" onClick={() => zmien(i, ile + 1)} aria-label="Więcej">
-                                            +
-                                        </button>
-                                    </div>
-                                    <button type="button" className="gk2-wit-usun" onClick={() => zmien(i, 0)} aria-label={"Usuń: " + STOL_P[i].nazwa}>
-                                        <IkonaZamknij />
-                                    </button>
-                                </li>
-                            ) : null
+                    <>
+                        <div className="gk2-wn-koszyk-srodek">
+                            <ul className="gk2-wn-lista">
+                                {pozycje.map((q) => {
+                                    const ile = koszyk[q.id] || 0
+                                    return (
+                                        <li key={q.id}>
+                                            <span className="gk2-wn-lista-nazwa">
+                                                <b>{q.tytul}</b>
+                                                <small>{q.miara + " · " + wnZl(q.cena)}</small>
+                                            </span>
+                                            <div className="gk2-wn-ilosc gk2-wn-ilosc-m" role="group" aria-label={"Ilość: " + q.tytul}>
+                                                <button type="button" onClick={() => zmien(q.id, ile - 1)} aria-label={ile <= 1 ? "Usuń z koszyka: " + q.tytul : "Mniej"}>
+                                                    −
+                                                </button>
+                                                <output aria-live="polite">{ile}</output>
+                                                <button type="button" onClick={() => zmien(q.id, ile + 1)} aria-label="Więcej" disabled={ile >= SC_MAKS}>
+                                                    +
+                                                </button>
+                                            </div>
+                                            <b className="gk2-wn-lista-suma">{wnZl(ile * q.cena)}</b>
+                                        </li>
+                                    )
+                                })}
+                            </ul>
+                            <div className="gk2-wn-odbiory" role="radiogroup" aria-label="Odbiór">
+                                <span className="gk2-e gk2-wn-etykieta">Odbiór — wybierz</span>
+                                {SC_ODBIORY.map((o) => o.kiedy)
+                                    .filter((k, i, a) => a.indexOf(k) === i)
+                                    .map((dzien) => (
+                                        <div className="gk2-wn-odb-rzad" key={dzien}>
+                                            <b>{dzien}</b>
+                                            <span>
+                                                {SC_ODBIORY.map((o, i) =>
+                                                    o.kiedy === dzien ? (
+                                                        <button key={i} type="button" role="radio" aria-checked={odbior === i} aria-label={o.kiedy + ", " + o.gdzie} className={"gk2-wn-odb" + (odbior === i ? " gk2-wn-odb-on" : "")} onClick={() => ustawOdbior(i)}>
+                                                            {o.gdzie}
+                                                        </button>
+                                                    ) : null
+                                                )}
+                                            </span>
+                                        </div>
+                                    ))}
+                                {odbior >= 0 ? <p className="gk2-wn-odb-wybor">{SC_ODBIORY[odbior].kiedy + ", " + SC_ODBIORY[odbior].gdzie + (SC_ODBIORY[odbior].adres ? ", " + SC_ODBIORY[odbior].adres : "")}</p> : null}
+                            </div>
+                        </div>
+                        <dl className="gk2-wn-sumy">
+                            <div className="gk2-wn-sumy-razem">
+                                <dt>Razem</dt>
+                                <dd>{wnZl(razem)}</dd>
+                            </div>
+                            <div>
+                                <dt>Zadatek 30% teraz</dt>
+                                <dd>{wnZl(zadatek)}</dd>
+                            </div>
+                            <div>
+                                <dt>Przy odbiorze</dt>
+                                <dd>{wnZl(razem - zadatek)}</dd>
+                            </div>
+                        </dl>
+                        {otwarte ? (
+                            <a
+                                className="gk2-wn-przycisk gk2-wn-zaplac"
+                                href={ZAMOWIENIA}
+                                aria-disabled={odbior < 0 ? "true" : undefined}
+                                tabIndex={odbior < 0 ? -1 : undefined}
+                                onClick={(e) => {
+                                    if (odbior < 0) e.preventDefault()
+                                }}
+                            >
+                                {odbior < 0 ? "Wybierz odbiór" : "Zapłać zadatek " + wnZl(zadatek)}
+                                {odbior < 0 ? null : <IkonaDalej />}
+                            </a>
+                        ) : (
+                            <span className="gk2-wn-przycisk gk2-wn-zaplac" aria-disabled="true">
+                                Zamówienia zamknięte
+                            </span>
                         )}
-                    </ul>
+                    </>
                 )}
-                {suma > 0 && sameCeny ? (
-                    <div className="gk2-wit-razem">
-                        <span className="gk2-e">Razem</span>
-                        <b className="gk2-d">{zl(razem)}</b>
-                    </div>
-                ) : null}
-                <dl className="gk2-wit-fakty">
-                    <div>
-                        <dt>Odbiór</dt>
-                        <dd>{"23–24 grudnia, Kawiarnia Centrum"}</dd>
-                    </div>
-                    <div>
-                        <dt>Zadatek</dt>
-                        <dd>{"30% online przy zamówieniu"}</dd>
-                    </div>
-                </dl>
-                <a className="gk2-wit-do-koszyka gk2-wit-dalej" href={ZAMOWIENIA} aria-disabled={suma === 0 ? "true" : undefined} tabIndex={suma === 0 ? -1 : undefined}>
-                    {"Przejdź do zamówienia →"}
-                </a>
+                <p className="gk2-e gk2-wn-stopka">{otwarte ? "Zamówienia do 21 grudnia" : "Zamówienia przyjmowaliśmy do 21 grudnia"}</p>
             </div>
         ) : null
 
-    const klasy =
-        "gk2-wit-okno" +
-        (W > 0 ? " gk2-wit-gotowa" : "") +
-        (ruch ? " gk2-wit-ruch" : "") +
-        (wybrane >= 0 ? " gk2-wit-blisko" : "") +
-        (panel === "koszyk" ? " gk2-wit-z-koszykiem" : "")
-
     return (
         <div
-            className="gk2-witryna gk2-s"
-            style={{ ["--i" as any]: 2, ["--okno-h" as any]: H + "px", ["--karta-d" as any]: KARTA_D + "px" }}
+            className={"gk2-witryna gk2-wn gk2-sc-korzen gk2-s" + (panel === "koszyk" ? " gk2-wn-z-koszykiem" : "")}
+            style={{ ["--i" as any]: 2 }}
+            ref={korzen}
             onKeyDown={(e) => {
-                if (e.key === "Escape") zamknij()
-                else if (wybrane >= 0 && e.key === "ArrowLeft") przesun(-1)
-                else if (wybrane >= 0 && e.key === "ArrowRight") przesun(1)
+                if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return
+                const cl = e.target as HTMLElement
+                if (cl && cl.closest && cl.closest(".gk2-wn-koszyk")) return
+                e.preventDefault()
+                przesun(e.key === "ArrowLeft" ? -1 : 1)
             }}
         >
-            <div className={klasy} ref={okno}>
-                {SCENY.map((sc, i) => {
-                    const u = ujecia[i]
-                    const styl: React.CSSProperties = { width: sc.w, height: sc.h, transform: "translate(" + u.tx.toFixed(1) + "px, " + u.ty.toFixed(1) + "px) scale(" + u.s.toFixed(4) + ")", opacity: i === aktywna ? 1 : 0 }
-                    ;(styl as any)["--s"] = u.s.toFixed(4)
-                    return (
-                        <div key={sc.f} className={"gk2-wit-scena" + (i === aktywna ? " gk2-wit-scena-on" : "")} style={styl} aria-hidden={i === aktywna ? undefined : true}>
-                            <img className="gk2-wit-foto" src={obraz(sc.f)} width={sc.w} height={sc.h} alt={i === 0 ? "Ciasta świąteczne Górka & Kulka na stole przy lampkach" : "Sernik czekoladowy z Lotusem"} draggable={false} decoding="async" />
-                            {STOL_P.map((c, j) =>
-                                c.s === i && i === 0 ? (
-                                    <button
-                                        key={c.nazwa}
-                                        type="button"
-                                        className={"gk2-wit-ciasto" + (wybrane === j ? " gk2-wit-wybrane" : "")}
-                                        style={{ left: c.x, top: c.y, width: c.w, height: c.h }}
-                                        onClick={() => (wybrane === j ? zamknij() : wybierz(j))}
-                                        aria-label={(wybrane === j ? "Oddal: " : "Przybliż: ") + c.nazwa}
-                                        tabIndex={i === aktywna ? undefined : -1}
-                                    >
-                                        <i className="gk2-wit-kropka" style={{ left: c.kx - c.x, top: c.ky - c.y }} aria-hidden="true" />
-                                        <span className="gk2-e gk2-wit-dymek" style={{ left: c.kx - c.x, top: c.ky - c.y }} aria-hidden="true">
-                                            {c.nazwa}
-                                        </span>
-                                    </button>
-                                ) : null
-                            )}
-                        </div>
-                    )
-                })}
-                <p className="gk2-e gk2-wit-wskazowka">
-                    <span className="gk2-tylko-mysz">Kliknij ciasto, żeby je przybliżyć</span>
-                    <span className="gk2-tylko-dotyk">Dotknij ciasta, żeby je przybliżyć</span>
-                </p>
-                {wybrane >= 0 ? (
-                    <>
-                        <button type="button" className="gk2-wit-strzalka gk2-wit-strzalka-l" onClick={() => przesun(-1)} aria-label="Poprzednie ciasto">
-                            <IkonaStrzalka w="l" />
+            <div
+                className="gk2-sc"
+                ref={scena}
+                style={{ ["--k" as any]: kier }}
+                onPointerDown={chwytDol}
+                onPointerMove={chwytRuch}
+                onPointerUp={chwytGora}
+                onPointerCancel={chwytGora}
+                onPointerLeave={myszPoza}
+                onClickCapture={(e) => {
+                    if (chwyt.current.ruszyl) {
+                        e.stopPropagation()
+                        e.preventDefault()
+                    }
+                }}
+                role="group"
+                aria-roledescription="karuzela"
+                aria-label="Wypieki na Święta"
+            >
+                <i className="gk2-sc-wstega" aria-hidden="true">
+                    <i>
+                        <b />
+                    </i>
+                </i>
+                {widoczne.map((i) => (
+                    <ScSlajd key={SC_P[i].id} p={SC_P[i]} rola={i === akt ? "wy" : "we"} zywa={zywa} />
+                ))}
+                <div className="gk2-sc-akcja">
+                    {p.cena && otwarte ? (
+                        <>
+                            <div className="gk2-wn-ilosc" role="group" aria-label="Ilość">
+                                <button type="button" onClick={() => ustawIlosc(Math.max(1, ilosc - 1))} aria-label="Mniej" disabled={ilosc <= 1}>
+                                    −
+                                </button>
+                                <output aria-live="polite">{Math.min(ilosc, Math.max(1, wolneP))}</output>
+                                <button type="button" onClick={() => ustawIlosc(Math.min(Math.max(1, wolneP), ilosc + 1))} aria-label="Więcej" disabled={ilosc >= wolneP}>
+                                    +
+                                </button>
+                            </div>
+                            <button type="button" className={"gk2-wn-przycisk" + (dodano ? " gk2-wn-dodano" : "")} onClick={dodaj} disabled={wolneP <= 0}>
+                                {dodano ? (
+                                    <>
+                                        <IkonaJest />W koszyku
+                                    </>
+                                ) : wolneP <= 0 ? (
+                                    "Maks. " + SC_MAKS + " szt."
+                                ) : (
+                                    "Dodaj do koszyka"
+                                )}
+                            </button>
+                        </>
+                    ) : (
+                        <button type="button" className="gk2-wn-przycisk" disabled>
+                            {p.cena ? "Zamówienia zamknięte" : "Wkrótce w sprzedaży"}
                         </button>
-                        <button type="button" className="gk2-wit-strzalka gk2-wit-strzalka-p" onClick={() => przesun(1)} aria-label="Następne ciasto">
-                            <IkonaStrzalka w="p" />
-                        </button>
-                    </>
-                ) : null}
-            </div>
-            <div className="gk2-wit-pigulki">
-                <div className="gk2-wit-pigulki-w">
-                    <button type="button" className={"gk2-wit-pig gk2-wit-pig-cala" + (wybrane < 0 && panel !== "koszyk" ? " gk2-wit-pig-on" : "")} onClick={zamknij}>
-                        Cały stół
-                    </button>
-                    {STOL_P.map((c, i) => (
-                        <button key={c.krotko} type="button" className={"gk2-wit-pig" + (wybrane === i ? " gk2-wit-pig-on" : "")} onClick={() => (wybrane === i ? zamknij() : wybierz(i))}>
-                            {c.krotko}
-                        </button>
+                    )}
+                </div>
+                <button type="button" className="gk2-sc-nast gk2-sc-nast-l" onClick={() => przesun(-1)} aria-label="Poprzednie ciasto">
+                    <IkonaStrzalka w="l" />
+                </button>
+                <button type="button" className="gk2-sc-nast gk2-sc-nast-p" onClick={() => przesun(1)} aria-label="Następne ciasto">
+                    <IkonaStrzalka w="p" />
+                </button>
+                <div className="gk2-sc-kropki" aria-hidden="true">
+                    {SC_P.map((q, i) => (
+                        <i key={q.id} className={i === wskaz ? "gk2-sc-kropka-on" : undefined} />
                     ))}
-                    <span className="gk2-wit-pig-kreska" aria-hidden="true" />
-                    <button
-                        type="button"
-                        key={"t" + hop}
-                        className={"gk2-wit-pig gk2-wit-torba" + (panel === "koszyk" ? " gk2-wit-pig-on" : "") + (hop > 0 ? " gk2-wit-hop" : "")}
-                        onClick={pokazKoszyk}
-                        aria-label={"Koszyk, " + suma + " szt."}
-                    >
-                        <IkonaTorba />
-                        {suma > 0 ? <b>{suma}</b> : null}
-                    </button>
                 </div>
             </div>
-            {koszykPanel || karta}
+            {bilet && bp ? (
+                <div className={"gk2-wn-bilet" + (leci ? " gk2-wn-bilet-leci" : "")} ref={biletRef} key={bilet.k} aria-hidden="true">
+                    <div className="gk2-wn-bilet-papier">
+                        <span className="gk2-wn-bilet-logo">
+                            <Wyc a={P.logotyp} rozmiar={1024} alt="" />
+                        </span>
+                        <span style={{ ["--l" as any]: 1 }}>Odbiór świąteczny 2026</span>
+                        <span className="gk2-wn-bilet-kreska" style={{ ["--l" as any]: 2 }} />
+                        <span className="gk2-wn-bilet-rzad" style={{ ["--l" as any]: 3 }}>
+                            <em>{bilet.n + " × " + bp.tytul}</em>
+                            <b>{wnZl(bilet.n * bp.cena)}</b>
+                        </span>
+                        <span className="gk2-wn-bilet-rzad" style={{ ["--l" as any]: 4 }}>
+                            <em>Zadatek 30%</em>
+                            <b>{wnZl(Math.ceil(bilet.n * bp.cena * SC_ZADATEK))}</b>
+                        </span>
+                        <span className="gk2-wn-bilet-kreska" style={{ ["--l" as any]: 5 }} />
+                        <span style={{ ["--l" as any]: 6 }}>Odbiór: wybierz w koszyku</span>
+                    </div>
+                </div>
+            ) : null}
+            <span className="gk2-sr" role="status" aria-live="polite">
+                {dodano ? "Dodano do koszyka: " + p.tytul : p.tytul + (p.reszta ? " " + p.reszta : "") + ", " + (p.cena ? p.cena + " zł" : "wkrótce")}
+            </span>
+            <div className="gk2-wn-nawi">
+                <div className="gk2-wn-pigulki" ref={pigRef}>
+                    {SC_P.map((q, i) => (
+                        <button
+                            key={q.id}
+                            type="button"
+                            className={"gk2-wn-pig" + (wskaz === i ? " gk2-wn-pig-on" : "")}
+                            aria-pressed={wskaz === i}
+                            onClick={() => {
+                                ustawPanel("")
+                                idz(i, i > stan.current.akt ? 1 : -1)
+                            }}
+                        >
+                            {q.krotko}
+                        </button>
+                    ))}
+                </div>
+                <button
+                    type="button"
+                    key={"t" + hop}
+                    ref={torbaRef}
+                    className={"gk2-wn-torba" + (panel === "koszyk" ? " gk2-wn-torba-on" : "") + (hop > 0 ? " gk2-wn-hop" : "")}
+                    onClick={() => ustawPanel(panel === "koszyk" ? "" : "koszyk")}
+                    aria-label={"Koszyk, " + suma + " szt."}
+                    aria-expanded={panel === "koszyk"}
+                >
+                    <IkonaTorba />
+                    {suma > 0 ? <b>{suma}</b> : null}
+                </button>
+            </div>
+            {koszykPanel}
         </div>
     )
 }
@@ -2027,86 +2570,129 @@ const CSS_B = [
     ".gk2-wypiek-nazwa { font-size: clamp(24px, 2.7vw, 46px); line-height: .92; }",
     ".gk2-wypiek-opis { font-size: 13px; line-height: 1.5; opacity: .82; }",
     ".gk2-wypiek-link { margin-top: 4px; color: var(--rubin); }",
-    "/* Sklep świąteczny: zdjęcie stołu z ciastami, kamera przybliża ciasta, karta i koszyk */",
-    "@property --s { syntax: '<number>'; inherits: true; initial-value: 1; }",
-    ".gk2-witryna { position: relative; }",
-    ".gk2-wit-okno { position: relative; aspect-ratio: 998 / 907; overflow: hidden; border-radius: 16px; background: #3A2318; box-shadow: 0 30px 60px -36px rgba(80,20,40,.55); -webkit-tap-highlight-color: transparent; }",
-    ".gk2-wit-scena { position: absolute; left: 0; top: 0; transform-origin: 0 0; visibility: hidden; pointer-events: none; }",
-    ".gk2-wit-scena-on { pointer-events: auto; }",
-    ".gk2-wit-gotowa .gk2-wit-scena { visibility: visible; }",
-    ".gk2-wit-ruch .gk2-wit-scena { transition: transform 1.05s cubic-bezier(.22,.8,.18,1), --s 1.05s cubic-bezier(.22,.8,.18,1), opacity .7s ease; }",
-    ".gk2-wit-foto { position: absolute; left: 0; top: 0; display: block; max-width: none; user-select: none; -webkit-user-select: none; }",
-    // obszary ciast: niewidoczne przyciski na zdjęciu, z kropką na cieście
-    ".gk2-wit-ciasto { position: absolute; display: block; padding: 0; margin: 0; border: 0; background: none; cursor: zoom-in; -webkit-tap-highlight-color: transparent; }",
-    ".gk2-wit-blisko .gk2-wit-ciasto { cursor: pointer; }",
-    ".gk2-wit-kropka { position: absolute; width: calc(16px / var(--s)); height: calc(16px / var(--s)); margin: calc(-8px / var(--s)) 0 0 calc(-8px / var(--s)); border-radius: 50%; background: var(--roz); border: calc(2.5px / var(--s)) solid #fff; box-sizing: border-box; box-shadow: 0 calc(3px / var(--s)) calc(10px / var(--s)) rgba(0,0,0,.4); transition: opacity .35s ease, transform .35s ease; }",
-    ".gk2-wit-kropka::after { content: ''; position: absolute; inset: calc(-7px / var(--s)); border-radius: 50%; border: calc(1.5px / var(--s)) solid rgba(255,255,255,.9); animation: gk2-wit-puls 2.4s ease-out infinite; }",
-    "@keyframes gk2-wit-puls { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(1.8); opacity: 0; } }",
-    ".gk2-wit-blisko .gk2-wit-kropka, .gk2-wit-z-koszykiem .gk2-wit-kropka { opacity: 0; transform: scale(.4); }",
-    // dymek z nazwą po najechaniu (komputer)
-    ".gk2-wit-dymek { position: absolute; transform: translate(-50%, calc(-100% - 18px / var(--s))); padding: calc(6px / var(--s)) calc(10px / var(--s)); border-radius: calc(6px / var(--s)); background: #FFFCF4; color: var(--tusz); font-size: calc(11px / var(--s)); white-space: nowrap; box-shadow: 0 calc(6px / var(--s)) calc(16px / var(--s)) rgba(0,0,0,.3); opacity: 0; pointer-events: none; transition: opacity .2s ease; }",
-    "@media (hover: hover) { .gk2-wit-okno:not(.gk2-wit-blisko) .gk2-wit-ciasto:hover .gk2-wit-dymek { opacity: 1; } }",
-    ".gk2-wit-ciasto:focus-visible { outline: calc(2px / var(--s)) solid #fff; outline-offset: calc(-6px / var(--s)); border-radius: calc(14px / var(--s)); }",
-    // podpowiedź na górze zdjęcia
-    ".gk2-wit-wskazowka { position: absolute; left: 50%; top: 12px; z-index: 2; margin: 0; transform: translateX(-50%); padding: 7px 12px 6px; border-radius: 999px; background: rgba(255,252,244,.9); color: var(--tusz); white-space: nowrap; transition: opacity .35s ease; pointer-events: none; }",
-    ".gk2-wit-blisko .gk2-wit-wskazowka, .gk2-wit-z-koszykiem .gk2-wit-wskazowka { opacity: 0; }",
-    // strzałki przy przybliżeniu (na komputerze na wysokości ciasta, nad kartą)
-    ".gk2-wit-strzalka { position: absolute; top: calc((100% - var(--karta-d)) / 2); z-index: 3; width: 42px; height: 42px; margin-top: -21px; border-radius: 50%; border: 1.5px solid var(--tusz); background: rgba(255,252,244,.94); color: var(--tusz); display: grid; place-items: center; cursor: pointer; padding: 0; animation: gk2-wit-wjazd .5s ease both; }",
-    ".gk2-wit-strzalka-l { left: 12px; }",
-    ".gk2-wit-strzalka-p { right: 12px; }",
-    "@media (hover: hover) { .gk2-wit-strzalka:hover { background: var(--tusz); color: var(--maslo); } }",
-    // pigułki pod zdjęciem: cały stół, cztery ciasta, koszyk
-    ".gk2-wit-pigulki { margin-top: 14px; display: flex; justify-content: center; }",
-    ".gk2-wit-pigulki-w { display: inline-flex; align-items: center; gap: 2px; padding: 4px; border: 1.5px solid var(--tusz); border-radius: 999px; background: rgba(255,252,244,.94); }",
-    ".gk2-wit-pig { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border: 0; border-radius: 999px; background: none; color: var(--tusz); font: inherit; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; cursor: pointer; white-space: nowrap; transition: background .25s ease, color .25s ease; }",
-    ".gk2-wit-pig-on { background: var(--tusz); color: var(--maslo); }",
-    "@media (hover: hover) { .gk2-wit-pig:not(.gk2-wit-pig-on):hover { background: rgba(17,17,17,.08); } }",
-    ".gk2-wit-pig-kreska { width: 1.5px; height: 18px; background: rgba(17,17,17,.3); margin: 0 4px; }",
-    ".gk2-wit-torba b { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--rubin); color: #fff; font-size: 10px; line-height: 18px; letter-spacing: 0; text-align: center; font-weight: 400; }",
-    ".gk2-wit-hop { animation: gk2-wit-hop .6s cubic-bezier(.3,1.6,.5,1); }",
-    "@keyframes gk2-wit-hop { 0% { transform: scale(1); } 35% { transform: scale(1.18); } 100% { transform: scale(1); } }",
-    "@keyframes gk2-wit-wjazd { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }",
-    // panele: karta ciasta (na komputerze pasek na dole zdjęcia) i koszyk (na komputerze z prawej)
-    ".gk2-wit-panel { position: absolute; z-index: 4; box-sizing: border-box; border: 1.5px solid var(--tusz); border-radius: 14px; background: #FFFCF4; color: var(--tusz); box-shadow: 0 26px 50px -24px rgba(20,8,4,.7); animation: gk2-wit-wjazd .55s cubic-bezier(.2,.8,.2,1) both; }",
-    ".gk2-wit-karta { left: 14px; right: 14px; top: calc(var(--okno-h) - var(--karta-d) + 14px); min-height: calc(var(--karta-d) - 28px); display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 24px; padding: 14px 62px 14px 20px; }",
-    ".gk2-wit-karta .gk2-wit-karta-fakty { display: none; }",
-    ".gk2-wit-karta .gk2-wit-nazwa { margin-top: 6px; padding-right: 0; font-size: clamp(24px, 2vw, 34px); }",
-    ".gk2-wit-karta .gk2-wit-dodaj { margin-top: 0; }",
-    ".gk2-wit-karta .gk2-wit-zamknij { top: 50%; margin-top: -16px; right: 14px; }",
-    ".gk2-wit-karta-cena { display: grid; gap: 4px; justify-items: end; }",
-    ".gk2-wit-karta-cena span { opacity: .6; }",
-    ".gk2-wit-karta-cena b { font-size: clamp(22px, 1.8vw, 30px); color: var(--rubin); line-height: .9; }",
-    ".gk2-wit-koszyk { top: 14px; right: 14px; width: min(340px, 44%); max-height: calc(var(--okno-h) - 28px); overflow: auto; padding: 20px 20px 18px; }",
-    ".gk2-wit-zamknij { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; padding: 0; border-radius: 50%; border: 1.5px solid var(--tusz); background: none; color: var(--tusz); display: grid; place-items: center; cursor: pointer; }",
-    ".gk2-wit-nr { display: flex; align-items: center; gap: 8px; }",
-    ".gk2-wit-nr::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--rubin); }",
-    ".gk2-wit-nazwa { margin: 10px 0 0; font-size: clamp(28px, 2.4vw, 40px); padding-right: 30px; }",
-    ".gk2-wit-opis { margin: 10px 0 0; font-size: 13px; line-height: 1.5; opacity: .85; }",
-    ".gk2-wit-fakty { margin: 14px 0 0; border-top: 1.5px solid var(--tusz); font-size: 11px; line-height: 1.45; letter-spacing: .05em; text-transform: uppercase; }",
-    ".gk2-wit-fakty div { display: grid; grid-template-columns: 6.4em 1fr; gap: 10px; padding: 8px 0; border-bottom: 1.5px solid var(--tusz); }",
-    ".gk2-wit-fakty dt { opacity: .6; }",
-    ".gk2-wit-fakty dd { margin: 0; }",
-    ".gk2-wit-dodaj { display: flex; gap: 10px; margin-top: 16px; }",
-    ".gk2-wit-ilosc { display: inline-flex; align-items: center; flex: none; border: 1.5px solid var(--tusz); border-radius: 999px; }",
-    ".gk2-wit-ilosc button { width: 34px; height: 40px; padding: 0; border: 0; background: none; color: var(--tusz); font: inherit; font-size: 17px; cursor: pointer; }",
-    ".gk2-wit-ilosc output { min-width: 16px; text-align: center; font-size: 13px; }",
-    ".gk2-wit-do-koszyka { flex: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 43px; padding: 0 18px; box-sizing: border-box; border: 0; border-radius: 999px; background: var(--tusz); color: var(--maslo); font: inherit; font-size: 12px; letter-spacing: .07em; text-transform: uppercase; text-decoration: none; cursor: pointer; white-space: nowrap; transition: background .25s ease, color .25s ease; }",
-    ".gk2-wit-dodano { background: var(--roz); color: var(--tusz); }",
-    "@media (hover: hover) { .gk2-wit-do-koszyka:not(.gk2-wit-dodano):hover { background: var(--rubin); color: #fff; } }",
-    ".gk2-wit-dalej { display: flex; width: 100%; margin-top: 16px; }",
-    ".gk2-wit-dalej[aria-disabled='true'] { opacity: .3; pointer-events: none; }",
-    ".gk2-wit-lista { list-style: none; margin: 14px 0 0; padding: 0; border-top: 1.5px solid var(--tusz); }",
-    ".gk2-wit-lista li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1.5px solid var(--tusz); }",
-    ".gk2-wit-lista-nazwa { display: grid; gap: 4px; }",
-    ".gk2-wit-lista-nazwa b { font-size: 17px; line-height: .95; font-weight: 700; }",
-    ".gk2-wit-lista-nazwa small { font-size: 10px; opacity: .7; }",
-    ".gk2-wit-lista .gk2-wit-ilosc button { height: 34px; width: 30px; }",
-    ".gk2-wit-usun { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--tusz); display: grid; place-items: center; opacity: .55; cursor: pointer; }",
-    "@media (hover: hover) { .gk2-wit-usun:hover { opacity: 1; background: rgba(17,17,17,.08); } }",
-    ".gk2-wit-nazwa-koszyk { margin-top: 2px; }",
-    ".gk2-wit-razem { display: flex; align-items: baseline; justify-content: space-between; margin-top: 12px; }",
-    ".gk2-wit-razem b { font-size: 30px; }",
-    // licznik koszyka w menu i na pasku telefonu (liczbę podaje sklep przez licznik CSS)
+    "/* Sklep świąteczny „Scena ciast”: ciasto na różu RAL 3015, spod niego wychodzi aksamitna wstęga. Ruch liczy CSS ze zmiennych: */",
+    "/* --t przejście 0..1, --k kierunek, --b wejście sceny 0..1, --mx/--my kursor, --u jednostka pola sceny, --sw jednostka sceny, */",
+    "/* --ph wysokość pola, --wx/--wy punkt, w którym wstęga przechodzi pod ciastem, --wh szerokość wstęgi */",
+    ".gk2-sc-korzen { position: relative; min-width: 0; --wn-krem: #FFFCF4; --wn-h: clamp(480px, calc(var(--vh) * 100 - 252px), 640px); --sw: .553vw; --u: .343vw; --ph: var(--wn-h); --hu: calc(var(--ph) / 100); --wx: 28%; --wy: .63; --wh: calc(11.5 * var(--u)); --zn: 2; --cs: rgba(112,14,42,.42); }",
+    ".gk2-sc { position: relative; display: grid; height: var(--wn-h); border-radius: 22px; overflow: hidden; isolation: isolate; border: 1.5px solid var(--tusz); background: radial-gradient(calc(64 * var(--u)) calc(54 * var(--u)) at var(--wx) calc(var(--ph) * var(--wy) - 10 * var(--u)), rgba(255,255,255,.46), rgba(255,255,255,0) 100%), var(--roz); touch-action: pan-y; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; cursor: grab; box-shadow: 0 34px 54px -36px rgba(110,24,56,.6); --t: 0; --k: 1; --b: 1; --mx: 0; --my: 0; --bq: clamp(0, calc((var(--b) - .32) / .68), 1); --bc: calc(1 - (1 - var(--bq)) * (1 - var(--bq)) * (1 - var(--bq))); }",
+    ".gk2-sc.gk2-sc-chwyt { cursor: grabbing; }",
+    // plakaty ciast nie tworzą własnych warstw: ich części przeplatają się ze wstęgą (napis 1, wstęga 2, opis 3, ciasto 4, znacznik zdjęcia 6, przyciski 7)
+    ".gk2-sc-sl { grid-area: 1 / 1; position: relative; min-width: 0; overflow: hidden; color: var(--tusz); --d: 0; --ad: 0; }",
+    ".gk2-sc-zegnaj { visibility: hidden; }",
+    ".gk2-sc-wy { --d: calc(var(--t) * var(--k) * -1); --ad: var(--t); }",
+    ".gk2-sc-we { --d: calc((1 - var(--t)) * var(--k)); --ad: calc(1 - var(--t)); }",
+    // wstęga: aksamitny pas w poprzek sceny, przechodzi pod podstawą ciasta; przy przejściu jedzie razem z ciastami jak taśma
+    ".gk2-sc-wstega { position: absolute; z-index: 2; left: 0; top: calc(var(--ph) * var(--wy)); width: 100%; height: 0; display: block; pointer-events: none; transform: rotate(-6deg); transform-origin: var(--wx) 0; }",
+    ".gk2-sc-wstega > i { position: absolute; left: -30%; right: -30%; top: calc(var(--wh) / -2); height: var(--wh); display: block; overflow: hidden; background: linear-gradient(180deg, " + AKSAMIT + "); box-shadow: 0 calc(2 * var(--u)) calc(3.2 * var(--u)) calc(-1.4 * var(--u)) rgba(96,8,28,.62); --br: clamp(0, calc(var(--b) / .48), 1); clip-path: inset(-50% calc((1 - var(--br) * var(--br) * (3 - 2 * var(--br))) * 100%) -110% 0); }",
+    ".gk2-sc-wstega b { position: absolute; left: calc(-120 * var(--sw)); right: calc(-120 * var(--sw)); top: 0; bottom: 0; display: block; background: " + ZIARNO + " 0 0 / calc(59 * var(--sw) / var(--zn)) calc(59 * var(--sw) / var(--zn)), radial-gradient(34% 70% at 50% 42%, rgba(255,132,120,.2), rgba(255,132,120,0)) 0 0 / calc(59 * var(--sw)) 100% repeat-x; transform: translate3d(calc((1 - var(--bc)) * 118 * var(--sw) - var(--t) * var(--k) * 118 * var(--sw)), 0, 0); will-change: transform; }",
+    // wielki napis: nazwa ciasta płynie za nim, pod wstęgą; na komputerze lekko ucieka od kursora
+    ".gk2-sc-slowo { position: absolute; z-index: 1; left: 0; top: calc(2.5 * var(--u)); width: 100%; color: rgba(255,255,255,.4); white-space: nowrap; pointer-events: none; transform: translate3d(calc(var(--d) * 40 * var(--sw) - var(--mx) * 2.2 * var(--u)), calc(var(--my) * -1.2 * var(--u)), 0); opacity: calc(clamp(0, var(--b) * 2.5, 1) * (1 - var(--ad) * 1.7)); }",
+    ".gk2-sc-slowo span { display: inline-flex; font-size: calc(25 * var(--u)); line-height: 1; letter-spacing: 0; animation: gk2-sc-bieg 40s linear infinite; will-change: transform; }",
+    ".gk2-sc-slowo b { font-weight: inherit; padding-right: .2em; }",
+    ".gk2-sc-slowo b i { font-style: normal; padding-left: .2em; }",
+    "@keyframes gk2-sc-bieg { to { transform: translate3d(-50%, 0, 0); } }",
+    // pole sceny: ciasto (na komputerze lewa część sceny, na telefonie cała szerokość)
+    ".gk2-sc-pole { position: absolute; left: 0; top: 0; width: 56%; height: 100%; pointer-events: none; }",
+    // znacznik roboczy: ta pozycja nie ma jeszcze własnego zdjęcia (znika sam, gdy z oferty zejdzie „zast”)
+    ".gk2-sc-zast { position: absolute; z-index: 6; left: 22px; top: 22px; padding: 6px 10px; border: 1px dashed var(--tusz); border-radius: 999px; background: rgba(255,252,244,.72); font-size: 10px; line-height: 1; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; opacity: calc(clamp(0, calc((var(--b) - .8) / .2), 1) * (1 - var(--ad) * 2.6)); }",
+    // ciasto: prawdziwe zdjęcie, środek jego podstawy stoi na wstędze; przy przejściu i przy wejściu sceny jedzie wzdłuż wstęgi
+    ".gk2-sc-ciasto { position: absolute; z-index: 4; left: 50%; top: calc(var(--wy) * 100%); width: calc(var(--cw) * var(--u)); --dc: calc(var(--d) + 1 - var(--bc)); transform-origin: calc(var(--bx) * 100%) calc(var(--by) * 100%); transform: translate3d(calc(var(--bx) * -100% + var(--dc) * 118 * var(--sw)), calc(var(--by) * -100% - var(--dc) * 12.4 * var(--sw)), 0) rotate(calc(var(--dc) * var(--cr))) scale(calc(1 - (var(--ad) + 1 - var(--bc)) * .08)); will-change: transform; }",
+    ".gk2-sc-foto { position: relative; display: block; width: 100%; height: auto; }",
+    ".gk2-sc-foto-lustro { transform: scaleX(-1); }",
+    ".gk2-sc-foto-dysk { filter: drop-shadow(0 calc(1.5 * var(--u)) calc(1.9 * var(--u)) var(--cs)); }",
+    ".gk2-sc-foto-bryla { filter: drop-shadow(0 calc(.9 * var(--u)) calc(1.3 * var(--u)) var(--cs)); }",
+    ".gk2-sc-cien { position: absolute; display: block; border-radius: 50%; background: radial-gradient(closest-side, var(--cs), rgba(0,0,0,0)); transform: translate(-50%, -50%); }",
+    // opis ciasta: nazwa nad wstęgą, cena pod nią; leży pod ciastem, więc jadące ciasto po prostu go zasłania
+    ".gk2-sc-opis-g, .gk2-sc-cena { position: absolute; z-index: 3; right: 30px; width: min(40%, 320px); opacity: calc(1 - var(--ad) * 2.6); transform: translate3d(calc(var(--d) * 6 * var(--sw)), 0, 0); }",
+    ".gk2-sc-opis-g { bottom: calc(100% - var(--ph) * var(--wy) + 7.2 * var(--sw) + var(--wh) / 2 + 18px); display: flex; flex-direction: column; }",
+    ".gk2-sc-cena { top: calc(var(--ph) * var(--wy) - 2.9 * var(--sw) + var(--wh) / 2 + 20px); display: block; font-size: clamp(40px, 3.7vw, 58px); line-height: .85; white-space: nowrap; }",
+    ".gk2-sc-nr { display: flex; align-items: center; gap: 8px; }",
+    ".gk2-sc-nr::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--rubin); }",
+    ".gk2-sc-tytul { margin-top: 12px; font-size: clamp(30px, 2.9vw, 44px); line-height: 1.03; }",
+    ".gk2-sc-reszta { margin-top: 10px; font-size: 13px; line-height: 1.5; }",
+    ".gk2-sc-sklad { margin-top: 10px; display: grid; gap: 2px; font-size: 11.5px; line-height: 1.4; }",
+    ".gk2-sc-akcja { position: absolute; z-index: 7; right: 30px; bottom: 30px; width: max-content; min-width: min(40%, 320px); max-width: calc(100% - 60px); display: flex; gap: 10px; }",
+    ".gk2-sc-akcja .gk2-wn-ilosc { background: rgba(255,255,255,.3); }",
+    ".gk2-sc-nast { position: absolute; z-index: 7; top: 20px; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1.5px solid var(--tusz); background: rgba(255,255,255,.3); color: var(--tusz); display: grid; place-items: center; cursor: pointer; transition: background .25s ease, color .25s ease; }",
+    ".gk2-sc-nast-l { right: 74px; }",
+    ".gk2-sc-nast-p { right: 22px; }",
+    "@media (hover: hover) { .gk2-sc-nast:hover { background: var(--tusz); color: var(--maslo); } }",
+    ".gk2-sc-kropki { position: absolute; z-index: 7; left: 50%; top: calc(98 * var(--u)); display: none; gap: 6px; transform: translateX(-50%); pointer-events: none; }",
+    ".gk2-sc-kropki i { width: 6px; height: 6px; border-radius: 50%; background: rgba(17,17,17,.28); transition: background .3s ease, width .3s ease; }",
+    ".gk2-sc-kropki .gk2-sc-kropka-on { width: 18px; background: var(--tusz); }",
+    // poza ekranem scena śpi (bez animacji w tle)
+    ".gk2-sc-spi .gk2-sc-slowo span { animation-play-state: paused; }",
+    // pigułki: pasek przewija się w poziomie, gdy nie mieści wszystkich pozycji
+    ".gk2-sc-korzen .gk2-wn-pigulki { position: relative; }",
+    // tablet w pionie (układ jednokolumnowy, szeroki): dolna wstążka papieru zostaje krótkim końcem na marginesie, żeby nie wchodziła pod tabelkę z odbiorem
+    "@media (min-width: 600px) and (max-width: 809px), (min-width: 600px) and (max-aspect-ratio: 21/20) { .gk2-sklep .gk2-sklep-wstazka-b { width: 11vw; } }",
+    "@keyframes gk2-wn-karta-in { from { opacity: 0; transform: translate3d(28px, 0, 0); } }",
+    ".gk2-wn-x { position: absolute; top: 8px; right: 8px; z-index: 2; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: var(--tusz); display: grid; place-items: center; cursor: pointer; }",
+    ".gk2-wn-x span { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--tusz); display: grid; place-items: center; transition: background .25s ease, color .25s ease; }",
+    "@media (hover: hover) { .gk2-wn-x:hover span { background: var(--tusz); color: var(--maslo); } }",
+    ".gk2-wn-ilosc { display: inline-flex; align-items: center; flex: none; border: 1.5px solid var(--tusz); border-radius: 999px; }",
+    ".gk2-wn-ilosc button { width: 40px; height: 45px; padding: 0; border: 0; background: none; color: var(--tusz); font: inherit; font-size: 18px; cursor: pointer; }",
+    ".gk2-wn-ilosc button:disabled { opacity: .28; cursor: default; }",
+    ".gk2-wn-ilosc output { min-width: 14px; text-align: center; font-size: 14px; }",
+    ".gk2-wn-przycisk { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--tusz); color: var(--maslo); font: inherit; font-size: 12px; letter-spacing: .07em; text-transform: uppercase; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background .25s ease, color .25s ease; }",
+    ".gk2-wn-przycisk:disabled, .gk2-wn-przycisk[aria-disabled='true'] { background: rgba(17,17,17,.14); color: rgba(17,17,17,.6); cursor: default; }",
+    ".gk2-wn-przycisk.gk2-wn-dodano { background: var(--wn-krem); color: var(--tusz); }",
+    "@media (hover: hover) { .gk2-wn-przycisk:not(:disabled):not([aria-disabled='true']):not(.gk2-wn-dodano):hover { background: var(--rubin); color: #fff; } }",
+    ".gk2-wn-nawi { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; }",
+    ".gk2-wn-pigulki { display: flex; align-items: center; gap: 2px; min-width: 0; padding: 4px; border: 1.5px solid var(--tusz); border-radius: 999px; background: rgba(255,252,244,.94); overflow-x: auto; scrollbar-width: none; }",
+    ".gk2-wn-pigulki::-webkit-scrollbar { display: none; }",
+    ".gk2-wn-pig { flex: none; height: 36px; padding: 0 13px; border: 0; border-radius: 999px; background: none; color: var(--tusz); font: inherit; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: background .25s ease, color .25s ease; }",
+    ".gk2-wn-pig-on { background: var(--tusz); color: var(--maslo); }",
+    "@media (hover: hover) { .gk2-wn-pig:not(.gk2-wn-pig-on):hover { background: rgba(17,17,17,.08); } }",
+    ".gk2-wn-torba { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 47px; height: 47px; padding: 0 14px; border: 1.5px solid var(--tusz); border-radius: 999px; background: var(--tusz); color: var(--maslo); cursor: pointer; transition: background .25s ease, color .25s ease; }",
+    ".gk2-wn-torba b { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--roz); color: var(--tusz); font-size: 11px; line-height: 20px; font-weight: 400; text-align: center; }",
+    ".gk2-wn-torba-on { background: var(--roz); color: var(--tusz); }",
+    ".gk2-wn-torba-on b { background: var(--tusz); color: var(--maslo); }",
+    ".gk2-wn-hop { animation: gk2-wn-hop .6s cubic-bezier(.3,1.6,.5,1); }",
+    "@keyframes gk2-wn-hop { 0% { transform: scale(1); } 35% { transform: scale(1.22); } 100% { transform: scale(1); } }",
+    ".gk2-wn-bilet { position: absolute; z-index: 7; left: 50%; top: 0; width: 288px; margin-left: -144px; padding: 0 26px 34px; overflow: hidden; pointer-events: none; transform-origin: 50% 0; }",
+    ".gk2-wn-bilet::before { content: ''; position: absolute; left: 22px; right: 22px; top: 0; height: 5px; z-index: 2; border-radius: 0 0 4px 4px; background: #0B0B0B; }",
+    ".gk2-wn-bilet-papier { position: relative; display: grid; gap: 5px; padding: 18px 14px 14px; background: var(--wn-krem); color: var(--tusz); font-size: 10.5px; line-height: 1.35; letter-spacing: .05em; text-transform: uppercase; filter: drop-shadow(0 12px 12px rgba(80,14,40,.34)); animation: gk2-wn-druk .78s steps(13, end) backwards; }",
+    ".gk2-wn-bilet-papier::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 7px; background: linear-gradient(135deg, var(--wn-krem) 50%, rgba(255,252,244,0) 50%) 0 0 / 10px 7px repeat-x, linear-gradient(225deg, var(--wn-krem) 50%, rgba(255,252,244,0) 50%) 0 0 / 10px 7px repeat-x; }",
+    "@keyframes gk2-wn-druk { from { transform: translate3d(0, -104%, 0); } }",
+    ".gk2-wn-bilet-papier > span { display: block; animation: gk2-wn-linia .12s linear backwards; animation-delay: calc(.5s + var(--l, 0) * 62ms); }",
+    "@keyframes gk2-wn-linia { from { opacity: 0; } }",
+    ".gk2-wn-bilet-logo { width: 62%; margin: 0 auto 2px; }",
+    ".gk2-wn-bilet-logo .gk2-wyc { width: 100%; }",
+    ".gk2-wn-bilet-papier > .gk2-wn-bilet-kreska { height: 0; border-top: 1.5px dashed rgba(17,17,17,.6); margin: 3px 0; }",
+    ".gk2-wn-bilet-papier > .gk2-wn-bilet-rzad { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }",
+    ".gk2-wn-bilet-rzad em { font-style: normal; min-width: 0; }",
+    ".gk2-wn-bilet-rzad b { flex: none; font-weight: 400; white-space: nowrap; }",
+    ".gk2-wn-bilet-leci { animation: gk2-wn-lot .62s cubic-bezier(.5,0,.75,.4) forwards; }",
+    "@keyframes gk2-wn-lot { 0% { transform: none; opacity: 1; } 32% { transform: scale(.86, .2); opacity: 1; } 100% { transform: translate3d(var(--bx, 0px), var(--by, 300px), 0) scale(.12, .04) rotate(10deg); opacity: .15; } }",
+    ".gk2-wn-koszyk { position: absolute; z-index: 6; top: 14px; right: 14px; width: min(372px, 48%); max-height: calc(var(--wn-h) - 28px); display: flex; flex-direction: column; overflow: hidden; padding: 20px 20px 14px; border-radius: 6px 6px 0 0; background: var(--wn-krem); color: var(--tusz); font-size: 12px; line-height: 1.45; box-shadow: 0 30px 60px -20px rgba(0,0,0,.75); animation: gk2-wn-karta-in .6s cubic-bezier(.2,.8,.2,1) backwards; }",
+    ".gk2-wn-koszyk > * { flex: none; }",
+    ".gk2-wn-koszyk > .gk2-wn-koszyk-srodek { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; border-bottom: 1.5px dashed rgba(17,17,17,.6); }",
+    ".gk2-wn-koszyk-glowa { display: grid; justify-items: center; gap: 6px; padding: 2px 34px 12px; border-bottom: 1.5px dashed rgba(17,17,17,.6); text-align: center; }",
+    ".gk2-wn-koszyk-logo { width: 150px; }",
+    ".gk2-wn-pusto { margin-top: 16px; font-size: 13px; line-height: 1.5; }",
+    ".gk2-wn-lista li { display: grid; grid-template-columns: minmax(0, 1fr) auto 4.6em; align-items: center; column-gap: 10px; padding: 9px 0; border-bottom: 1.5px dashed rgba(17,17,17,.6); }",
+    ".gk2-wn-lista-nazwa { display: grid; gap: 2px; }",
+    ".gk2-wn-lista-nazwa b { font-weight: 400; font-size: 12.5px; letter-spacing: .05em; text-transform: uppercase; }",
+    ".gk2-wn-lista-nazwa small { font-size: 11px; opacity: .7; }",
+    ".gk2-wn-lista-suma { font-weight: 400; font-size: 13px; white-space: nowrap; text-align: right; }",
+    ".gk2-wn-ilosc-m button { width: 36px; height: 38px; }",
+    ".gk2-wn-odbiory { display: grid; gap: 6px; padding: 12px 0; }",
+    ".gk2-wn-etykieta { opacity: .75; }",
+    ".gk2-wn-odb-rzad { display: grid; gap: 5px; padding-top: 2px; }",
+    ".gk2-wn-odb-rzad > b { font-weight: 400; font-size: 12px; letter-spacing: .04em; white-space: nowrap; }",
+    ".gk2-wn-odb-rzad > span { display: flex; flex-wrap: wrap; gap: 6px; }",
+    ".gk2-wn-odb { min-height: 40px; padding: 0 10px; border: 1.5px solid var(--tusz); border-radius: 999px; background: none; color: var(--tusz); font: inherit; font-size: 11px; letter-spacing: .03em; white-space: nowrap; cursor: pointer; transition: background .2s ease, color .2s ease; }",
+    ".gk2-wn-odb-wybor { font-size: 11px; line-height: 1.4; opacity: .8; }",
+    ".gk2-wn-odb-on { background: var(--tusz); color: var(--maslo); }",
+    ".gk2-wn-sumy { padding: 10px 0 0; }",
+    ".gk2-wn-sumy div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 2px 0; }",
+    ".gk2-wn-sumy dt { letter-spacing: .05em; text-transform: uppercase; font-size: 11px; }",
+    ".gk2-wn-sumy dd { white-space: nowrap; }",
+    ".gk2-wn-sumy .gk2-wn-sumy-razem { padding-bottom: 6px; font-size: 16px; }",
+    ".gk2-wn-sumy .gk2-wn-sumy-razem dt { font-size: 13px; }",
+    ".gk2-wn-zaplac { display: flex; width: 100%; margin-top: 10px; min-height: 50px; }",
+    ".gk2-wn-stopka { margin-top: 10px; text-align: center; opacity: .7; }",
     ".gk2-licznik { display: none; min-width: 18px; height: 18px; padding: 0 5px; margin-right: -6px; border-radius: 9px; background: var(--rubin); color: #fff; font-size: 10px; line-height: 18px; letter-spacing: 0; text-align: center; font-weight: 400; box-sizing: border-box; }",
     ".gk2-licznik::before, .gk2-licznik-tekst::before { content: counter(gk2koszyk); }",
     ".gk2-licznik-tekst { font-style: normal; }",
@@ -2394,24 +2980,31 @@ const CSS_B = [
     "  .gk2-wypiek-nazwa { font-size: 7.2vw; }",
     "  .gk2-wypiek-opis { font-size: 12px; line-height: 1.42; }",
     "  .gk2-wypiek-link { margin-top: 2px; }",
-    "  .gk2-witryna { order: 4; margin-top: 22px; margin-left: calc(var(--m) * -1 + 8px); margin-right: calc(var(--m) * -1 + 8px); --karta-d: 0px; }",
-    "  .gk2-wit-okno { aspect-ratio: 998 / 1158; border-radius: 12px; }",
-    "  .gk2-wit-wskazowka { top: 8px; }",
-    "  .gk2-wit-panel { position: relative; left: auto; right: auto; top: auto; bottom: auto; width: auto; max-height: none; margin: 12px calc(var(--m) - 8px) 0; }",
-    "  .gk2-wit-karta { display: block; min-height: 0; padding: 20px; }",
-    "  .gk2-wit-karta .gk2-wit-karta-fakty { display: block; }",
-    "  .gk2-wit-karta .gk2-wit-nazwa { margin-top: 10px; padding-right: 30px; }",
-    "  .gk2-wit-karta .gk2-wit-dodaj { margin-top: 16px; }",
-    "  .gk2-wit-karta .gk2-wit-zamknij { top: 12px; margin-top: 0; }",
-    "  .gk2-wit-karta-cena { display: flex; align-items: baseline; justify-content: space-between; margin-top: 12px; }",
-    "  .gk2-wit-koszyk { padding: 20px; }",
-    "  .gk2-wit-pigulki { margin-left: calc(var(--m) - 8px); margin-right: calc(var(--m) - 8px); }",
-    "  .gk2-wit-pig-cala { display: none; }",
-    "  .gk2-wit-pig { padding: 0 11px; }",
-    "  .gk2-wit-pig-kreska { margin: 0 2px; }",
-    "  .gk2-wit-strzalka { width: 38px; height: 38px; margin-top: -19px; }",
-    "  .gk2-wit-strzalka-l { left: 8px; }",
-    "  .gk2-wit-strzalka-p { right: 8px; }",
+    "  .gk2-witryna { order: 4; margin-top: 22px; margin-left: calc(var(--m) * -1 + 8px); margin-right: calc(var(--m) * -1 + 8px); }",
+    "  .gk2-sc-korzen { --sw: calc((100vw - 16px) / 100); --u: var(--sw); --ph: clamp(calc(88 * var(--u)), calc(var(--vh) * 100 - 332px), calc(102 * var(--u))); --wx: 50%; --wy: .6; --wh: calc(13 * var(--u)); --zn: 1; }",
+    "  .gk2-sc { height: auto; border-radius: 18px; cursor: default; }",
+    "  .gk2-sc-sl { padding-bottom: 82px; }",
+    "  .gk2-sc-pole { position: relative; width: 100%; height: var(--ph); }",
+    "  .gk2-sc-opis { position: relative; z-index: 6; margin: 0 16px; height: 146px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-content: end; align-items: end; column-gap: 12px; opacity: calc(1 - var(--ad) * 2.6); transform: translate3d(calc(var(--d) * 6 * var(--sw)), 0, 0); }",
+    "  .gk2-sc-opis-g { display: contents; }",
+    "  .gk2-sc-cena { position: static; width: auto; opacity: 1; transform: none; grid-column: 2; grid-row: 1; font-size: min(9.8vw, 50px); line-height: .8; }",
+    "  .gk2-sc-nr { grid-column: 1; grid-row: 1; padding-bottom: 3px; }",
+    "  .gk2-sc-tytul { grid-column: 1 / -1; margin-top: 10px; font-size: min(8.6vw, 44px); line-height: .96; }",
+    "  .gk2-sc-reszta, .gk2-sc-sklad { grid-column: 1 / -1; margin-top: 7px; font-size: 12px; line-height: 1.4; }",
+    "  .gk2-sc-akcja { left: 16px; right: 16px; bottom: 16px; width: auto; min-width: 0; max-width: none; }",
+    "  .gk2-sc-nast { display: none; }",
+    "  .gk2-sc-kropki { display: flex; top: auto; bottom: 238px; }",
+    "  .gk2-sc-zast { left: 14px; top: 14px; }",
+    "  @keyframes gk2-wn-arkusz-in { from { opacity: 0; transform: translate3d(0, 30px, 0); } }",
+    "  .gk2-wn-x { top: 2px; right: 2px; }",
+    "  .gk2-wn-ilosc button { width: 44px; }",
+    "  .gk2-wn-nawi { margin-left: calc(var(--m) - 8px); margin-right: calc(var(--m) - 8px); justify-content: space-between; }",
+    "  .gk2-wn-pig { height: 40px; padding: 0 10px; font-size: 10.5px; }",
+    "  .gk2-wn-odb { min-height: 44px; }",
+    "  .gk2-wn-koszyk { position: relative; top: auto; right: auto; width: auto; max-height: none; display: block; overflow: visible; margin: 14px calc(var(--m) - 8px) 8px; padding: 20px 16px 16px; animation-name: gk2-wn-arkusz-in; }",
+    "  .gk2-wn-koszyk > .gk2-wn-koszyk-srodek { overflow: visible; }",
+    "  .gk2-wn-koszyk::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 8px; background: linear-gradient(135deg, var(--wn-krem) 50%, rgba(255,252,244,0) 50%) 0 0 / 12px 8px repeat-x, linear-gradient(225deg, var(--wn-krem) 50%, rgba(255,252,244,0) 50%) 0 0 / 12px 8px repeat-x; }",
+    "  .gk2-wn-bilet { width: 276px; margin-left: -138px; }",
     "  .gk2-sklep-tekst > * { position: relative; z-index: 1; }",
     "  .gk2-opak { --kx: calc(var(--sw) * .5); --ky: calc(var(--sh) * .6); --kw: calc(var(--sw) * .66); }",
     "  .gk2-pas-v { display: none; }",
@@ -2471,8 +3064,7 @@ const CSS_B = [
     "  .gk2 *, .gk2 *::before, .gk2 *::after { animation: none !important; transition: none !important; }",
     "  .gk2-js .gk2-wjazd, .gk2-js .gk2-linie > span > span, .gk2-js .gk2-s { opacity: 1 !important; transform: none !important; }",
     "  .gk2-js .gk2-opak, .gk2-js .gk2-swieta-droga { display: none !important; }",
-    "  .gk2-wit-scena { transition: none !important; }",
-    "  .gk2-wit-panel, .gk2-wit-strzalka, .gk2-wit-hop { animation: none !important; }",
+    "  .gk2-sc-slowo span { animation: none !important; }",
     "  .gk2-film-zdjecia img:first-child { opacity: 1; }",
     "  .gk2-js .gk2-hero, .gk2-js .gk2-kino { height: calc(var(--vh) * 100); }",
     "}",
@@ -3042,7 +3634,7 @@ interface Props {
 }
 
 /**
- * Górka & Kulka — propozycja ze sklepem świątecznym: stół z ciastami przy lampkach, przybliżanie, koszyk.
+ * Górka & Kulka — propozycja: wersja ze Szarym Dniem na start i dużym przyciskiem „Zamów na Święta”.
  *
  * @framerIntrinsicWidth 1440
  * @framerSupportedLayoutWidth any
@@ -3353,7 +3945,7 @@ export default function KonceptFunduszWitryna(props: Props) {
                             <div className="gk2-e gk2-s">03 — Święta 2026</div>
                             <Linie linie={["Wypieki", "na Święta."]} className="gk2-h2 gk2-h2-sklep" bezWjazdu />
                             <p className="gk2-lead gk2-s" style={{ ["--i" as any]: 1 }}>
-                                {"Tort czekoladowy, sernik z\u00a0żurawiną, tarta pistacjowa i\u00a0sernik z\u00a0Lotusem. Pieczemy sami, na\u00a0zamówienie."}
+                                {"Serniki, tarta pistacjowa, tort czekoladowy i\u00a0box dla dwojga. Pieczemy sami, na\u00a0zamówienie. Przesuń i\u00a0wybierz."}
                             </p>
                             <dl className="gk2-fakty gk2-s" style={{ ["--i" as any]: 2 }}>
                                 <div>
@@ -3363,9 +3955,11 @@ export default function KonceptFunduszWitryna(props: Props) {
                                 <div>
                                     <dt>Odbiór</dt>
                                     <dd>
-                                        <span>{"Kawiarnia Centrum, ul.\u00a0Sikorskiego\u00a0126"}</span>
                                         <span>
-                                            <b>23 grudnia 10–19</b> · <b>24 grudnia 10–12</b>
+                                            <b>23 grudnia od 14:00</b>{" · Kawiarnia Centrum (ul.\u00a0Sikorskiego\u00a0126) i\u00a0Nova Park"}
+                                        </span>
+                                        <span>
+                                            <b>24 grudnia do 12:00</b>{" · Nova Park"}
                                         </span>
                                     </dd>
                                 </div>
