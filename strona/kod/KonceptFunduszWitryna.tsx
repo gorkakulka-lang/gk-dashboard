@@ -50,6 +50,8 @@ const SZARY = [
 ].map((f) => obraz(f))
 const KOKARDA = obraz("vWtpmRjDk5QAd1EhNzGB6NOmV1c.webp")
 const KUBEK = obraz("1oErhtKWUj4Zul5FVbxnAgZfWBI.webp")
+// Wigilia firmowa: stół z kawą, brownie i świeczką przy lampkach (zdjęcie G&K, 1086 × 1448; w repo strona/grafiki/wigilia-firmowa-kawa.jpg)
+const FOTO_WIGILIA = obraz("FXQzi3dxMw1Lhh7S2Y9o0nZZSM.jpg", 2048)
 
 // Kokarda pocięta na pięć części (wielokąty w procentach obrazka), żeby dało się ją rozwiązać.
 const KOK: Record<string, string> = {
@@ -2745,7 +2747,7 @@ const CSS_B = [
     ".gk2-firmy-tresc .gk2-lead { margin-top: 30px; }",
     ".gk2-firmy-foto { grid-area: foto; align-self: center; justify-self: end; position: relative; width: min(100%, 560px); }",
     ".gk2-firmy-okno { border-radius: 24px; overflow: hidden; aspect-ratio: 4 / 5; background: #E9CF86; }",
-    ".gk2-firmy-okno img { width: 100%; height: 116%; object-fit: cover; object-position: 57% 50%; will-change: transform; }",
+    ".gk2-firmy-okno img { width: 100%; height: 116%; object-fit: cover; object-position: 68% 50%; will-change: transform; }",
     ".gk2-firmy-kokarda { position: absolute; display: block; left: -9%; top: -8%; width: 36%; aspect-ratio: 1000 / 941; background: url(" + KOKARDA + ") 0 0 / 100% 100% no-repeat; transform: rotate(-13deg); filter: drop-shadow(0 12px 14px rgba(70,10,20,.32)); pointer-events: none; }",
     ".gk2-firmy-foto figcaption { margin-top: 14px; }",
     ".gk2-trojka { margin-top: 34px; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1.5px solid var(--tusz); border-bottom: 1.5px solid var(--tusz); max-width: 760px; }",
@@ -3995,7 +3997,7 @@ export default function KonceptFunduszWitryna(props: Props) {
                 </div>
                 <figure className="gk2-firmy-foto gk2-wjazd" data-wjazd="">
                     <div className="gk2-firmy-okno" ref={u("firmyOkno")}>
-                        <img ref={u("firmyObraz")} src={FOTO.ciasto} alt="Sernik na paterze i ciasto czekoladowe na marmurowym stole, goście nakładają sobie po kawałku" loading="lazy" decoding="async" />
+                        <img ref={u("firmyObraz")} src={FOTO_WIGILIA} alt="Dwie filiżanki kawy, brownie z kremem i malinami i świeczka na stole, w tle lampki i czerwony wazon" loading="lazy" decoding="async" />
                     </div>
                     <i className="gk2-firmy-kokarda" aria-hidden="true" />
                     <figcaption className="gk2-e">Kawiarnia Centrum, ul. Sikorskiego 126</figcaption>
