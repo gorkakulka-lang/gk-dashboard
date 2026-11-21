@@ -56,6 +56,23 @@ const FOTO_WIGILIA = obraz("FXQzi3dxMw1Lhh7S2Y9o0nZZSM.jpg", 2048)
 // z sernikiem i tortem w tle (1082 × 1492; w repo strona/grafiki/swieta-tarta-trzy-ciasta.jpg).
 const FOTO_SWIETA = obraz("0NCCWCqa0Ep8SmT5AztREO4KPA.jpg")
 const FOTO_TARTA = obraz("l5VY5R59aIxUHXLOCPUlwjhkNw.jpg", 2048)
+// Sprzedaż online: false = oferta widoczna, koszyk zablokowany do startu płatności (Stripe). Przełącznik na dzień startu.
+const SW_SPRZEDAZ = false
+// Formularze (wigilia, stolik) zapisują się w G&K OS (Supabase, funkcja gk_www_request), a właściciel dostaje maila.
+// Klucz publiczny (publishable) wolno trzymać w kodzie strony; dostęp do danych pilnują funkcje w bazie.
+const SW_API = "https://fnranvobetqcxtawcjop.supabase.co/rest/v1/rpc/"
+const SW_KLUCZ = "sb_publishable_PyMqWnUj33FHhXoALhy3Sw_rL0-4y73"
+// Pasek logotypów KPO (plik z poprzedniej strony, przezroczysty PNG 1024 × 131) — zawsze na białym tle.
+const KPO_PASEK = obraz("xPEA5XMgW1UjbF6u0Y7xyz69A.png")
+const SW_PODSTRONY = [
+    ["O nas", "/o-nas"],
+    ["Współpraca B2B", "/wspolpraca-b2b"],
+    ["Wypożyczalnia rowerów", "/wypozyczalnia-rowerow"],
+    ["Handel obwoźny", "/handel-obwozny"],
+    ["Dotacje", "/dotacje"],
+    ["Regulamin", "/regulamin"],
+    ["Polityka prywatności", "/polityka-prywatnosci"],
+]
 
 // Kokarda pocięta na pięć części (wielokąty w procentach obrazka), żeby dało się ją rozwiązać.
 const KOK: Record<string, string> = {
@@ -717,14 +734,63 @@ function Termin(props: { id: string; etykieta: string; dialog: string; odDzis?: 
     )
 }
 
-// Zapytanie o wigilię firmową. Makieta: nic nie jest wysyłane.
-function Zapytanie() {
-    const [wyslane, ustawWyslane] = useState(false)
-    if (wyslane)
+// Zapytanie o wigilię firmową i prośba o stolik: zapis w G&K OS przez funkcję gk_www_request, mail do właściciela.
+// Pole „strona” to pułapka na boty (ludzie go nie widzą), a czas wypełniania odsiewa automaty.
+function swWyslij(rodzaj: string, dane: Record<string, string>, pulapka: string, ms: number): Promise<string> {
+    return fetch(SW_API + "gk_www_request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: SW_KLUCZ },
+        body: JSON.stringify({ p_kind: rodzaj, p_data: dane, p_trap: pulapka, p_ms: ms }),
+    })
+        .then((r) =>
+            r.json().then(
+                (j) => {
+                    if (r.ok && j && j.ok) return ""
+                    return (j && (j.hint || j.message)) || "Nie udało się wysłać."
+                },
+                () => (r.ok ? "" : "Nie udało się wysłać.")
+            )
+        )
+        .catch(() => "Brak połączenia. Sprawdź internet i spróbuj jeszcze raz.")
+}
+
+function swDane(f: HTMLFormElement, pola: string[]): Record<string, string> {
+    const d = new FormData(f)
+    const w: Record<string, string> = {}
+    pola.forEach((p) => {
+        w[p] = String(d.get(p) || "").trim()
+    })
+    return w
+}
+
+function SwPulapka() {
+    return (
+        <label className="gk2-sw-pulapka" aria-hidden="true">
+            Strona
+            <input type="text" name="strona" tabIndex={-1} autoComplete="off" />
+        </label>
+    )
+}
+
+function SwStanWysylki(props: { blad: string; wysylam: boolean }) {
+    if (props.blad)
         return (
-            <div className="gk2-zapytanie-dzieki">
-                <p className="gk2-d gk2-h3">{"Dziękujemy. Odpiszemy z\u00a0ofertą."}</p>
-                <p className="gk2-drobny">Tak będzie wyglądać potwierdzenie. To makieta: zapytanie jeszcze nigdzie nie trafia.</p>
+            <p className="gk2-sw-blad" role="alert">
+                {props.blad + " Możesz też zadzwonić: 500 344 913."}
+            </p>
+        )
+    return null
+}
+
+function Zapytanie() {
+    const [stan, ustawStan] = useState<"" | "wysylam" | "wyslane">("")
+    const [blad, ustawBlad] = useState("")
+    const start = useRef(Date.now())
+    if (stan === "wyslane")
+        return (
+            <div className="gk2-zapytanie-dzieki" role="status">
+                <p className="gk2-d gk2-h3">{"Dziękujemy. Odpiszemy z ofertą."}</p>
+                <p className="gk2-drobny">{"Zwykle w ciągu jednego dnia roboczego."}</p>
             </div>
         )
     return (
@@ -732,33 +798,49 @@ function Zapytanie() {
             className="gk2-zapytanie"
             onSubmit={(e) => {
                 e.preventDefault()
-                ustawWyslane(true)
+                if (stan === "wysylam") return
+                const f = e.currentTarget
+                const d = swDane(f, ["firma", "termin", "osoby", "kontakt"])
+                ustawStan("wysylam")
+                ustawBlad("")
+                swWyslij("wigilia", d, String(new FormData(f).get("strona") || ""), Date.now() - start.current).then((b) => {
+                    if (b) {
+                        ustawBlad(b)
+                        ustawStan("")
+                    } else ustawStan("wyslane")
+                })
             }}
         >
             <label className="gk2-pole">
                 <span className="gk2-e">Firma</span>
-                <input type="text" name="firma" required autoComplete="organization" placeholder="Nazwa firmy" />
+                <input type="text" name="firma" required maxLength={120} autoComplete="organization" placeholder="Nazwa firmy" />
             </label>
             <Termin id="wigilia" etykieta="Termin" dialog="Wybierz dzień wigilii firmowej" />
             <label className="gk2-pole">
                 <span className="gk2-e">Liczba osób</span>
-                <input type="number" name="osoby" required min={2} inputMode="numeric" placeholder="np. 12" />
+                <input type="number" name="osoby" required min={2} max={400} inputMode="numeric" placeholder="np. 12" />
             </label>
             <label className="gk2-pole">
                 <span className="gk2-e">E-mail lub telefon</span>
-                <input type="text" name="kontakt" required placeholder="Jak mamy odpisać?" />
+                <input type="text" name="kontakt" required maxLength={120} placeholder="Jak mamy odpisać?" />
             </label>
+            <SwPulapka />
             <div className="gk2-zapytanie-dol">
-                <button type="submit" className="gk2-przycisk">
-                    Wyślij zapytanie
+                <button type="submit" className="gk2-przycisk" disabled={stan === "wysylam"}>
+                    {stan === "wysylam" ? "Wysyłam…" : "Wyślij zapytanie"}
                 </button>
-                <span className="gk2-drobny">{"Odpiszemy z\u00a0propozycją menu i\u00a0wyceną."}</span>
+                <span className="gk2-drobny">{"Odpiszemy z propozycją menu i wyceną."}</span>
             </div>
+            <SwStanWysylki blad={blad} wysylam={stan === "wysylam"} />
+            <p className="gk2-drobny gk2-sw-zgoda">
+                {"Wysyłając formularz, przekazujesz nam dane do odpowiedzi na zapytanie. Szczegóły: "}
+                <a href="/polityka-prywatnosci">polityka prywatności</a>.
+            </p>
         </form>
     )
 }
 
-// Prośba o stolik w Kawiarni Centrum: kawiarnia oddzwania albo pisze SMS. Makieta: nic nie jest wysyłane.
+// Prośba o stolik w Kawiarni Centrum: kawiarnia oddzwania albo pisze SMS.
 const GODZINY_STOLIKA = (() => {
     const g: string[] = []
     for (let h = 10; h <= 18; h++) {
@@ -768,12 +850,14 @@ const GODZINY_STOLIKA = (() => {
     return g
 })()
 function Stolik() {
-    const [wyslane, ustawWyslane] = useState(false)
-    if (wyslane)
+    const [stan, ustawStan] = useState<"" | "wysylam" | "wyslane">("")
+    const [blad, ustawBlad] = useState("")
+    const start = useRef(Date.now())
+    if (stan === "wyslane")
         return (
-            <div className="gk2-zapytanie-dzieki">
+            <div className="gk2-zapytanie-dzieki" role="status">
                 <p className="gk2-d gk2-h3">Dziękujemy. Oddzwonimy albo napiszemy SMS.</p>
-                <p className="gk2-drobny">Tak będzie wyglądać potwierdzenie. To makieta: prośba jeszcze nigdzie nie trafia.</p>
+                <p className="gk2-drobny">{"Stolik jest zarezerwowany dopiero po naszym potwierdzeniu."}</p>
             </div>
         )
     return (
@@ -781,7 +865,17 @@ function Stolik() {
             className="gk2-zapytanie gk2-stolik-formularz"
             onSubmit={(e) => {
                 e.preventDefault()
-                ustawWyslane(true)
+                if (stan === "wysylam") return
+                const f = e.currentTarget
+                const d = swDane(f, ["termin", "godzina", "osoby", "imie", "telefon"])
+                ustawStan("wysylam")
+                ustawBlad("")
+                swWyslij("stolik", d, String(new FormData(f).get("strona") || ""), Date.now() - start.current).then((b) => {
+                    if (b) {
+                        ustawBlad(b)
+                        ustawStan("")
+                    } else ustawStan("wyslane")
+                })
             }}
         >
             <Termin id="stolik" etykieta="Dzień" dialog="Wybierz dzień rezerwacji" odDzis />
@@ -810,18 +904,24 @@ function Stolik() {
             </label>
             <label className="gk2-pole">
                 <span className="gk2-e">Imię</span>
-                <input type="text" name="imie" required autoComplete="given-name" placeholder="np. Ola" />
+                <input type="text" name="imie" required maxLength={60} autoComplete="given-name" placeholder="np. Ola" />
             </label>
             <label className="gk2-pole">
                 <span className="gk2-e">Telefon</span>
-                <input type="tel" name="telefon" required autoComplete="tel" inputMode="tel" placeholder="np. 601 234 567" />
+                <input type="tel" name="telefon" required maxLength={20} autoComplete="tel" inputMode="tel" placeholder="np. 601 234 567" />
             </label>
+            <SwPulapka />
             <div className="gk2-zapytanie-dol">
-                <button type="submit" className="gk2-przycisk">
-                    Poproś o stolik
+                <button type="submit" className="gk2-przycisk" disabled={stan === "wysylam"}>
+                    {stan === "wysylam" ? "Wysyłam…" : "Poproś o stolik"}
                 </button>
-                <span className="gk2-drobny">{"Więcej niż 8 osób albo firma? Napisz w\u00a0sprawie wigilii firmowej."}</span>
+                <span className="gk2-drobny">{"Więcej niż 8 osób albo firma? Napisz w sprawie wigilii firmowej."}</span>
             </div>
+            <SwStanWysylki blad={blad} wysylam={stan === "wysylam"} />
+            <p className="gk2-drobny gk2-sw-zgoda">
+                {"Wysyłając prośbę, przekazujesz nam imię i telefon, żebyśmy mogli ją potwierdzić. Szczegóły: "}
+                <a href="/polityka-prywatnosci">polityka prywatności</a>.
+            </p>
         </form>
     )
 }
@@ -904,7 +1004,7 @@ function SwKafel(props: { p: ScProdukt; i: number; mam: number; otwarte: boolean
     const c = p.ciasto
     const wolne = SC_MAKS - props.mam
     const styl = { ["--cw" as any]: c.w, ["--bx" as any]: c.bx, ["--by" as any]: c.by, ["--ba" as any]: c.ba } as React.CSSProperties
-    const blokada = !p.cena ? "Wkrótce" : !props.otwarte ? "Zamówienia zamknięte" : wolne <= 0 ? "Maks. " + SC_MAKS + " szt." : ""
+    const blokada = !p.cena ? "Wkrótce" : !SW_SPRZEDAZ ? "Zamówienia wkrótce" : !props.otwarte ? "Zamówienia zamknięte" : wolne <= 0 ? "Maks. " + SC_MAKS + " szt." : ""
     return (
         <article className="gk2-sw-kafel gk2-sw-wjazd" style={{ ["--i" as any]: props.i } as React.CSSProperties}>
             <div className="gk2-sw-kafel-foto" style={styl}>
@@ -1010,7 +1110,7 @@ function Polka() {
     useEffect(() => {
         if (typeof window === "undefined") return
         try {
-            const z = JSON.parse(window.localStorage.getItem(SC_KLUCZ) || "null")
+            const z = SW_SPRZEDAZ ? JSON.parse(window.localStorage.getItem(SC_KLUCZ) || "null") : null
             if (z && typeof z === "object") {
                 const k: Record<string, number> = {}
                 SC_P.forEach((p) => {
@@ -1044,7 +1144,7 @@ function Polka() {
     // Koszyk: zapis w przeglądarce i licznik w menu (bez przerysowywania całej strony).
     useEffect(() => {
         koszykRef.current = koszyk
-        if (!wczytany) return
+        if (!wczytany || !SW_SPRZEDAZ) return
         try {
             window.localStorage.setItem(SC_KLUCZ, JSON.stringify({ k: koszyk, o: odbior }))
         } catch (e) {}
@@ -1060,9 +1160,11 @@ function Polka() {
     // „Zamów na Święta” otwiera koszyk, jeśli coś w nim jest; torba w menu otwiera go i zamyka.
     useEffect(() => {
         const otworz = () => {
-            if (Object.keys(koszykRef.current).some((k) => koszykRef.current[k] > 0)) ustawPanel("koszyk")
+            if (SW_SPRZEDAZ && Object.keys(koszykRef.current).some((k) => koszykRef.current[k] > 0)) ustawPanel("koszyk")
         }
-        const przelacz = () => ustawPanel((p) => (p === "koszyk" ? "" : "koszyk"))
+        const przelacz = () => {
+            if (SW_SPRZEDAZ) ustawPanel((p) => (p === "koszyk" ? "" : "koszyk"))
+        }
         window.addEventListener("gk2-koszyk-otworz", otworz)
         window.addEventListener("gk2-koszyk-przelacz", przelacz)
         return () => {
@@ -1102,7 +1204,7 @@ function Polka() {
     const dodaj = (i: number) => {
         const p = SC_P[i]
         const mam = koszyk[p.id] || 0
-        if (!p.cena || !otwarte || mam >= SC_MAKS) return
+        if (!SW_SPRZEDAZ || !p.cena || !otwarte || mam >= SC_MAKS) return
         ustawKoszyk((k0) => {
             const ile = k0[p.id] || 0
             if (ile >= SC_MAKS) return k0
@@ -2755,7 +2857,21 @@ const CSS_SW = [
     ".gk2-sw-stopka { background: var(--maslo); padding: 0 var(--m) 22px; }",
     ".gk2-sw-stopka-wiersz { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; padding: 18px 0 30px; border-top: 1px solid rgba(17,17,17,.25); }",
     ".gk2-sw-stopka-logo { width: 100%; }",
-    ".gk2-sw-stopka-uwaga { margin-top: 16px; opacity: .6; }",
+    ".gk2-sw-stopka-linki { display: flex; flex-wrap: wrap; gap: 10px 24px; padding: 0 0 30px; }",
+    ".gk2-sw-stopka-linki a { background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: background-size .3s ease; }",
+    "@media (hover: hover) { .gk2-sw-stopka-linki a:hover { background-size: 100% 1px; } }",
+    ".gk2-sw-stopka-firma { margin-top: 18px; font-size: 11px; line-height: 1.7; opacity: .8; }",
+    ".gk2-sw-stopka-firma a { text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }",
+    // pasek KPO zawsze na białym tle (flaga i logotypy w oryginalnych kolorach)
+    ".gk2-sw-kpo { display: block; margin: 22px calc(var(--m) * -1) -22px; padding: 14px var(--m) calc(14px + env(safe-area-inset-bottom, 0px)); background: #fff; text-align: center; }",
+    ".gk2-sw-kpo img { display: inline-block; width: 100%; max-width: 620px; height: auto; }",
+    // formularze: pułapka na boty, błąd, zgoda
+    ".gk2-sw-pulapka { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; }",
+    ".gk2-sw .gk2-zapytanie { position: relative; }",
+    ".gk2-sw-blad { grid-column: 1 / -1; margin: 0; color: var(--rubin); font-size: 12px; line-height: 1.5; }",
+    ".gk2-sw-zgoda { grid-column: 1 / -1; margin: 0; opacity: .7; }",
+    ".gk2-sw-zgoda a { text-decoration: underline; text-underline-offset: 2px; }",
+    ".gk2-sw .gk2-przycisk:disabled { opacity: .6; cursor: progress; }",
     // łagodne wejścia (tylko gdy działa skrypt i ruch nie jest ograniczony)
     ".gk2-sw-js .gk2-sw-wjazd { opacity: 0; transform: translate3d(0, 24px, 0); transition: opacity .9s ease, transform 1s cubic-bezier(.2,.85,.25,1); transition-delay: calc(var(--i, 0) * 70ms); }",
     ".gk2-sw-js .gk2-sw-wjazd.gk2-sw-widac { opacity: 1; transform: none; }",
@@ -2908,13 +3024,15 @@ export default function KonceptFunduszSwieta(props: Props) {
                 <div className="gk2-sw-nav-prawo">
                     <a className="gk2-sw-pigulka" href="#gk2-sklep" onClick={doSklepu}>
                         <i aria-hidden="true" />
-                        <span className="gk2-sw-tylko-duzy">Zamów na Święta</span>
-                        <span className="gk2-sw-tylko-tel">Zamów</span>
+                        <span className="gk2-sw-tylko-duzy">{SW_SPRZEDAZ ? "Zamów na Święta" : "Wypieki na Święta"}</span>
+                        <span className="gk2-sw-tylko-tel">{SW_SPRZEDAZ ? "Zamów" : "Wypieki"}</span>
                     </a>
-                    <button type="button" className="gk2-sw-torba" onClick={() => window.dispatchEvent(new CustomEvent("gk2-koszyk-przelacz"))} aria-label="Koszyk" aria-haspopup="dialog" aria-expanded="false">
-                        <IkonaTorba />
-                        <span className="gk2-sw-torba-n" aria-hidden="true" />
-                    </button>
+                    {SW_SPRZEDAZ ? (
+                        <button type="button" className="gk2-sw-torba" onClick={() => window.dispatchEvent(new CustomEvent("gk2-koszyk-przelacz"))} aria-label="Koszyk" aria-haspopup="dialog" aria-expanded="false">
+                            <IkonaTorba />
+                            <span className="gk2-sw-torba-n" aria-hidden="true" />
+                        </button>
+                    ) : null}
                 </div>
             </header>
             <nav className="gk2-sw-menu" id="gk2-sw-menu" hidden={!menu} aria-label="Menu">
@@ -2938,7 +3056,7 @@ export default function KonceptFunduszSwieta(props: Props) {
                     <div className="gk2-sw-lep" ref={u("lep")}>
                         <Wyc a={P.logotyp} rozmiar={2048} alt="Górka & Kulka" className="gk2-sw-logo" odrazu />
                         <a className="gk2-sw-cta" href="#gk2-sklep" onClick={doSklepu}>
-                            Zamów ciasta na Święta
+                            {SW_SPRZEDAZ ? "Zamów ciasta na Święta" : "Zobacz wypieki na Święta"}
                             <SwStrzalka />
                         </a>
                     </div>
@@ -2949,7 +3067,7 @@ export default function KonceptFunduszSwieta(props: Props) {
                 <div className="gk2-sw-wiersz gk2-e">
                     <h2 id="gk2-sw-sklep-t">Wypieki na Święta</h2>
                     <span>
-                        <span className="gk2-sw-nw">Zamówienia do 21.12</span>
+                        <span className="gk2-sw-nw">{SW_SPRZEDAZ ? "Zamówienia do 21.12" : "Zamówienia online ruszą wkrótce"}</span>
                         {" · "}
                         <span className="gk2-sw-nw">zadatek 30%</span>
                         {" · "}
@@ -3058,10 +3176,10 @@ export default function KonceptFunduszSwieta(props: Props) {
                     </div>
                     <div>
                         <h3 className="gk2-e">Zamówienia</h3>
-                        <p>{"Do 21 grudnia, przez stronę"}</p>
+                        <p>{SW_SPRZEDAZ ? "Do 21 grudnia, przez stronę" : "Przez stronę, do 21 grudnia. Zamówienia online ruszą wkrótce."}</p>
                         <p>{"Zadatek 30% przy zamówieniu, reszta przy odbiorze"}</p>
                         <a href="#gk2-sklep" onClick={doSklepu}>
-                            Zamów ciasta →
+                            {SW_SPRZEDAZ ? "Zamów ciasta →" : "Zobacz wypieki →"}
                         </a>
                     </div>
                 </div>
@@ -3075,8 +3193,23 @@ export default function KonceptFunduszSwieta(props: Props) {
                     </a>
                     <span>© 2026 Górka & Kulka s.c.</span>
                 </div>
+                <nav className="gk2-sw-stopka-linki gk2-e" aria-label="Więcej">
+                    {SW_PODSTRONY.map((l) => (
+                        <a key={l[1]} href={l[1]}>
+                            {l[0]}
+                        </a>
+                    ))}
+                </nav>
                 <Wyc a={P.logotyp} rozmiar={2048} className="gk2-sw-stopka-logo" alt="Górka & Kulka" />
-                <p className="gk2-e gk2-sw-stopka-uwaga">Wersja testowa: zamówienia i formularze jeszcze nigdzie nie trafiają.</p>
+                <p className="gk2-sw-stopka-firma">
+                    {"GÓRKA & KULKA S.C. Magdalena Kowalska, Paweł Górka · ul. Gen. Władysława Sikorskiego 126, 66-400 Gorzów Wielkopolski · NIP 599 318 75 02 · "}
+                    <a href="mailto:gorka.kulka@gmail.com">gorka.kulka@gmail.com</a>
+                    {" · tel. "}
+                    <a href="tel:+48500344913">{"+48 500 344 913"}</a>
+                </p>
+                <a className="gk2-sw-kpo" href="/dotacje" aria-label="Projekt dofinansowany z Krajowego Planu Odbudowy — szczegóły na stronie Dotacje">
+                    <img src={KPO_PASEK} width={1024} height={131} alt="Krajowy Plan Odbudowy, Rzeczpospolita Polska, Sfinansowane przez Unię Europejską NextGenerationEU" loading="lazy" decoding="async" />
+                </a>
             </footer>
         </div>
     )
