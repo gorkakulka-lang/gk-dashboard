@@ -56,6 +56,8 @@ const FOTO_WIGILIA = obraz("FXQzi3dxMw1Lhh7S2Y9o0nZZSM.jpg", 2048)
 // z sernikiem i tortem w tle (1082 × 1492; w repo strona/grafiki/swieta-tarta-trzy-ciasta.jpg).
 const FOTO_SWIETA = obraz("0NCCWCqa0Ep8SmT5AztREO4KPA.jpg")
 const FOTO_TARTA = obraz("l5VY5R59aIxUHXLOCPUlwjhkNw.jpg", 2048)
+// Wigilia firmowa (21.11.2026, zdjęcie od Pawła, 1086 × 1448; w repo strona/grafiki/swieta-wigilia-herbata-tort.jpg).
+const FOTO_WIGILIA_SW = obraz("jq49oGmO0fmVniorvWL6gvBdzg.jpg")
 // Sprzedaż online: false = oferta widoczna, koszyk zablokowany do startu płatności (Stripe). Przełącznik na dzień startu.
 const SW_SPRZEDAZ = false
 // Formularze (wigilia, stolik) zapisują się w G&K OS (Supabase, funkcja gk_www_request), a właściciel dostaje maila.
@@ -936,8 +938,8 @@ const SC_P: ScProdukt[] = [
     {"id": "smietankowy", "nr": "02", "krotko": "Śmietankowy", "tytul": "Sernik śmietankowy", "reszta": "z polewą z białej czekolady z pomarańczą i ganache z białej czekolady", "cena": 220, "miara": "24 cm", "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "aKhZ5Ex6DuMnZmya8csDwtl7zLQ.webp", "pw": 1100, "ph": 970, "bx": 0.4968, "by": 0.6528, "bd": 0.9918, "ba": 0.4601}},
     {"id": "czekoladowy", "nr": "03", "krotko": "Czekoladowy", "tytul": "Sernik z polewą czekoladową", "reszta": "i czekoladowym ganache", "cena": 220, "miara": "24 cm", "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "w6ccdFYLNdUt5VcsUkEWWEJVxrY.webp", "pw": 1100, "ph": 1032, "bx": 0.4991, "by": 0.7063, "bd": 0.9922, "ba": 0.4379}},
     {"id": "tarta", "nr": "04", "krotko": "Tarta", "tytul": "Tarta pistacjowa", "reszta": "z malinami", "cena": 190, "miara": "24 cm", "ciasto": {"w": 64, "obr": 58, "cien": "dysk", "f": "e9LdZK2SAn0XT6xJePN95umsrE.webp", "pw": 1100, "ph": 1061, "bx": 0.4945, "by": 0.5119, "bd": 0.9925, "ba": 0.4754}},
-    {"id": "tort", "nr": "05", "krotko": "Tort", "tytul": "Tort czekoladowy", "reszta": "", "cena": 0, "miara": "24 cm", "zast": true, "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "w6ccdFYLNdUt5VcsUkEWWEJVxrY.webp", "pw": 1100, "ph": 1032, "bx": 0.5009, "by": 0.7063, "bd": 0.9922, "ba": 0.4379, "lustro": true}},
-    {"id": "box", "nr": "06", "krotko": "Box", "tytul": "Box dla dwojga", "reszta": "", "sklad": ["2× ptyś Lotus z owocami leśnymi", "2× brownie pistacjowe w białej czekoladzie", "2× ciastko NYC o smaku sernika cynamonowego", "2× cake pop marchewkowy"], "cena": 125, "miara": "8 sztuk", "zast": true, "ciasto": {"w": 64, "obr": 58, "cien": "dysk", "f": "e9LdZK2SAn0XT6xJePN95umsrE.webp", "pw": 1100, "ph": 1061, "bx": 0.5055, "by": 0.5119, "bd": 0.9925, "ba": 0.4754, "lustro": true}},
+    {"id": "tort", "nr": "05", "krotko": "Tort", "tytul": "Tort czekoladowy", "reszta": "", "cena": 0, "miara": "24 cm", "ciasto": {"w": 80, "obr": 10, "cien": "bryla", "f": "VmHOxUZcgfZvoWnf0yFaZDaXjgw.webp", "pw": 1100, "ph": 777, "bx": 0.4973, "by": 0.6283, "bd": 0.9897, "ba": 0.5001}},
+    {"id": "box", "nr": "06", "krotko": "Box", "tytul": "Box dla dwojga", "reszta": "", "sklad": ["2× ptyś Lotus z owocami leśnymi", "2× brownie pistacjowe w białej czekoladzie", "2× ciastko NYC o smaku sernika cynamonowego", "2× cake pop marchewkowy"], "cena": 125, "miara": "8 sztuk", "ciasto": {"w": 66, "obr": 0, "cien": "brak", "f": "YaxTl71vaoGvGI2ixOpGwr5QGeM.webp", "pw": 880, "ph": 1142, "bx": 0.5, "by": 0.745, "bd": 1.0, "ba": 0.0}},
 ]
 // scena otwiera się na pierwszym cieście z prawdziwym zdjęciem
 const SC_START = Math.max(0, SC_P.findIndex((q) => !q.zast))
@@ -2795,6 +2797,8 @@ const CSS_SW = [
     "@media (hover: hover) { .gk2-sw-kafel:hover .gk2-sw-ciasto img { transform: translateY(-3%) scale(1.035); } .gk2-sw-kafel:hover .gk2-sw-ciasto .gk2-sw-lustro { transform: translateY(-3%) scale(-1.035, 1.035); } }",
     ".gk2-sw-cien { position: absolute; left: 50%; top: 70%; width: calc(var(--ba) * 2.1 * var(--cw) / 74 * 80%); aspect-ratio: 4.6 / 1; transform: translate(-50%, -38%); border-radius: 50%; background: radial-gradient(closest-side, rgba(110,30,45,.3), rgba(110,30,45,0)); }",
     ".gk2-sw-cien-dysk { aspect-ratio: 3.4 / 1; transform: translate(-50%, -30%); }",
+    ".gk2-sw-cien-brak { display: none; }",
+    ".gk2-sw-cien-brak + .gk2-sw-ciasto img { filter: drop-shadow(0 7px 9px rgba(110,30,45,.16)); }",
     ".gk2-sw-kafel-opis { display: grid; align-content: start; gap: 5px; padding: 0 2px; }",
     ".gk2-sw-kafel-nazwa { font-size: 12px; line-height: 1.35; letter-spacing: .05em; text-transform: uppercase; }",
     ".gk2-sw-kafel-reszta, .gk2-sw-kafel-sklad { font-size: 12px; line-height: 1.45; opacity: .72; }",
@@ -2831,7 +2835,7 @@ const CSS_SW = [
     ".gk2-sw-para-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1.4s cubic-bezier(.2,.8,.2,1); }",
     ".gk2-sw-para-foto::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(24,10,8,.34) 0%, rgba(24,10,8,0) 16%, rgba(24,10,8,0) 80%, rgba(24,10,8,.32) 100%); }",
     ".gk2-sw-para-tarta img { object-position: 50% 62%; }",
-    ".gk2-sw-para-kawa img { object-position: 62% 50%; }",
+    ".gk2-sw-para-kawa img { object-position: 50% 58%; }",
     "@media (hover: hover) { .gk2-sw-para-foto:hover img { transform: scale(1.03); } }",
     ".gk2-sw-para-et { position: absolute; z-index: 1; left: var(--m); text-shadow: 0 1px 12px rgba(0,0,0,.4); }",
     ".gk2-sw-para-g { top: 16px; }",
@@ -3084,7 +3088,7 @@ export default function KonceptFunduszSwieta(props: Props) {
                     <span className="gk2-e gk2-sw-para-et gk2-sw-para-d">{"Tarta pistacjowa z malinami · 190 zł"}</span>
                 </a>
                 <a className="gk2-sw-para-foto gk2-sw-para-kawa" href="#gk2-firmy" onClick={skok("gk2-firmy")}>
-                    <img src={FOTO_WIGILIA} alt="Dwie filiżanki kawy, brownie z kremem i malinami i świeczka na stole, w tle lampki i czerwony wazon" loading="lazy" decoding="async" />
+                    <img src={FOTO_WIGILIA_SW} alt="Dwa kubki herbaty z pomarańczą, tort czekoladowy, ptyś z kremem Lotus, bita śmietana i świeczka na stole, obok czerwony wazon z amarantusem i aksamitna kokarda" loading="lazy" decoding="async" />
                     <span className="gk2-e gk2-sw-para-et gk2-sw-para-g">Wigilia firmowa</span>
                     <span className="gk2-e gk2-sw-para-et gk2-sw-para-d">Kawiarnia Centrum, ul. Sikorskiego 126</span>
                 </a>
