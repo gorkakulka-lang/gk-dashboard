@@ -216,7 +216,7 @@ const CSS = [
     ".gkp-maly { opacity: .72; font-size: 12px !important; }",
     ".gkp-kontakt { margin-top: 32px !important; padding-top: 18px; border-top: 1px solid rgba(17,17,17,.22); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }",
     ".gkp-kontakt p { font-size: 13px; }",
-    ".gkp-kpo { display: block; background: #fff; padding: 18px 20px; }",
+    ".gkp .gkp-kpo, .gkp-tresc a.gkp-kpo { display: block; background: #fff; padding: 18px 20px; text-decoration: none; }",
     ".gkp-kpo img { width: 100%; max-width: 760px; height: auto; margin: 0 auto; }",
     ".gkp-stopka { background: var(--maslo); padding: 0 var(--m) 22px; }",
     ".gkp-stopka-wiersz { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; padding: 18px 0 26px; border-top: 1px solid rgba(17,17,17,.25); }",
