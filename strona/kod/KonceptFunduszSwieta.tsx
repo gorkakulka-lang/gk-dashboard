@@ -753,7 +753,7 @@ function swWyslij(rodzaj: string, dane: Record<string, string>, pulapka: string,
                 () => (r.ok ? "" : "Nie udało się wysłać.")
             )
         )
-        .catch(() => "Brak połączenia. Sprawdź internet i spróbuj jeszcze raz.")
+        .catch(() => "Brak połączenia. Sprawdź internet i spróbuj jeszcze raz.")
 }
 
 function swDane(f: HTMLFormElement, pola: string[]): Record<string, string> {
@@ -938,17 +938,18 @@ const SC_P: ScProdukt[] = [
     {"id": "smietankowy", "nr": "02", "krotko": "Śmietankowy", "tytul": "Sernik śmietankowy", "reszta": "z polewą z białej czekolady z pomarańczą i ganache z białej czekolady", "cena": 220, "miara": "24 cm", "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "aKhZ5Ex6DuMnZmya8csDwtl7zLQ.webp", "pw": 1100, "ph": 970, "bx": 0.4968, "by": 0.6528, "bd": 0.9918, "ba": 0.4601}},
     {"id": "czekoladowy", "nr": "03", "krotko": "Czekoladowy", "tytul": "Sernik z polewą czekoladową", "reszta": "i czekoladowym ganache", "cena": 220, "miara": "24 cm", "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "w6ccdFYLNdUt5VcsUkEWWEJVxrY.webp", "pw": 1100, "ph": 1032, "bx": 0.4991, "by": 0.7063, "bd": 0.9922, "ba": 0.4379}},
     {"id": "tarta", "nr": "04", "krotko": "Tarta", "tytul": "Tarta pistacjowa", "reszta": "z malinami", "cena": 190, "miara": "24 cm", "ciasto": {"w": 64, "obr": 58, "cien": "dysk", "f": "e9LdZK2SAn0XT6xJePN95umsrE.webp", "pw": 1100, "ph": 1061, "bx": 0.4945, "by": 0.5119, "bd": 0.9925, "ba": 0.4754}},
-    {"id": "tort", "nr": "05", "krotko": "Tort", "tytul": "Tort czekoladowy", "reszta": "", "cena": 0, "miara": "24 cm", "ciasto": {"w": 80, "obr": 10, "cien": "bryla", "f": "VmHOxUZcgfZvoWnf0yFaZDaXjgw.webp", "pw": 1100, "ph": 777, "bx": 0.4973, "by": 0.6283, "bd": 0.9897, "ba": 0.5001}},
-    {"id": "box", "nr": "06", "krotko": "Box", "tytul": "Box dla dwojga", "reszta": "", "sklad": ["2× ptyś Lotus z owocami leśnymi", "2× brownie pistacjowe w białej czekoladzie", "2× ciastko NYC o smaku sernika cynamonowego", "2× cake pop marchewkowy"], "cena": 125, "miara": "8 sztuk", "ciasto": {"w": 66, "obr": 0, "cien": "brak", "f": "YaxTl71vaoGvGI2ixOpGwr5QGeM.webp", "pw": 880, "ph": 1142, "bx": 0.5, "by": 0.745, "bd": 1.0, "ba": 0.0}},
+    {"id": "tort", "nr": "05", "krotko": "Tort", "tytul": "Tort czekoladowy", "reszta": "z kremem czekoladowym", "cena": 300, "miara": "24 cm", "ciasto": {"w": 80, "obr": 10, "cien": "bryla", "f": "VmHOxUZcgfZvoWnf0yFaZDaXjgw.webp", "pw": 1100, "ph": 777, "bx": 0.4973, "by": 0.6283, "bd": 0.9897, "ba": 0.5001}},
+    {"id": "marchewkowy", "nr": "06", "krotko": "Marchewkowy", "tytul": "Tort marchewkowy", "reszta": "z kremem cream cheese", "cena": 250, "miara": "24 cm", "ciasto": {"w": 72, "obr": 10, "cien": "bryla", "f": "yXOtkJRnRfkHUP8S0Nt1sGy6jyA.webp", "pw": 1081, "ph": 1025, "bx": 0.4995, "by": 0.7021, "bd": 0.9893, "ba": 0.4535}},
+    {"id": "box", "nr": "07", "krotko": "Box", "tytul": "Box dla dwojga", "reszta": "", "sklad": ["2× ptyś Lotus z owocami leśnymi", "2× brownie z kremem pistacjowym", "2× ciastko NYC o smaku sernika cynamonowego", "2× cake pop marchewkowy"], "cena": 120, "miara": "8 sztuk", "ciasto": {"w": 66, "obr": 0, "cien": "brak", "f": "YaxTl71vaoGvGI2ixOpGwr5QGeM.webp", "pw": 880, "ph": 1142, "bx": 0.5, "by": 0.745, "bd": 1.0, "ba": 0.0}},
 ]
 // scena otwiera się na pierwszym cieście z prawdziwym zdjęciem
 const SC_START = Math.max(0, SC_P.findIndex((q) => !q.zast))
+// Odbiór tylko 23.12, 14:00–19:00 (24.12 dzień wolny, Nova Park zamknięte — Paweł 22.11). Godziny co godzinę są w G&K OS.
 const SC_ODBIORY = [
-    { kiedy: "23.12 od 14:00", gdzie: "Kawiarnia Centrum", adres: "ul. Sikorskiego 126" },
-    { kiedy: "23.12 od 14:00", gdzie: "Nova Park", adres: "" },
-    { kiedy: "24.12 do 12:00", gdzie: "Nova Park", adres: "" },
+    { kiedy: "23.12, 14:00–19:00", gdzie: "Kawiarnia Centrum", adres: "ul. Sikorskiego 126" },
+    { kiedy: "23.12, 14:00–19:00", gdzie: "Nova Park", adres: "centrum handlowe" },
 ]
-const SC_KLUCZ = "gk2-koszyk-swieta-v2"
+const SC_KLUCZ = "gk2-koszyk-swieta-v3"
 const SC_MAKS = 5
 const SC_ZADATEK = 0.3
 // sprężyna domykająca przejście: sztywność i tłumienie (lekko niedotłumiona, ciasto minimalnie „dobija”)
@@ -1001,12 +1002,58 @@ function IkonaJest() {
 // Rząd ciast jak „Shop the collection” u Acne: wycięte ciasto na jasnym kaflu, pod nim nazwa, cena i „Dodaj do koszyka”.
 // Bilecik odbioru (koszyk) i drukowany bilecik zostają z poprzedniego sklepu. Torba z licznikiem siedzi w menu strony
 // i otwiera koszyk zdarzeniem „gk2-koszyk-przelacz”; „Zamów na Święta” otwiera go zdarzeniem „gk2-koszyk-otworz”.
-function SwKafel(props: { p: ScProdukt; i: number; mam: number; otwarte: boolean; dodano: boolean; dodaj: (i: number) => void }) {
+// Oferta i płatności (22.11.2026): ceny, limity i godziny odbioru są w G&K OS (gk_www_offer). Zamówienie z zadatkiem idzie
+// przez funkcję „zamowienie” do Stripe Checkout, a po powrocie ze Stripe strona pyta o stan płatności i czyści koszyk.
+type SwPoz = { id: string; code: string; price_grosze: number; left: number | null; sold_out: boolean }
+type SwOkno = { id: string; place: string; label: string; starts_at: string; left: number | null; full: boolean }
+type SwBaza = { open: boolean; poz: Record<string, SwPoz>; okna: SwOkno[] }
+type SwDzieki = { stan: string; numer: string; slot: string; miejsce: string; zadatek: number; razem: number }
+const SW_ZAM = "https://fnranvobetqcxtawcjop.supabase.co/functions/v1/zamowienie"
+const SW_TEL = "500 344 913"
+
+function swOferta(): Promise<SwBaza | null> {
+    return fetch(SW_API + "gk_www_offer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: SW_KLUCZ },
+        body: JSON.stringify({ p_code: "swieta-2026" }),
+    })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((j) => {
+            if (!j || !j.ok) return null
+            const poz: Record<string, SwPoz> = {}
+            const lista: SwPoz[] = Array.isArray(j.items) ? j.items : []
+            lista.forEach((i) => {
+                if (i && i.code) poz[i.code] = i
+            })
+            return { open: !!j.open, poz: poz, okna: Array.isArray(j.slots) ? j.slots : [] }
+        })
+        .catch(() => null)
+}
+
+// „środa 23.12, 15:00–16:00” → „15:00–16:00”
+const swGodzina = (etykieta: string) => {
+    const i = etykieta.lastIndexOf(", ")
+    return i >= 0 ? etykieta.slice(i + 2) : etykieta
+}
+
+function SwKafel(props: { p: ScProdukt; i: number; mam: number; maks: number; wyprzedane: boolean; otwarte: boolean; dodano: boolean; dodaj: (i: number) => void }) {
     const p = props.p
     const c = p.ciasto
-    const wolne = SC_MAKS - props.mam
+    const wolne = props.maks - props.mam
     const styl = { ["--cw" as any]: c.w, ["--bx" as any]: c.bx, ["--by" as any]: c.by, ["--ba" as any]: c.ba } as React.CSSProperties
-    const blokada = !p.cena ? "Wkrótce" : !SW_SPRZEDAZ ? "Zamówienia wkrótce" : !props.otwarte ? "Zamówienia zamknięte" : wolne <= 0 ? "Maks. " + SC_MAKS + " szt." : ""
+    const blokada = !p.cena
+        ? "Wkrótce"
+        : !SW_SPRZEDAZ
+          ? "Zamówienia wkrótce"
+          : !props.otwarte
+            ? "Zamówienia zamknięte"
+            : props.wyprzedane
+              ? "Wyprzedane"
+              : wolne <= 0
+                ? props.maks < SC_MAKS
+                    ? "Więcej już nie ma"
+                    : "Maks. " + SC_MAKS + " szt."
+                : ""
     return (
         <article className="gk2-sw-kafel gk2-sw-wjazd" style={{ ["--i" as any]: props.i } as React.CSSProperties}>
             <div className="gk2-sw-kafel-foto" style={styl}>
@@ -1023,7 +1070,7 @@ function SwKafel(props: { p: ScProdukt; i: number; mam: number; otwarte: boolean
                 {p.reszta ? <p className="gk2-sw-kafel-reszta">{p.reszta}</p> : null}
                 {p.sklad ? (
                     <details className="gk2-sw-kafel-sklad">
-                        <summary>{"Co jest w środku"}</summary>
+                        <summary>{"Co jest w środku"}</summary>
                         <ul>
                             {p.sklad.map((s) => (
                                 <li key={s}>{s}</li>
@@ -1064,14 +1111,37 @@ function Polka() {
     const zamknijRef = useRef<HTMLButtonElement>(null)
     const koszykRef = useRef<Record<string, number>>({})
     const zegary = useRef<Record<string, number>>({})
+    const startKasy = useRef(0)
     const [panel, ustawPanel] = useState("")
     const [koszyk, ustawKoszyk] = useState<Record<string, number>>({})
     const [odbior, ustawOdbior] = useState(-1)
     const [bilet, ustawBilet] = useState<{ i: number; k: number } | null>(null)
     const [leci, ustawLeci] = useState(false)
     const [dodano, ustawDodano] = useState(-1)
-    const [otwarte, ustawOtwarte] = useState(true)
+    const [otwarteCzas, ustawOtwarte] = useState(true)
     const [wczytany, ustawWczytany] = useState(false)
+    const [baza, ustawBaza] = useState<SwBaza | null>(null)
+    const [krok, ustawKrok] = useState<"koszyk" | "dane">("koszyk")
+    const [okno, ustawOkno] = useState("")
+    const [wysylam, ustawWysylam] = useState(false)
+    const [blad, ustawBlad] = useState("")
+    const [przerwana, ustawPrzerwana] = useState("")
+    const [dzieki, ustawDzieki] = useState<SwDzieki | null>(null)
+
+    const otwarte = otwarteCzas && (baza ? baza.open : true)
+    // ceny i dostępność z G&K OS (gdy dojdą); bez nich zostają ceny z kodu strony
+    const produkty: ScProdukt[] = SC_P.map((p) => {
+        const b = baza ? baza.poz[p.id] : null
+        return b && b.price_grosze > 0 && Math.round(b.price_grosze / 100) !== p.cena ? Object.assign({}, p, { cena: Math.round(b.price_grosze / 100) }) : p
+    })
+    const maksDla = (id: string) => {
+        const b = baza ? baza.poz[id] : null
+        return b && typeof b.left === "number" ? Math.max(0, Math.min(SC_MAKS, b.left)) : SC_MAKS
+    }
+    const wyprzedane = (id: string) => {
+        const b = baza ? baza.poz[id] : null
+        return !!(b && b.sold_out)
+    }
 
     const pozniej = (klucz: string, fn: () => void, ms: number) => {
         window.clearTimeout(zegary.current[klucz])
@@ -1107,8 +1177,52 @@ function Polka() {
         const krok = pierwszy ? pierwszy.getBoundingClientRect().width + 10 : r.clientWidth * 0.8
         r.scrollBy({ left: d * krok, behavior: ruchOk() ? "smooth" : "auto" })
     }
+    const wczytajOferte = () => {
+        if (!SW_SPRZEDAZ) return
+        swOferta().then((b) => {
+            if (b) ustawBaza(b)
+        })
+    }
+    const wyczyscKoszyk = () => {
+        ustawKoszyk({})
+        ustawOdbior(-1)
+        ustawOkno("")
+        ustawKrok("koszyk")
+        try {
+            window.localStorage.removeItem(SC_KLUCZ)
+        } catch (e) {}
+    }
+    // po powrocie ze Stripe: stan płatności z G&K OS (webhook Stripe dochodzi zwykle w kilka sekund)
+    const sprawdz = (sesja: string, proba: number) => {
+        fetch(SW_ZAM + "?sesja=" + encodeURIComponent(sesja))
+            .then((r) => r.json())
+            .then((j) => {
+                if (j && j.ok) {
+                    const stan = j.pay_status === "oplacone" ? "oplacone" : j.pay_status === "w_toku" ? "w_toku" : j.status === "anulowane" ? "anulowane" : "czeka"
+                    ustawDzieki({
+                        stan: stan,
+                        numer: String(j.number || ""),
+                        slot: String(j.slot_label || ""),
+                        miejsce: String(j.place || ""),
+                        zadatek: Math.round(Number(j.deposit_grosze || 0) / 100),
+                        razem: Math.round(Number(j.total_grosze || 0) / 100),
+                    })
+                    if (stan === "oplacone" || stan === "w_toku") {
+                        wyczyscKoszyk()
+                        wczytajOferte()
+                        return
+                    }
+                    if (stan === "anulowane") return
+                }
+                if (proba < 20) pozniej("dzieki", () => sprawdz(sesja, proba + 1), 2000)
+                else ustawDzieki((d) => d || { stan: "czeka", numer: "", slot: "", miejsce: "", zadatek: 0, razem: 0 })
+            })
+            .catch(() => {
+                if (proba < 20) pozniej("dzieki", () => sprawdz(sesja, proba + 1), 3000)
+            })
+    }
 
-    // Start: koszyk z przeglądarki i termin zamówień.
+    // Start: koszyk z przeglądarki, termin zamówień, oferta z G&K OS i powrót ze Stripe.
     useEffect(() => {
         if (typeof window === "undefined") return
         try {
@@ -1125,6 +1239,28 @@ function Polka() {
         } catch (e) {}
         ustawWczytany(true)
         ustawOtwarte(Date.now() < KONIEC_ZAMOWIEN)
+        wczytajOferte()
+        if (SW_SPRZEDAZ) {
+            try {
+                const u = new URL(window.location.href)
+                const platnosc = u.searchParams.get("platnosc")
+                if (platnosc) {
+                    const sesja = u.searchParams.get("sesja") || ""
+                    if (platnosc === "ok" && /^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(sesja)) {
+                        ustawDzieki({ stan: "sprawdzam", numer: "", slot: "", miejsce: "", zadatek: 0, razem: 0 })
+                        ustawPanel("dzieki")
+                        sprawdz(sesja, 0)
+                    } else if (platnosc === "przerwana") {
+                        ustawPrzerwana((u.searchParams.get("zamowienie") || "").slice(0, 12))
+                        ustawPanel("koszyk")
+                    }
+                    u.searchParams.delete("platnosc")
+                    u.searchParams.delete("sesja")
+                    u.searchParams.delete("zamowienie")
+                    window.history.replaceState(null, "", u.pathname + u.search + u.hash)
+                }
+            } catch (e) {}
+        }
         przewin()
         window.addEventListener("resize", przewin)
         const z = zegary.current
@@ -1136,7 +1272,7 @@ function Polka() {
 
     let suma = 0
     let razem = 0
-    SC_P.forEach((p) => {
+    produkty.forEach((p) => {
         const n = koszyk[p.id] || 0
         suma += n
         razem += n * p.cena
@@ -1181,11 +1317,12 @@ function Polka() {
         if (t) t.focus({ preventScroll: true })
     }
 
-    // Otwarty koszyk: fokus wchodzi do środka, Esc zamyka, fokus wraca na torbę.
+    // Otwarty koszyk: fokus wchodzi do środka, Esc zamyka, fokus wraca na torbę. Przy otwarciu odświeżamy dostępność.
     useEffect(() => {
         const t = torba()
         if (t) t.setAttribute("aria-expanded", panel === "koszyk" ? "true" : "false")
-        if (panel !== "koszyk") return
+        if (panel === "") return
+        if (panel === "koszyk") wczytajOferte()
         if (zamknijRef.current) zamknijRef.current.focus({ preventScroll: true })
         const esc = (e: KeyboardEvent) => {
             if (e.key === "Escape") zamknij()
@@ -1197,19 +1334,19 @@ function Polka() {
     const zmien = (id: string, ile: number) => {
         ustawKoszyk((k0) => {
             const k = Object.assign({}, k0)
-            const n = clamp(ile, 0, SC_MAKS)
+            const n = clamp(ile, 0, maksDla(id))
             if (n > 0) k[id] = n
             else delete k[id]
             return k
         })
     }
     const dodaj = (i: number) => {
-        const p = SC_P[i]
+        const p = produkty[i]
         const mam = koszyk[p.id] || 0
-        if (!SW_SPRZEDAZ || !p.cena || !otwarte || mam >= SC_MAKS) return
+        if (!SW_SPRZEDAZ || !p.cena || !otwarte || wyprzedane(p.id) || mam >= maksDla(p.id)) return
         ustawKoszyk((k0) => {
             const ile = k0[p.id] || 0
-            if (ile >= SC_MAKS) return k0
+            if (ile >= maksDla(p.id)) return k0
             const k = Object.assign({}, k0)
             k[p.id] = ile + 1
             return k
@@ -1249,113 +1386,321 @@ function Polka() {
         )
     }
 
-    const pozycje = SC_P.filter((q) => (koszyk[q.id] || 0) > 0)
-    const bp = bilet ? SC_P[bilet.i] : null
+    const pozycje = produkty.filter((q) => (koszyk[q.id] || 0) > 0)
+    const bp = bilet ? produkty[bilet.i] : null
+    const miejsce = odbior >= 0 ? SC_ODBIORY[odbior].gdzie : ""
+    const okna = baza ? baza.okna.filter((o) => o.place === miejsce) : []
+    const wybraneOkno = okna.filter((o) => o.id === okno)[0] || null
+
+    const zamow = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        if (wysylam) return
+        const f = e.currentTarget
+        const d = new FormData(f)
+        if (!wybraneOkno || wybraneOkno.full) {
+            ustawBlad("Wybierz godzinę odbioru.")
+            return
+        }
+        ustawWysylam(true)
+        ustawBlad("")
+        fetch(SW_ZAM, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                pozycje: pozycje.map((q) => ({ kod: q.id, ile: koszyk[q.id] || 0 })),
+                okienko: wybraneOkno.id,
+                imie: String(d.get("imie") || "").trim(),
+                telefon: String(d.get("telefon") || "").trim(),
+                email: String(d.get("email") || "").trim(),
+                uwagi: String(d.get("uwagi") || "").trim(),
+                zgoda: d.get("zgoda") === "tak",
+                strona: String(d.get("strona") || ""),
+                ms: Date.now() - startKasy.current,
+            }),
+        })
+            .then((r) => r.json().catch(() => null))
+            .then((j) => {
+                if (j && j.ok && j.url) {
+                    window.location.href = j.url
+                    return
+                }
+                ustawBlad((j && j.blad) || "Nie udało się złożyć zamówienia. Spróbuj jeszcze raz albo zadzwoń: " + SW_TEL + ".")
+                ustawWysylam(false)
+                wczytajOferte()
+            })
+            .catch(() => {
+                ustawBlad("Brak połączenia. Sprawdź internet i spróbuj jeszcze raz.")
+                ustawWysylam(false)
+            })
+    }
+
+    const sumy = (
+        <dl className="gk2-wn-sumy">
+            <div className="gk2-wn-sumy-razem">
+                <dt>Razem</dt>
+                <dd>{wnZl(razem)}</dd>
+            </div>
+            <div>
+                <dt>Zadatek 30% teraz</dt>
+                <dd>{wnZl(zadatek)}</dd>
+            </div>
+            <div>
+                <dt>Przy odbiorze</dt>
+                <dd>{wnZl(razem - zadatek)}</dd>
+            </div>
+        </dl>
+    )
+
+    const glowa = (
+        <>
+            <button type="button" className="gk2-wn-x" onClick={zamknij} aria-label={panel === "dzieki" ? "Zamknij" : "Zamknij koszyk"} ref={zamknijRef}>
+                <span>
+                    <IkonaZamknij />
+                </span>
+            </button>
+            <div className="gk2-wn-koszyk-glowa">
+                <Wyc a={P.logotyp} rozmiar={1024} alt="Górka & Kulka" className="gk2-wn-koszyk-logo" />
+                <span className="gk2-e">{panel === "dzieki" ? "Zamówienie · Święta 2026" : "Bilecik odbioru · Święta 2026"}</span>
+            </div>
+        </>
+    )
+
+    let tresc: React.ReactNode = null
+    if (panel === "dzieki") {
+        const dz = dzieki || { stan: "sprawdzam", numer: "", slot: "", miejsce: "", zadatek: 0, razem: 0 }
+        tresc = (
+            <div className="gk2-wn-koszyk-srodek">
+                <div className="gk2-sw-dzieki" role="status" aria-live="polite">
+                    {dz.stan === "oplacone" ? (
+                        <>
+                            <p className="gk2-d gk2-h3">
+                                {"Dziękujemy! Zamówienie "}
+                                <span className="gk2-sw-nw">{dz.numer}</span>
+                                {" jest opłacone."}
+                            </p>
+                            <p>{"Potwierdzenie wysłaliśmy mailem."}</p>
+                            <p>
+                                <b>{"Odbiór: " + dz.slot + ", " + dz.miejsce}</b>
+                            </p>
+                            <p>{"Zadatek: " + wnZl(dz.zadatek) + " · przy odbiorze: " + wnZl(Math.max(dz.razem - dz.zadatek, 0))}</p>
+                            <p className="gk2-drobny">
+                                {"Przy odbiorze podaj numer zamówienia: "}
+                                <span className="gk2-sw-nw">{dz.numer}</span>.
+                            </p>
+                        </>
+                    ) : dz.stan === "w_toku" ? (
+                        <>
+                            <p className="gk2-d gk2-h3">{"Dziękujemy! Płatność jest w toku."}</p>
+                            <p>{"Gdy bank ją potwierdzi, wyślemy maila z potwierdzeniem zamówienia " + dz.numer + "."}</p>
+                        </>
+                    ) : dz.stan === "anulowane" ? (
+                        <>
+                            <p className="gk2-d gk2-h3">{"Płatność nie doszła do skutku."}</p>
+                            <p>{"Zamówienie " + dz.numer + " nie zostało przyjęte. Możesz złożyć je jeszcze raz."}</p>
+                        </>
+                    ) : dz.stan === "czeka" ? (
+                        <>
+                            <p className="gk2-d gk2-h3">{"Czekamy na potwierdzenie płatności."}</p>
+                            <p>{"Gdy przyjdzie, wyślemy maila. Jeśli nie dostaniesz go w ciągu kilku minut, zadzwoń: " + SW_TEL + "."}</p>
+                        </>
+                    ) : (
+                        <p className="gk2-d gk2-h3">{"Sprawdzamy płatność…"}</p>
+                    )}
+                </div>
+            </div>
+        )
+    } else if (suma === 0) {
+        tresc = <p className="gk2-wn-pusto">{"Bilecik jest jeszcze pusty. Wybierz ciasto i dodaj je do koszyka."}</p>
+    } else if (krok === "koszyk") {
+        tresc = (
+            <>
+                <div className="gk2-wn-koszyk-srodek">
+                    {przerwana ? (
+                        <p className="gk2-sw-blad" role="status">
+                            {"Płatność za zamówienie " + przerwana + " została przerwana. Możesz spróbować jeszcze raz, a zamówienie bez wpłaty samo wygaśnie."}
+                        </p>
+                    ) : null}
+                    <ul className="gk2-wn-lista">
+                        {pozycje.map((q) => {
+                            const ile = koszyk[q.id] || 0
+                            return (
+                                <li key={q.id}>
+                                    <span className="gk2-wn-lista-nazwa">
+                                        <b>{q.tytul}</b>
+                                        <small>{q.miara + " · " + wnZl(q.cena)}</small>
+                                    </span>
+                                    <div className="gk2-wn-ilosc gk2-wn-ilosc-m" role="group" aria-label={"Ilość: " + q.tytul}>
+                                        <button type="button" onClick={() => zmien(q.id, ile - 1)} aria-label={ile <= 1 ? "Usuń z koszyka: " + q.tytul : "Mniej"}>
+                                            −
+                                        </button>
+                                        <output aria-live="polite">{ile}</output>
+                                        <button type="button" onClick={() => zmien(q.id, ile + 1)} aria-label="Więcej" disabled={ile >= maksDla(q.id)}>
+                                            +
+                                        </button>
+                                    </div>
+                                    <b className="gk2-wn-lista-suma">{wnZl(ile * q.cena)}</b>
+                                </li>
+                            )
+                        })}
+                    </ul>
+                    <div className="gk2-wn-odbiory" role="radiogroup" aria-label="Miejsce odbioru">
+                        <span className="gk2-e gk2-wn-etykieta">Odbiór — wybierz miejsce</span>
+                        {SC_ODBIORY.map((o) => o.kiedy)
+                            .filter((k, i, a) => a.indexOf(k) === i)
+                            .map((dzien) => (
+                                <div className="gk2-wn-odb-rzad" key={dzien}>
+                                    <b>{dzien}</b>
+                                    <span>
+                                        {SC_ODBIORY.map((o, i) =>
+                                            o.kiedy === dzien ? (
+                                                <button
+                                                    key={i}
+                                                    type="button"
+                                                    role="radio"
+                                                    aria-checked={odbior === i}
+                                                    aria-label={o.kiedy + ", " + o.gdzie}
+                                                    className={"gk2-wn-odb" + (odbior === i ? " gk2-wn-odb-on" : "")}
+                                                    onClick={() => {
+                                                        ustawOdbior(i)
+                                                        ustawOkno("")
+                                                    }}
+                                                >
+                                                    {o.gdzie}
+                                                </button>
+                                            ) : null
+                                        )}
+                                    </span>
+                                </div>
+                            ))}
+                        {odbior >= 0 ? <p className="gk2-wn-odb-wybor">{SC_ODBIORY[odbior].kiedy + ", " + SC_ODBIORY[odbior].gdzie + (SC_ODBIORY[odbior].adres ? ", " + SC_ODBIORY[odbior].adres : "")}</p> : null}
+                    </div>
+                </div>
+                {sumy}
+                {otwarte ? (
+                    <button
+                        type="button"
+                        className="gk2-wn-przycisk gk2-wn-zaplac"
+                        disabled={odbior < 0}
+                        onClick={() => {
+                            if (odbior < 0) return
+                            ustawKrok("dane")
+                            ustawBlad("")
+                            startKasy.current = Date.now()
+                        }}
+                    >
+                        {odbior < 0 ? "Wybierz miejsce odbioru" : "Dalej: godzina i dane"}
+                        {odbior < 0 ? null : <IkonaDalej />}
+                    </button>
+                ) : (
+                    <span className="gk2-wn-przycisk gk2-wn-zaplac" aria-disabled="true">
+                        Zamówienia zamknięte
+                    </span>
+                )}
+            </>
+        )
+    } else {
+        tresc = (
+            <form className="gk2-sw-kasa" onSubmit={zamow}>
+                <button
+                    type="button"
+                    className="gk2-sw-wroc"
+                    onClick={() => {
+                        ustawKrok("koszyk")
+                        ustawBlad("")
+                    }}
+                >
+                    {"← Koszyk"}
+                </button>
+                <div className="gk2-wn-koszyk-srodek">
+                    <div className="gk2-sw-dane">
+                        <div className="gk2-sw-okna" role="radiogroup" aria-label={"Godzina odbioru, " + miejsce}>
+                            <span className="gk2-e gk2-wn-etykieta">{"Godzina odbioru · " + miejsce + " · środa 23.12"}</span>
+                            <span>
+                                {okna.map((o) => (
+                                    <button
+                                        key={o.id}
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={okno === o.id}
+                                        className={"gk2-wn-odb" + (okno === o.id ? " gk2-wn-odb-on" : "")}
+                                        disabled={o.full}
+                                        onClick={() => ustawOkno(o.id)}
+                                        aria-label={swGodzina(o.label) + (o.full ? ", brak miejsc" : "")}
+                                    >
+                                        {swGodzina(o.label)}
+                                    </button>
+                                ))}
+                            </span>
+                            {!baza ? <p className="gk2-drobny">{"Wczytuję wolne godziny…"}</p> : okna.length === 0 ? <p className="gk2-drobny">{"Brak wolnych godzin w tym miejscu. Wróć i wybierz inne miejsce."}</p> : null}
+                        </div>
+                        <label className="gk2-pole">
+                            <span className="gk2-e">Imię i nazwisko</span>
+                            <input type="text" name="imie" required minLength={2} maxLength={80} autoComplete="name" />
+                        </label>
+                        <label className="gk2-pole">
+                            <span className="gk2-e">Telefon</span>
+                            <input type="tel" name="telefon" required maxLength={20} autoComplete="tel" inputMode="tel" placeholder="np. 500 123 456" />
+                        </label>
+                        <label className="gk2-pole">
+                            <span className="gk2-e">E-mail</span>
+                            <input type="email" name="email" required maxLength={120} autoComplete="email" placeholder="tu wyślemy potwierdzenie" />
+                        </label>
+                        <label className="gk2-pole">
+                            <span className="gk2-e">Uwagi (nieobowiązkowe)</span>
+                            <textarea name="uwagi" maxLength={500} rows={2} />
+                        </label>
+                        <label className="gk2-sw-check">
+                            <input type="checkbox" name="zgoda" value="tak" required />
+                            <span>
+                                {"Akceptuję "}
+                                <a href="/regulamin" target="_blank" rel="noopener">
+                                    regulamin zamówień
+                                </a>
+                                {" i "}
+                                <a href="/polityka-prywatnosci" target="_blank" rel="noopener">
+                                    politykę prywatności
+                                </a>
+                                .
+                            </span>
+                        </label>
+                        <SwPulapka />
+                    </div>
+                </div>
+                {sumy}
+                {blad ? (
+                    <p className="gk2-sw-blad gk2-sw-kasa-blad" role="alert">
+                        {blad}
+                    </p>
+                ) : null}
+                <button type="submit" className="gk2-wn-przycisk gk2-wn-zaplac" disabled={wysylam || !wybraneOkno || !otwarte}>
+                    {wysylam ? "Otwieram płatność…" : !wybraneOkno ? "Wybierz godzinę odbioru" : "Zapłać zadatek " + wnZl(zadatek)}
+                    {wysylam || !wybraneOkno ? null : <IkonaDalej />}
+                </button>
+                <p className="gk2-sw-kasa-info">{"Płatność na stronie Stripe: BLIK, Przelewy24 albo karta. Na wpłatę masz 30 minut."}</p>
+            </form>
+        )
+    }
 
     const koszykPanel =
-        panel === "koszyk" ? (
-            <div className="gk2-wn-koszyk" role="dialog" aria-modal="true" aria-label="Koszyk" key="koszyk">
-                <button type="button" className="gk2-wn-x" onClick={zamknij} aria-label="Zamknij koszyk" ref={zamknijRef}>
-                    <span>
-                        <IkonaZamknij />
-                    </span>
-                </button>
-                <div className="gk2-wn-koszyk-glowa">
-                    <Wyc a={P.logotyp} rozmiar={1024} alt="Górka & Kulka" className="gk2-wn-koszyk-logo" />
-                    <span className="gk2-e">Bilecik odbioru · Święta 2026</span>
-                </div>
-                {suma === 0 ? (
-                    <p className="gk2-wn-pusto">{"Bilecik jest jeszcze pusty. Wybierz ciasto i dodaj je do koszyka."}</p>
+        panel === "koszyk" || panel === "dzieki" ? (
+            <div className="gk2-wn-koszyk" role="dialog" aria-modal="true" aria-label={panel === "dzieki" ? "Zamówienie" : "Koszyk"} key="koszyk">
+                {glowa}
+                {tresc}
+                {panel === "dzieki" ? (
+                    <button type="button" className="gk2-wn-przycisk gk2-wn-zaplac" onClick={zamknij}>
+                        Wróć na stronę
+                    </button>
                 ) : (
-                    <>
-                        <div className="gk2-wn-koszyk-srodek">
-                            <ul className="gk2-wn-lista">
-                                {pozycje.map((q) => {
-                                    const ile = koszyk[q.id] || 0
-                                    return (
-                                        <li key={q.id}>
-                                            <span className="gk2-wn-lista-nazwa">
-                                                <b>{q.tytul}</b>
-                                                <small>{q.miara + " · " + wnZl(q.cena)}</small>
-                                            </span>
-                                            <div className="gk2-wn-ilosc gk2-wn-ilosc-m" role="group" aria-label={"Ilość: " + q.tytul}>
-                                                <button type="button" onClick={() => zmien(q.id, ile - 1)} aria-label={ile <= 1 ? "Usuń z koszyka: " + q.tytul : "Mniej"}>
-                                                    −
-                                                </button>
-                                                <output aria-live="polite">{ile}</output>
-                                                <button type="button" onClick={() => zmien(q.id, ile + 1)} aria-label="Więcej" disabled={ile >= SC_MAKS}>
-                                                    +
-                                                </button>
-                                            </div>
-                                            <b className="gk2-wn-lista-suma">{wnZl(ile * q.cena)}</b>
-                                        </li>
-                                    )
-                                })}
-                            </ul>
-                            <div className="gk2-wn-odbiory" role="radiogroup" aria-label="Odbiór">
-                                <span className="gk2-e gk2-wn-etykieta">Odbiór — wybierz</span>
-                                {SC_ODBIORY.map((o) => o.kiedy)
-                                    .filter((k, i, a) => a.indexOf(k) === i)
-                                    .map((dzien) => (
-                                        <div className="gk2-wn-odb-rzad" key={dzien}>
-                                            <b>{dzien}</b>
-                                            <span>
-                                                {SC_ODBIORY.map((o, i) =>
-                                                    o.kiedy === dzien ? (
-                                                        <button key={i} type="button" role="radio" aria-checked={odbior === i} aria-label={o.kiedy + ", " + o.gdzie} className={"gk2-wn-odb" + (odbior === i ? " gk2-wn-odb-on" : "")} onClick={() => ustawOdbior(i)}>
-                                                            {o.gdzie}
-                                                        </button>
-                                                    ) : null
-                                                )}
-                                            </span>
-                                        </div>
-                                    ))}
-                                {odbior >= 0 ? <p className="gk2-wn-odb-wybor">{SC_ODBIORY[odbior].kiedy + ", " + SC_ODBIORY[odbior].gdzie + (SC_ODBIORY[odbior].adres ? ", " + SC_ODBIORY[odbior].adres : "")}</p> : null}
-                            </div>
-                        </div>
-                        <dl className="gk2-wn-sumy">
-                            <div className="gk2-wn-sumy-razem">
-                                <dt>Razem</dt>
-                                <dd>{wnZl(razem)}</dd>
-                            </div>
-                            <div>
-                                <dt>Zadatek 30% teraz</dt>
-                                <dd>{wnZl(zadatek)}</dd>
-                            </div>
-                            <div>
-                                <dt>Przy odbiorze</dt>
-                                <dd>{wnZl(razem - zadatek)}</dd>
-                            </div>
-                        </dl>
-                        {otwarte ? (
-                            <a
-                                className="gk2-wn-przycisk gk2-wn-zaplac"
-                                href={ZAMOWIENIA}
-                                aria-disabled={odbior < 0 ? "true" : undefined}
-                                tabIndex={odbior < 0 ? -1 : undefined}
-                                onClick={(e) => {
-                                    if (odbior < 0) e.preventDefault()
-                                }}
-                            >
-                                {odbior < 0 ? "Wybierz odbiór" : "Zapłać zadatek " + wnZl(zadatek)}
-                                {odbior < 0 ? null : <IkonaDalej />}
-                            </a>
-                        ) : (
-                            <span className="gk2-wn-przycisk gk2-wn-zaplac" aria-disabled="true">
-                                Zamówienia zamknięte
-                            </span>
-                        )}
-                    </>
+                    <p className="gk2-e gk2-wn-stopka">{otwarte ? "Zamówienia do 21 grudnia · odbiór 23.12" : "Zamówienia przyjmowaliśmy do 21 grudnia"}</p>
                 )}
-                <p className="gk2-e gk2-wn-stopka">{otwarte ? "Zamówienia do 21 grudnia" : "Zamówienia przyjmowaliśmy do 21 grudnia"}</p>
             </div>
         ) : null
 
     return (
-        <div className={"gk2-sw-polka" + (panel === "koszyk" ? " gk2-sw-z-koszykiem" : "")} ref={korzen}>
+        <div className={"gk2-sw-polka" + (panel !== "" ? " gk2-sw-z-koszykiem" : "")} ref={korzen}>
             <div className="gk2-sw-rzad" ref={rzad} onScroll={przewin}>
-                {SC_P.map((q, i) => (
-                    <SwKafel key={q.id} p={q} i={i} mam={koszyk[q.id] || 0} otwarte={otwarte} dodano={dodano === i} dodaj={dodaj} />
+                {produkty.map((q, i) => (
+                    <SwKafel key={q.id} p={q} i={i} mam={koszyk[q.id] || 0} maks={maksDla(q.id)} wyprzedane={wyprzedane(q.id)} otwarte={otwarte} dodano={dodano === i} dodaj={dodaj} />
                 ))}
             </div>
             <div className="gk2-sw-pasek-rzad">
@@ -1391,9 +1736,9 @@ function Polka() {
                 </div>
             ) : null}
             <span className="gk2-sr" role="status" aria-live="polite">
-                {dodano >= 0 ? "Dodano do koszyka: " + SC_P[dodano].tytul + ". W koszyku: " + suma + " szt." : ""}
+                {dodano >= 0 ? "Dodano do koszyka: " + produkty[dodano].tytul + ". W koszyku: " + suma + " szt." : ""}
             </span>
-            {panel === "koszyk" ? <div className="gk2-sw-zaslona" onClick={zamknij} aria-hidden="true" /> : null}
+            {panel !== "" ? <div className="gk2-sw-zaslona" onClick={zamknij} aria-hidden="true" /> : null}
             {koszykPanel}
         </div>
     )
@@ -2785,7 +3130,8 @@ const CSS_SW = [
     ".gk2-sw-polka { position: relative; }",
     ".gk2-sw-rzad { display: grid; grid-auto-flow: column; grid-auto-columns: 30vw; gap: 10px; padding: 0 var(--m); overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 var(--m); scrollbar-width: none; overscroll-behavior-x: contain; }",
     ".gk2-sw-rzad::-webkit-scrollbar { display: none; }",
-    "@media (min-width: 1180px) { .gk2-sw-rzad { grid-auto-flow: row; grid-template-columns: repeat(6, minmax(0, 1fr)); overflow: visible; } .gk2-sw-pasek-rzad { display: none !important; } }",
+    "@media (min-width: 1180px) { .gk2-sw-rzad { grid-auto-columns: calc((100vw - 2 * var(--m) - 50px) / 5.4); } }",
+    "@media (min-width: 1760px) { .gk2-sw-rzad { grid-auto-flow: row; grid-template-columns: repeat(7, minmax(0, 1fr)); overflow: visible; } .gk2-sw-pasek-rzad { display: none !important; } }",
     ".gk2-sw-kafel { display: grid; grid-template-rows: auto 1fr auto; gap: 12px; min-width: 0; scroll-snap-align: start; }",
     ".gk2-sw-kafel-foto { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--kafel); }",
     ".gk2-sw-kafel-nr { position: absolute; left: 12px; top: 11px; }",
@@ -2799,7 +3145,7 @@ const CSS_SW = [
     ".gk2-sw-cien-dysk { aspect-ratio: 3.4 / 1; transform: translate(-50%, -30%); }",
     ".gk2-sw-cien-brak { display: none; }",
     ".gk2-sw-cien-brak + .gk2-sw-ciasto img { filter: drop-shadow(0 7px 9px rgba(110,30,45,.16)); }",
-    ".gk2-sw-kafel-opis { display: grid; align-content: start; gap: 5px; padding: 0 2px; }",
+    ".gk2-sw-kafel-opis { display: flex; flex-direction: column; gap: 5px; padding: 0 2px; }",
     ".gk2-sw-kafel-nazwa { font-size: 12px; line-height: 1.35; letter-spacing: .05em; text-transform: uppercase; }",
     ".gk2-sw-kafel-reszta, .gk2-sw-kafel-sklad { font-size: 12px; line-height: 1.45; opacity: .72; }",
     ".gk2-sw-kafel-sklad summary { display: inline-flex; align-items: center; gap: 8px; padding: 2px 0; list-style: none; cursor: pointer; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }",
@@ -2808,7 +3154,7 @@ const CSS_SW = [
     ".gk2-sw-kafel-sklad[open] summary::after { content: '−'; }",
     ".gk2-sw-kafel-sklad ul { display: grid; gap: 2px; margin-top: 6px; }",
     ".gk2-sw-nw { white-space: nowrap; }",
-    ".gk2-sw-kafel-cena { display: flex; justify-content: space-between; gap: 10px; margin-top: 3px; font-size: 12px; }",
+    ".gk2-sw-kafel-cena { display: flex; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 3px; font-size: 12px; }",
     ".gk2-sw-kafel-cena b { font-weight: 400; }",
     ".gk2-sw-kafel-cena span { opacity: .72; }",
     ".gk2-sw-dodaj { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 44px; padding: 0 12px; border: 1.5px solid var(--tusz); border-radius: 999px; background: transparent; color: var(--tusz); font: inherit; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; cursor: pointer; transition: background .25s ease, color .25s ease; }",
@@ -2870,6 +3216,23 @@ const CSS_SW = [
     ".gk2-sw-kpo { display: block; margin: 22px calc(var(--m) * -1) -22px; padding: 14px var(--m) calc(14px + env(safe-area-inset-bottom, 0px)); background: #fff; text-align: center; }",
     ".gk2-sw-kpo img { display: inline-block; width: 100%; max-width: 620px; height: auto; }",
     // formularze: pułapka na boty, błąd, zgoda
+    "/* Kasa w szufladzie koszyka (22.11.2026): godzina odbioru, dane, zgoda, płatność Stripe; po powrocie podziękowanie. */",
+    ".gk2-sw .gk2-wn-odb:disabled { opacity: .38; text-decoration: line-through; cursor: default; }",
+    ".gk2-sw-kasa { display: contents; }",
+    ".gk2-sw-wroc { align-self: flex-start; margin: 10px 0 0; padding: 6px 0; border: 0; background: none; color: var(--tusz); font: inherit; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }",
+    ".gk2-sw-dane { display: grid; gap: 14px; padding: 10px 0 16px; }",
+    ".gk2-sw-okna { display: grid; gap: 7px; }",
+    ".gk2-sw-okna > span:nth-child(2) { display: flex; flex-wrap: wrap; gap: 6px; }",
+    ".gk2-sw-dane .gk2-pole textarea { width: 100%; min-width: 0; min-height: 60px; resize: vertical; background: transparent; border: 0; border-bottom: 1.5px solid var(--tusz); border-radius: 0; color: var(--tusz); padding: 10px 2px 12px; font: inherit; font-size: 16px; outline: none; transition: border-color .25s ease; }",
+    ".gk2-sw-dane .gk2-pole textarea:focus { border-bottom-color: var(--rubin); }",
+    ".gk2-sw-check { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; align-items: start; font-size: 12px; line-height: 1.5; cursor: pointer; }",
+    ".gk2-sw-check input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--tusz); }",
+    ".gk2-sw-check a { text-decoration: underline; text-underline-offset: 2px; }",
+    ".gk2-sw-kasa-blad { margin: 10px 0 0; }",
+    ".gk2-sw-kasa-info { margin: 8px 0 0; font-size: 11px; line-height: 1.5; opacity: .7; text-align: center; }",
+    ".gk2-sw-dzieki { display: grid; gap: 10px; padding: 18px 0 8px; }",
+    ".gk2-sw-dzieki p { margin: 0; font-size: 13px; line-height: 1.55; }",
+    ".gk2-sw-dzieki .gk2-h3 { font-size: 24px; line-height: 1.15; }",
     ".gk2-sw-pulapka { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; }",
     ".gk2-sw .gk2-zapytanie { position: relative; }",
     ".gk2-sw-blad { grid-column: 1 / -1; margin: 0; color: var(--rubin); font-size: 12px; line-height: 1.5; }",
@@ -3075,7 +3438,7 @@ export default function KonceptFunduszSwieta(props: Props) {
                         {" · "}
                         <span className="gk2-sw-nw">zadatek 30%</span>
                         {" · "}
-                        <span className="gk2-sw-nw">{"odbiór 23–24.12"}</span>
+                        <span className="gk2-sw-nw">{"odbiór 23.12"}</span>
                     </span>
                 </div>
                 <Polka />
@@ -3144,14 +3507,9 @@ export default function KonceptFunduszSwieta(props: Props) {
                     <div>
                         <h3 className="gk2-e">Odbiór świąteczny</h3>
                         <p>
-                            23 grudnia, od 14:00
+                            {"Środa 23 grudnia, 14:00–19:00"}
                             <br />
-                            {"Kawiarnia Centrum i Nova Park"}
-                        </p>
-                        <p>
-                            24 grudnia, do 12:00
-                            <br />
-                            Nova Park
+                            {"Kawiarnia Centrum albo Nova Park, do wyboru przy zamówieniu"}
                         </p>
                     </div>
                     <div>
