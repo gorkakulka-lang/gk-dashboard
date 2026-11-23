@@ -60,7 +60,7 @@ const FOTO_TARTA = obraz("l5VY5R59aIxUHXLOCPUlwjhkNw.jpg", 2048)
 // Wigilia firmowa (21.11.2026, zdjęcie od Pawła, 1086 × 1448; w repo strona/grafiki/swieta-wigilia-herbata-tort.jpg).
 const FOTO_WIGILIA_SW = obraz("jq49oGmO0fmVniorvWL6gvBdzg.jpg")
 // Sprzedaż online: false = oferta widoczna, koszyk zablokowany do startu płatności (Stripe). Przełącznik na dzień startu.
-const SW_SPRZEDAZ = false
+const SW_SPRZEDAZ = true
 // Formularze (wigilia, stolik) zapisują się w G&K OS (Supabase, funkcja gk_www_request), a właściciel dostaje maila.
 // Klucz publiczny (publishable) wolno trzymać w kodzie strony; dostęp do danych pilnują funkcje w bazie.
 const SW_API = "https://fnranvobetqcxtawcjop.supabase.co/rest/v1/rpc/"
