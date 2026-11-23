@@ -52,14 +52,15 @@ const KOKARDA = obraz("vWtpmRjDk5QAd1EhNzGB6NOmV1c.webp")
 const KUBEK = obraz("1oErhtKWUj4Zul5FVbxnAgZfWBI.webp")
 // Wigilia firmowa: stół z kawą, brownie i świeczką przy lampkach (zdjęcie G&K, 1086 × 1448; w repo strona/grafiki/wigilia-firmowa-kawa.jpg)
 const FOTO_WIGILIA = obraz("FXQzi3dxMw1Lhh7S2Y9o0nZZSM.jpg", 2048)
-// Strona świąteczna: sernik baskijski z pudełkiem G&K (1729 × 910, ta sama sesja co FOTO.ciasto) i tarta pistacjowa
-// z sernikiem i tortem w tle (1082 × 1492; w repo strona/grafiki/swieta-tarta-trzy-ciasta.jpg).
-const FOTO_SWIETA = obraz("0NCCWCqa0Ep8SmT5AztREO4KPA.jpg")
+// Strona świąteczna: sernik baskijski z pudełkiem G&K w Kawiarni Centrum (23.11.2026, zdjęcie od Pawła, 1729 × 910;
+// w repo strona/grafiki/swieta-sernik-baskijski-kawiarnia.jpg) i tarta pistacjowa z sernikiem i tortem w tle
+// (1082 × 1492; w repo strona/grafiki/swieta-tarta-trzy-ciasta.jpg).
+const FOTO_SWIETA = obraz("LTrAyYFNBeAt1ZgiqSLwJAGOI3k.jpg")
 const FOTO_TARTA = obraz("l5VY5R59aIxUHXLOCPUlwjhkNw.jpg", 2048)
 // Wigilia firmowa (21.11.2026, zdjęcie od Pawła, 1086 × 1448; w repo strona/grafiki/swieta-wigilia-herbata-tort.jpg).
 const FOTO_WIGILIA_SW = obraz("jq49oGmO0fmVniorvWL6gvBdzg.jpg")
 // Sprzedaż online: false = oferta widoczna, koszyk zablokowany do startu płatności (Stripe). Przełącznik na dzień startu.
-const SW_SPRZEDAZ = true
+const SW_SPRZEDAZ = false
 // Formularze (wigilia, stolik) zapisują się w G&K OS (Supabase, funkcja gk_www_request), a właściciel dostaje maila.
 // Klucz publiczny (publishable) wolno trzymać w kodzie strony; dostęp do danych pilnują funkcje w bazie.
 const SW_API = "https://fnranvobetqcxtawcjop.supabase.co/rest/v1/rpc/"
@@ -934,13 +935,13 @@ function Stolik() {
 type ScCiasto = { f: string; pw: number; ph: number; w: number; obr: number; cien: string; bx: number; by: number; bd: number; ba: number; lustro?: boolean }
 type ScProdukt = { id: string; nr: string; krotko: string; tytul: string; reszta: string; sklad?: string[]; cena: number; miara: string; ciasto: ScCiasto; zast?: boolean }
 const SC_P: ScProdukt[] = [
-    {"id": "baskijski", "nr": "01", "krotko": "Baskijski", "tytul": "Sernik baskijski", "reszta": "na korzennym spodzie", "cena": 220, "miara": "24 cm", "zast": true, "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "aKhZ5Ex6DuMnZmya8csDwtl7zLQ.webp", "pw": 1100, "ph": 970, "bx": 0.5032, "by": 0.6528, "bd": 0.9918, "ba": 0.4601, "lustro": true}},
-    {"id": "smietankowy", "nr": "02", "krotko": "Śmietankowy", "tytul": "Sernik śmietankowy", "reszta": "z polewą z białej czekolady z pomarańczą i ganache z białej czekolady", "cena": 220, "miara": "24 cm", "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "aKhZ5Ex6DuMnZmya8csDwtl7zLQ.webp", "pw": 1100, "ph": 970, "bx": 0.4968, "by": 0.6528, "bd": 0.9918, "ba": 0.4601}},
-    {"id": "czekoladowy", "nr": "03", "krotko": "Czekoladowy", "tytul": "Sernik z polewą czekoladową", "reszta": "i czekoladowym ganache", "cena": 220, "miara": "24 cm", "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "w6ccdFYLNdUt5VcsUkEWWEJVxrY.webp", "pw": 1100, "ph": 1032, "bx": 0.4991, "by": 0.7063, "bd": 0.9922, "ba": 0.4379}},
-    {"id": "tarta", "nr": "04", "krotko": "Tarta", "tytul": "Tarta pistacjowa", "reszta": "z malinami", "cena": 190, "miara": "24 cm", "ciasto": {"w": 64, "obr": 58, "cien": "dysk", "f": "e9LdZK2SAn0XT6xJePN95umsrE.webp", "pw": 1100, "ph": 1061, "bx": 0.4945, "by": 0.5119, "bd": 0.9925, "ba": 0.4754}},
-    {"id": "tort", "nr": "05", "krotko": "Tort", "tytul": "Tort czekoladowy", "reszta": "z kremem czekoladowym", "cena": 300, "miara": "24 cm", "ciasto": {"w": 80, "obr": 10, "cien": "bryla", "f": "VmHOxUZcgfZvoWnf0yFaZDaXjgw.webp", "pw": 1100, "ph": 777, "bx": 0.4973, "by": 0.6283, "bd": 0.9897, "ba": 0.5001}},
-    {"id": "marchewkowy", "nr": "06", "krotko": "Marchewkowy", "tytul": "Tort marchewkowy", "reszta": "z kremem cream cheese", "cena": 250, "miara": "24 cm", "ciasto": {"w": 72, "obr": 10, "cien": "bryla", "f": "yXOtkJRnRfkHUP8S0Nt1sGy6jyA.webp", "pw": 1081, "ph": 1025, "bx": 0.4995, "by": 0.7021, "bd": 0.9893, "ba": 0.4535}},
-    {"id": "box", "nr": "07", "krotko": "Box", "tytul": "Box dla dwojga", "reszta": "", "sklad": ["2× ptyś Lotus z owocami leśnymi", "2× brownie z kremem pistacjowym", "2× ciastko NYC o smaku sernika cynamonowego", "2× cake pop marchewkowy"], "cena": 120, "miara": "8 sztuk", "ciasto": {"w": 66, "obr": 0, "cien": "brak", "f": "YaxTl71vaoGvGI2ixOpGwr5QGeM.webp", "pw": 880, "ph": 1142, "bx": 0.5, "by": 0.745, "bd": 1.0, "ba": 0.0}},
+    {"id": "box", "nr": "01", "krotko": "Box", "tytul": "Box dla dwojga", "reszta": "", "sklad": ["2× ptyś Lotus z owocami leśnymi", "2× brownie z kremem pistacjowym", "2× ciastko NYC o smaku sernika cynamonowego", "2× cake pop marchewkowy"], "cena": 120, "miara": "8 sztuk", "ciasto": {"w": 66, "obr": 0, "cien": "brak", "f": "YaxTl71vaoGvGI2ixOpGwr5QGeM.webp", "pw": 880, "ph": 1142, "bx": 0.5, "by": 0.745, "bd": 1.0, "ba": 0.0}},
+    {"id": "baskijski", "nr": "02", "krotko": "Baskijski", "tytul": "Sernik baskijski", "reszta": "na korzennym spodzie", "cena": 220, "miara": "24 cm", "ciasto": {"w": 76, "obr": 10, "cien": "bryla", "f": "Y83U66TuHwd1qLNBxTAFA0VbFg.webp", "pw": 1000, "ph": 691, "bx": 0.499, "by": 0.612, "bd": 0.99, "ba": 0.495}},
+    {"id": "smietankowy", "nr": "03", "krotko": "Śmietankowy", "tytul": "Sernik śmietankowy", "reszta": "z polewą z białej czekolady z pomarańczą i ganache z białej czekolady", "cena": 220, "miara": "24 cm", "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "aKhZ5Ex6DuMnZmya8csDwtl7zLQ.webp", "pw": 1100, "ph": 970, "bx": 0.4968, "by": 0.6528, "bd": 0.9918, "ba": 0.4601}},
+    {"id": "czekoladowy", "nr": "04", "krotko": "Czekoladowy", "tytul": "Sernik z polewą czekoladową", "reszta": "i czekoladowym ganache", "cena": 220, "miara": "24 cm", "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "w6ccdFYLNdUt5VcsUkEWWEJVxrY.webp", "pw": 1100, "ph": 1032, "bx": 0.4991, "by": 0.7063, "bd": 0.9922, "ba": 0.4379}},
+    {"id": "tarta", "nr": "05", "krotko": "Tarta", "tytul": "Tarta pistacjowa", "reszta": "z malinami", "cena": 190, "miara": "24 cm", "ciasto": {"w": 64, "obr": 58, "cien": "dysk", "f": "e9LdZK2SAn0XT6xJePN95umsrE.webp", "pw": 1100, "ph": 1061, "bx": 0.4945, "by": 0.5119, "bd": 0.9925, "ba": 0.4754}},
+    {"id": "tort", "nr": "06", "krotko": "Tort", "tytul": "Tort czekoladowy", "reszta": "z kremem czekoladowym", "cena": 300, "miara": "24 cm", "ciasto": {"w": 80, "obr": 10, "cien": "bryla", "f": "VmHOxUZcgfZvoWnf0yFaZDaXjgw.webp", "pw": 1100, "ph": 777, "bx": 0.4973, "by": 0.6283, "bd": 0.9897, "ba": 0.5001}},
+    {"id": "marchewkowy", "nr": "07", "krotko": "Marchewkowy", "tytul": "Tort marchewkowy", "reszta": "z kremem cream cheese", "cena": 250, "miara": "24 cm", "ciasto": {"w": 72, "obr": 10, "cien": "bryla", "f": "yXOtkJRnRfkHUP8S0Nt1sGy6jyA.webp", "pw": 1081, "ph": 1025, "bx": 0.4995, "by": 0.7021, "bd": 0.9893, "ba": 0.4535}},
 ]
 // scena otwiera się na pierwszym cieście z prawdziwym zdjęciem
 const SC_START = Math.max(0, SC_P.findIndex((q) => !q.zast))
@@ -3199,6 +3200,12 @@ const CSS_SW = [
     ".gk2-sw-blok-forma .gk2-zapytanie, .gk2-sw-blok-forma .gk2-zapytanie-dzieki { margin-top: 0; }",
     // odbiór i adresy: maślany pas jak stopka u Acne
     ".gk2-sw-odbior { background: var(--maslo); padding: 80px var(--m) 56px; }",
+    // pas z odbiorem i zasadami zamówień zaraz pod ciastami (Paweł 23.11): ten sam maślany kolor co adresy na dole
+    ".gk2-sw-zasady { background: var(--maslo); padding: 34px var(--m) 38px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; }",
+    ".gk2-sw-zasady h3 { margin-bottom: 4px; }",
+    ".gk2-sw-zasady p { margin-top: 10px; font-size: 13px; line-height: 1.55; }",
+    "@media (max-width: 1023px) { .gk2-sw-zasady { grid-template-columns: 1fr 1fr; gap: 28px 24px; } }",
+    "@media (max-width: 559px) { .gk2-sw-zasady { grid-template-columns: 1fr; gap: 24px; padding: 30px var(--m) 34px; } }",
     ".gk2-sw-kolumny { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; margin-top: 44px; padding-top: 18px; border-top: 1px solid rgba(17,17,17,.25); }",
     ".gk2-sw-kolumny h3 { margin-bottom: 4px; }",
     ".gk2-sw-kolumny p { margin-top: 10px; font-size: 13px; line-height: 1.55; }",
@@ -3244,7 +3251,7 @@ const CSS_SW = [
     ".gk2-sw-js .gk2-sw-wjazd.gk2-sw-widac { opacity: 1; transform: none; }",
     "@media (max-width: 1023px) { .gk2-sw-kolumny { grid-template-columns: 1fr 1fr; gap: 28px 24px; } }",
     // pionowy tablet: zdjęcie jest poziome, więc pierwszy ekran nie wyższy niż szerokość, a pod nim widać już sklep
-    "@media (min-width: 810px) and (max-aspect-ratio: 1/1) { .gk2-sw { --hh: clamp(520px, 100vw, calc(var(--vh) * 100 - var(--nav))); --start: calc(var(--hh) * .3); } .gk2-sw-hero-foto img { object-position: 62% 50%; } }",
+    "@media (min-width: 810px) and (max-aspect-ratio: 1/1) { .gk2-sw { --hh: clamp(520px, 100vw, calc(var(--vh) * 100 - var(--nav))); --start: calc(var(--hh) * .3); } .gk2-sw-hero-foto img { object-position: 44% 50%; } }",
     "@media (max-width: 809px) {",
     "  .gk2-sw { --m: 16px; --hh: clamp(420px, 132vw, calc(var(--vh) * 100 - var(--nav) - 84px)); --start: calc(var(--hh) * .3); }",
     "  .gk2-sw-nav { grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; }",
@@ -3255,7 +3262,7 @@ const CSS_SW = [
     "  .gk2-sw-tylko-duzy { display: none; }",
     "  .gk2-sw-tylko-tel { display: inline; }",
     "  .gk2-sw-pigulka { padding: 0 12px; }",
-    "  .gk2-sw-hero-foto img { object-position: 62% 50%; }",
+    "  .gk2-sw-hero-foto img { object-position: 44% 50%; }",
     "  .gk2-sw-tor { padding-bottom: 46px; }",
     "  .gk2-sw-lep { gap: 18px; }",
     "  .gk2-sw-logo { width: 100%; }",
@@ -3315,7 +3322,8 @@ const SW_LINKI = [
     ["Wypieki", "Wypieki na Święta", "gk2-sklep"],
     ["Dla firm", "Wigilia firmowa", "gk2-firmy"],
     ["Stolik", "Zarezerwuj stolik", "gk2-stolik"],
-    ["Odbiór", "Odbiór i adresy", "gk2-odbior"],
+    ["Odbiór", "Odbiór i zamówienia", "gk2-odbior"],
+    ["Adresy", "Adresy", "gk2-adresy"],
 ]
 
 function SwStrzalka() {
@@ -3444,6 +3452,22 @@ export default function KonceptFunduszSwieta(props: Props) {
                 <Polka />
             </section>
 
+            <section className="gk2-sw-zasady" id="gk2-odbior" aria-label="Odbiór i zamówienia">
+                <div>
+                    <h3 className="gk2-e">Odbiór świąteczny</h3>
+                    <p>
+                        {"Środa 23 grudnia, 14:00–19:00"}
+                        <br />
+                        {"Kawiarnia Centrum albo Nova Park, do wyboru przy zamówieniu"}
+                    </p>
+                </div>
+                <div>
+                    <h3 className="gk2-e">Zamówienia</h3>
+                    <p>{SW_SPRZEDAZ ? "Przez stronę, do 21 grudnia" : "Przez stronę, do 21 grudnia. Zamówienia online ruszą wkrótce."}</p>
+                    <p>{"Zadatek 30% przy zamówieniu, reszta przy odbiorze"}</p>
+                </div>
+            </section>
+
             <div className="gk2-sw-para">
                 <a className="gk2-sw-para-foto gk2-sw-para-tarta" href="#gk2-sklep" onClick={skok("gk2-sklep")}>
                     <img src={FOTO_TARTA} alt="Tarta pistacjowa z malinami, za nią sernik z malinami i tort czekoladowy, w tle światełka" loading="lazy" decoding="async" />
@@ -3498,20 +3522,12 @@ export default function KonceptFunduszSwieta(props: Props) {
                 </div>
             </section>
 
-            <section className="gk2-sw-odbior" id="gk2-odbior" aria-labelledby="gk2-sw-odbior-t">
+            <section className="gk2-sw-odbior" id="gk2-adresy" aria-labelledby="gk2-sw-odbior-t">
                 <div className="gk2-e">Gorzów Wielkopolski</div>
                 <h2 className="gk2-sw-h2" id="gk2-sw-odbior-t">
-                    Odbiór i adresy.
+                    Adresy.
                 </h2>
                 <div className="gk2-sw-kolumny">
-                    <div>
-                        <h3 className="gk2-e">Odbiór świąteczny</h3>
-                        <p>
-                            {"Środa 23 grudnia, 14:00–19:00"}
-                            <br />
-                            {"Kawiarnia Centrum albo Nova Park, do wyboru przy zamówieniu"}
-                        </p>
-                    </div>
                     <div>
                         <h3 className="gk2-e">Kawiarnia Centrum</h3>
                         <p>
@@ -3534,14 +3550,6 @@ export default function KonceptFunduszSwieta(props: Props) {
                         <p>Godziny galerii</p>
                         <a href={mapa("Górka & Kulka Nova Park Gorzów Wielkopolski")} target="_blank" rel="noopener noreferrer">
                             Jak dojść ↗
-                        </a>
-                    </div>
-                    <div>
-                        <h3 className="gk2-e">Zamówienia</h3>
-                        <p>{SW_SPRZEDAZ ? "Do 21 grudnia, przez stronę" : "Przez stronę, do 21 grudnia. Zamówienia online ruszą wkrótce."}</p>
-                        <p>{"Zadatek 30% przy zamówieniu, reszta przy odbiorze"}</p>
-                        <a href="#gk2-sklep" onClick={doSklepu}>
-                            {SW_SPRZEDAZ ? "Zamów ciasta →" : "Zobacz wypieki →"}
                         </a>
                     </div>
                 </div>
