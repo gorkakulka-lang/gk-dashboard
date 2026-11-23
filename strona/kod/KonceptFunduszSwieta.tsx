@@ -1692,7 +1692,7 @@ function Polka() {
                         Wróć na stronę
                     </button>
                 ) : (
-                    <p className="gk2-e gk2-wn-stopka">{otwarte ? "Zamówienia do 21 grudnia · odbiór 23.12" : "Zamówienia przyjmowaliśmy do 21 grudnia"}</p>
+                    <p className="gk2-e gk2-wn-stopka">{otwarte ? "Zamówienia do 20 grudnia · odbiór 23.12" : "Zamówienia przyjmowaliśmy do 20 grudnia"}</p>
                 )}
             </div>
         ) : null
@@ -3420,12 +3420,12 @@ export default function KonceptFunduszSwieta(props: Props) {
             </nav>
 
             <section className="gk2-sw-hero" id="gk2-start" aria-label="Wypieki na Święta 2026">
-                <h1 className="gk2-sr">Górka & Kulka — wypieki na Święta 2026 w Gorzowie Wielkopolskim. Zamówienia do 21 grudnia.</h1>
+                <h1 className="gk2-sr">Górka & Kulka — wypieki na Święta 2026 w Gorzowie Wielkopolskim. Zamówienia do 20 grudnia.</h1>
                 <div className="gk2-sw-hero-foto">
                     <img src={FOTO_SWIETA} alt="Sernik baskijski na stalowej paterze, ktoś odkrawa kawałek; obok różowe pudełko Górka & Kulka" loading="eager" decoding="async" />
                 </div>
                 <span className="gk2-e gk2-sw-hero-et gk2-sw-hero-et-lg">Wypieki na Święta 2026</span>
-                <span className="gk2-e gk2-sw-hero-et gk2-sw-hero-et-pg">Zamówienia do 21.12</span>
+                <span className="gk2-e gk2-sw-hero-et gk2-sw-hero-et-pg">Zamówienia do 20.12</span>
                 <span className="gk2-e gk2-sw-hero-et gk2-sw-hero-et-ld">Na zdjęciu: sernik baskijski · 220 zł</span>
                 <div className="gk2-sw-tor">
                     <div className="gk2-sw-lep" ref={u("lep")}>
@@ -3442,7 +3442,7 @@ export default function KonceptFunduszSwieta(props: Props) {
                 <div className="gk2-sw-wiersz gk2-e">
                     <h2 id="gk2-sw-sklep-t">Wypieki na Święta</h2>
                     <span>
-                        <span className="gk2-sw-nw">{SW_SPRZEDAZ ? "Zamówienia do 21.12" : "Zamówienia online ruszą wkrótce"}</span>
+                        <span className="gk2-sw-nw">{SW_SPRZEDAZ ? "Zamówienia do 20.12" : "Zamówienia online ruszą wkrótce"}</span>
                         {" · "}
                         <span className="gk2-sw-nw">zadatek 30%</span>
                         {" · "}
@@ -3463,7 +3463,7 @@ export default function KonceptFunduszSwieta(props: Props) {
                 </div>
                 <div>
                     <h3 className="gk2-e">Zamówienia</h3>
-                    <p>{SW_SPRZEDAZ ? "Przez stronę, do 21 grudnia" : "Przez stronę, do 21 grudnia. Zamówienia online ruszą wkrótce."}</p>
+                    <p>{SW_SPRZEDAZ ? "Przez stronę, do 20 grudnia" : "Przez stronę, do 20 grudnia. Zamówienia online ruszą wkrótce."}</p>
                     <p>{"Zadatek 30% przy zamówieniu, reszta przy odbiorze"}</p>
                 </div>
             </section>
