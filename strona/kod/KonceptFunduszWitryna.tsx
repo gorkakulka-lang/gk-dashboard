@@ -2,9 +2,10 @@ import * as React from "react"
 import { useEffect, useRef, useState } from "react"
 import { addPropertyControls, ControlType, RenderTarget } from "framer"
 
-// Górka & Kulka — koncept strony głównej, wersja 3.
-// Jedna opowieść: Szary Dzień -> kolor. Start z grafiki Szarego Dnia, filmy z kawiarni, sklep świąteczny pod kokardą,
-// wigilie firmowe, smaki z chromowym rożkiem, kubek na wynos, święto marki.
+// Górka & Kulka — strona po świętach (/fundusz-witryna), odsłona noworoczna 2027.
+// Jedna opowieść: Szary Dzień -> kolor. Start z grafiki Szarego Dnia, filmy z kawiarni, wypieki i torty na zamówienie
+// przez cały rok, spotkania firmowe, stolik, smaki z chromowym rożkiem, zestawy 6 × 500 ml z wysyłką, 18.01 Najszarszy Dzień.
+// Budowa: v3/po_swietach_zbuduj.sh (warstwa po_swietach_edycje.py na stronie ze sklepem „Scena ciast”).
 
 const CDN = "https://framerusercontent.com/"
 
@@ -50,27 +51,14 @@ const SZARY = [
 ].map((f) => obraz(f))
 const KOKARDA = obraz("vWtpmRjDk5QAd1EhNzGB6NOmV1c.webp")
 const KUBEK = obraz("1oErhtKWUj4Zul5FVbxnAgZfWBI.webp")
-// Wigilia firmowa: stół z kawą, brownie i świeczką przy lampkach (zdjęcie G&K, 1086 × 1448; w repo strona/grafiki/wigilia-firmowa-kawa.jpg)
-const FOTO_WIGILIA = obraz("FXQzi3dxMw1Lhh7S2Y9o0nZZSM.jpg", 2048)
+// Dla firm: stół z kawą, brownie i świeczką (zdjęcie G&K, 1086 × 1448; w repo strona/grafiki/wigilia-firmowa-kawa.jpg)
+const FOTO_FIRMY = obraz("FXQzi3dxMw1Lhh7S2Y9o0nZZSM.jpg", 2048)
 
-// Kokarda pocięta na pięć części (wielokąty w procentach obrazka), żeby dało się ją rozwiązać.
-const KOK: Record<string, string> = {
-    petlaL: "polygon(0% 0%, 49.7% 0%, 49.7% 18.28%, 45.5% 18.7%, 42.2% 19.45%, 41.4% 22.85%, 41.2% 26.57%, 41.4% 30.82%, 41.8% 33.16%, 42.4% 34.75%, 40% 35.92%, 36% 37.89%, 33% 39.37%, 30.3% 40.75%, 29% 41.6%, 27% 43.36%, 25% 45.16%, 23.6% 46.76%, 0% 46.76%)",
-    petlaP: "polygon(100% 0%, 49.7% 0%, 49.7% 18.28%, 54% 18.7%, 57.8% 19.55%, 58.5% 22.85%, 58.6% 26.57%, 58.5% 30.82%, 58.2% 32.94%, 57.8% 34.22%, 60% 35.55%, 64% 37.94%, 67% 39.69%, 69.2% 41.02%, 70.5% 42.03%, 72.5% 43.94%, 74.5% 45.91%, 75.3% 46.76%, 100% 46.76%)",
-    ogonL: "polygon(42.4% 34.75%, 40% 35.92%, 36% 37.89%, 33% 39.37%, 30.3% 40.75%, 29% 41.6%, 27% 43.36%, 25% 45.16%, 23.6% 46.76%, 0% 46.76%, 0% 100%, 3.2% 100%, 21.5% 92.2%, 39.8% 100%, 49.7% 100%, 49.7% 37.94%, 47% 37.3%, 44.5% 36.66%, 43% 35.71%)",
-    ogonP: "polygon(57.8% 34.22%, 60% 35.55%, 64% 37.94%, 67% 39.69%, 69.2% 41.02%, 70.5% 42.03%, 72.5% 43.94%, 74.5% 45.91%, 75.3% 46.76%, 100% 46.76%, 100% 100%, 94.8% 100%, 77.4% 92.2%, 60% 100%, 49.7% 100%, 49.7% 37.94%, 52.3% 37.3%, 54.8% 36.77%, 56.6% 35.81%)",
-    wezel: "polygon(45.5% 18.7%, 49.7% 18.28%, 54% 18.7%, 57.8% 19.55%, 58.5% 22.85%, 58.6% 26.57%, 58.5% 30.82%, 58.2% 32.94%, 57.8% 34.22%, 56.6% 35.81%, 54.8% 36.77%, 52.3% 37.3%, 49.7% 37.94%, 47% 37.3%, 44.5% 36.66%, 43% 35.71%, 42.4% 34.75%, 41.8% 33.16%, 41.4% 30.82%, 41.2% 26.57%, 41.4% 22.85%, 42.2% 19.45%)",
-}
-
-// Wypieki na Święta 2026: trzy ciasta z makiety zamówień (bez cen).
-const WYPIEKI = [
-    { f: "6jNwbhYhSQpNCiupLkUbX4Ebc.jpg", wyc: "6OiT6TePNj7plGBew2Kr0itT0.webp", w: 840, nazwa: "Sernik waniliowy", opis: "Kremowy w\u00a0środku, mocno przypieczony z\u00a0wierzchu. Świąteczna klasyka w\u00a0naszym wydaniu." },
-    { f: "zdqTZNtOtNyLBT1wi6bLYKjYhM.jpg", wyc: "iP6jW8FH9UpAKGGNFZobBkVUg.webp", w: 804, nazwa: "Makowiec", opis: "Drożdżowe ciasto zwinięte z\u00a0gęstą masą makową. Bez niego nie ma Wigilii." },
-    { f: "XZiPiwkX7kaehGjFJrxTCVpvoNo.jpg", wyc: "yXip6FRU4fEi08sgSqP5hq8c2uQ.webp", w: 736, nazwa: "Ciasto czekoladowe", opis: "Warstwy czekoladowego biszkoptu i\u00a0kremu pod wiórkami czekolady." },
-]
-const ZAMOWIENIA = "/kolekcja-swiateczna"
-// Koniec zamówień świątecznych: 22.12.2026, północ czasu polskiego.
-const KONIEC_ZAMOWIEN = Date.UTC(2026, 11, 21, 23, 0, 0)
+// Telefon do Kawiarni Centrum (sekcja Stolik): dla gości, którzy chcą wpaść jeszcze dziś.
+const TEL_KAWIARNI = "+48 574 634 151"
+const TEL_KAWIARNI_LINK = "tel:+48574634151"
+// Smaki gościnne w witrynie: jedno miejsce na całą stronę (metka w sekcji 07). We Framerze to właściwość „Dziś gościnnie”.
+const GOSCINNIE = "krem kataloński i ciastko belgijskie"
 
 type Smak = { nr: string; nazwa: string[]; en: string; opis: string; kolor: string; gala: string; tekst: string }
 const SMAKI: Smak[] = [
@@ -81,18 +69,27 @@ const SMAKI: Smak[] = [
     { nr: "05", nazwa: ["Beza", "dacquoise"], en: "Dacquoise Meringue", opis: "Chrupie, zanim się rozpłynie.", kolor: "#EAD2C0", gala: "#F8E9DD", tekst: "#111111" },
     { nr: "06", nazwa: ["Gruszka", "z imbirem"], en: "Pear & Ginger", opis: "Sorbet. Rozgrzewa, choć mrozi.", kolor: "#D3D77C", gala: "#E4E7A8", tekst: "#111111" },
 ]
+// Zestaw wysyłkowy 6 × 500 ml (sekcja 08): smaki do wyboru, kolor trafia na kropkę na etykiecie kubka.
+const ZESTAW: { nr: string; nazwa: string[]; en: string; kolor: string }[] = [
+    { nr: "01", nazwa: ["Śmietanka"], en: "Whipped Cream", kolor: "#F3ECDC" },
+    { nr: "02", nazwa: ["Krem", "kataloński"], en: "Crema Catalana", kolor: "#F1CB78" },
+    { nr: "03", nazwa: ["Ciastko", "belgijskie"], en: "Belgian Biscuit", kolor: "#C9965C" },
+    { nr: "04", nazwa: ["Solony", "karmel"], en: "Salted Caramel", kolor: "#B4652F" },
+    { nr: "05", nazwa: ["Pistacja"], en: "Pistachio", kolor: "#A9BD78" },
+]
 // Kolory smaków jako liczby 0–1: chromowy rożek odbija kolor smaku, który jest na ekranie.
 const rgb01 = (hex: string) => [parseInt(hex.slice(1, 3), 16) / 255, parseInt(hex.slice(3, 5), 16) / 255, parseInt(hex.slice(5, 7), 16) / 255]
 const SMAKI_RGB = SMAKI.map((s) => ({ a: rgb01(s.kolor), b: rgb01(s.gala) }))
 
-// Podpisy pod rysunkiem na starcie: zmieniają się razem z klatkami.
+// Podpisy pod rysunkiem na starcie: zmieniają się razem z klatkami. Rycina 2 to jeden ruchomy rysunek (pięć klatek),
+// dlatego numer zostaje, a zmienia się tylko opis. Dalej na stronie: Ryc. 3 (Kulka po sezonie) i Ryc. 4 (Juchowo).
 const RYCINY = [
     "Ryc. 1 — Szary Dzień. Sam przy stoliku.",
     "Ryc. 2 — Dosiada się Kulka.",
-    "Ryc. 3 — „To dla ciebie”.",
-    "Ryc. 4 — Szary Dzień próbuje.",
-    "Ryc. 5 — Jest uśmiech.",
-    "Ryc. 6 — Rozpogodziło się.",
+    "Ryc. 2 — „To dla ciebie”.",
+    "Ryc. 2 — Szary Dzień próbuje.",
+    "Ryc. 2 — Jest uśmiech.",
+    "Ryc. 2 — Rozpogodziło się.",
 ]
 
 // Od podstaw: skąd bierzemy mleko, śmietankę i jajka.
@@ -592,37 +589,28 @@ function Zapis(props: { data: string }) {
     )
 }
 
-// Kokarda z pliku marki, pocięta na części: pętle chowają się w węźle, ogony się wydłużają i zsuwają.
-function Kokarda(props: { u: (k: string) => (el: any) => void }) {
-    const czesc = (k: string, klasa: string) => <i ref={props.u("kok_" + k)} className={"gk2-kok-cz " + klasa} style={{ clipPath: KOK[k], WebkitClipPath: KOK[k] } as React.CSSProperties} />
-    return (
-        <div className="gk2-kok">
-            {czesc("ogonL", "gk2-kok-ogon")}
-            {czesc("ogonP", "gk2-kok-ogon")}
-            {czesc("petlaL", "gk2-kok-petla-l")}
-            {czesc("petlaP", "gk2-kok-petla-p")}
-            {czesc("wezel", "gk2-kok-wezel")}
-        </div>
-    )
-}
-
-// Termin wigilii: kalendarz w stylu strony zamiast systemowego. Miesiące liczone dopiero po otwarciu (bez rozjazdu z wersją z serwera).
+// Termin: kalendarz w stylu strony zamiast systemowego. Miesiące liczone dopiero po otwarciu (bez rozjazdu z wersją z serwera).
 const MIESIACE = ["styczeń", "luty", "marzec", "kwiecień", "maj", "czerwiec", "lipiec", "sierpień", "wrzesień", "październik", "listopad", "grudzień"]
 const MIESIACE_D = ["stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca", "lipca", "sierpnia", "września", "października", "listopada", "grudnia"]
 const DNI_TYG = ["pn", "wt", "śr", "cz", "pt", "so", "nd"]
 const DNI_PELNE = ["niedziela", "poniedziałek", "wtorek", "środa", "czwartek", "piątek", "sobota"]
 
-function Termin(props: { id: string; etykieta: string; dialog: string; odDzis?: boolean }) {
+// odDni: najwcześniejszy dzień liczony od dziś (koszyk: 2, czyli min. 48 godzin). start i naWybor łączą kalendarz z koszykiem.
+function Termin(props: { id: string; etykieta: string; dialog: string; odDzis?: boolean; odDni?: number; start?: string; naWybor?: (iso: string) => void }) {
     const [otwarty, ustawOtwarty] = useState(false)
-    const [wybrany, ustawWybrany] = useState<null | { r: number; m: number; d: number }>(null)
+    const [wybrany, ustawWybrany] = useState<null | { r: number; m: number; d: number }>(() => {
+        const c = props.start ? props.start.split("-").map((x) => parseInt(x, 10)) : []
+        return c.length === 3 && !c.some((x) => isNaN(x)) ? { r: c[0], m: c[1] - 1, d: c[2] } : null
+    })
     const [widok, ustawWidok] = useState(-1) // rok * 12 + miesiąc
     const [dzis, ustawDzis] = useState(-1) // rok * 10000 + miesiąc * 100 + dzień
     const ref = useRef<HTMLDivElement>(null)
     const otworz = () => {
         const t = new Date()
+        if (props.odDni) t.setDate(t.getDate() + props.odDni)
         const d0 = t.getFullYear() * 10000 + t.getMonth() * 100 + t.getDate()
         ustawDzis(d0)
-        if (widok < 0) ustawWidok(wybrany ? wybrany.r * 12 + wybrany.m : props.odDzis ? t.getFullYear() * 12 + t.getMonth() : t.getFullYear() * 12 + 11)
+        if (widok < 0) ustawWidok(wybrany ? wybrany.r * 12 + wybrany.m : props.odDzis || props.odDni ? t.getFullYear() * 12 + t.getMonth() : t.getFullYear() * 12 + 11)
         ustawOtwarty(true)
     }
     useEffect(() => {
@@ -698,6 +686,7 @@ function Termin(props: { id: string; etykieta: string; dialog: string; odDzis?: 
                                     onClick={() => {
                                         ustawWybrany({ r: rok, m: mies, d: c.d })
                                         ustawOtwarty(false)
+                                        if (props.naWybor) props.naWybor(rok + "-" + dwa(mies + 1) + "-" + dwa(c.d))
                                     }}
                                 >
                                     {c.d}
@@ -713,13 +702,13 @@ function Termin(props: { id: string; etykieta: string; dialog: string; odDzis?: 
     )
 }
 
-// Zapytanie o wigilię firmową. Makieta: nic nie jest wysyłane.
+// Zapytanie o spotkanie firmowe albo wypieki dla firmy. Makieta: nic nie jest wysyłane.
 function Zapytanie() {
     const [wyslane, ustawWyslane] = useState(false)
     if (wyslane)
         return (
             <div className="gk2-zapytanie-dzieki">
-                <p className="gk2-d gk2-h3">{"Dziękujemy. Odpiszemy z\u00a0ofertą."}</p>
+                <p className="gk2-d gk2-h3">{"Dziękujemy. Wrócimy z\u00a0propozycją."}</p>
                 <p className="gk2-drobny">Tak będzie wyglądać potwierdzenie. To makieta: zapytanie jeszcze nigdzie nie trafia.</p>
             </div>
         )
@@ -735,7 +724,7 @@ function Zapytanie() {
                 <span className="gk2-e">Firma</span>
                 <input type="text" name="firma" required autoComplete="organization" placeholder="Nazwa firmy" />
             </label>
-            <Termin id="wigilia" etykieta="Termin" dialog="Wybierz dzień wigilii firmowej" />
+            <Termin id="firma" etykieta="Termin" dialog="Wybierz dzień spotkania" odDzis />
             <label className="gk2-pole">
                 <span className="gk2-e">Liczba osób</span>
                 <input type="number" name="osoby" required min={2} inputMode="numeric" placeholder="np. 12" />
@@ -816,33 +805,48 @@ function Stolik() {
                 <button type="submit" className="gk2-przycisk">
                     Poproś o stolik
                 </button>
-                <span className="gk2-drobny">{"Więcej niż 8 osób albo firma? Napisz w\u00a0sprawie wigilii firmowej."}</span>
+                <span className="gk2-drobny">
+                    {"Więcej niż 8 osób albo spotkanie firmowe? Napisz przez sekcję "}
+                    <a
+                        className="gk2-drobny-link"
+                        href="#gk2-firmy"
+                        onClick={(e) => {
+                            e.preventDefault()
+                            przewinDo("gk2-firmy")
+                        }}
+                    >
+                        Dla firm ↑
+                    </a>
+                </span>
             </div>
         </form>
     )
 }
 
-// Sklep świąteczny „Scena ciast”: każde ciasto leży na różu RAL 3015, spod niego w poprzek sceny wychodzi aksamitna
+// Sklep „Scena ciast” (po świętach: wypieki i torty na zamówienie przez cały rok): każde ciasto leży na różu RAL 3015, spod niego w poprzek sceny wychodzi aksamitna
 // wstęga (ten sam aksamit co na paczce z kokardą). Przejście między ciastami steruje jedna zmienna --t (0..1):
 // ciasta jadą po wstędze jak po taśmie. Palec prowadzi --t bezpośrednio, po puszczeniu domyka sprężyna.
 type ScCiasto = { f: string; pw: number; ph: number; w: number; obr: number; cien: string; bx: number; by: number; bd: number; ba: number; lustro?: boolean }
 type ScProdukt = { id: string; nr: string; krotko: string; tytul: string; reszta: string; sklad?: string[]; cena: number; miara: string; ciasto: ScCiasto; zast?: boolean }
 const SC_P: ScProdukt[] = [
-    {"id": "baskijski", "nr": "01", "krotko": "Baskijski", "tytul": "Sernik baskijski", "reszta": "na korzennym spodzie", "cena": 220, "miara": "24 cm", "zast": true, "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "aKhZ5Ex6DuMnZmya8csDwtl7zLQ.webp", "pw": 1100, "ph": 970, "bx": 0.5032, "by": 0.6528, "bd": 0.9918, "ba": 0.4601, "lustro": true}},
-    {"id": "smietankowy", "nr": "02", "krotko": "Śmietankowy", "tytul": "Sernik śmietankowy", "reszta": "z polewą z białej czekolady z pomarańczą i ganache z białej czekolady", "cena": 220, "miara": "24 cm", "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "aKhZ5Ex6DuMnZmya8csDwtl7zLQ.webp", "pw": 1100, "ph": 970, "bx": 0.4968, "by": 0.6528, "bd": 0.9918, "ba": 0.4601}},
-    {"id": "czekoladowy", "nr": "03", "krotko": "Czekoladowy", "tytul": "Sernik z polewą czekoladową", "reszta": "i czekoladowym ganache", "cena": 220, "miara": "24 cm", "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "w6ccdFYLNdUt5VcsUkEWWEJVxrY.webp", "pw": 1100, "ph": 1032, "bx": 0.4991, "by": 0.7063, "bd": 0.9922, "ba": 0.4379}},
-    {"id": "tarta", "nr": "04", "krotko": "Tarta", "tytul": "Tarta pistacjowa", "reszta": "z malinami", "cena": 190, "miara": "24 cm", "ciasto": {"w": 64, "obr": 58, "cien": "dysk", "f": "e9LdZK2SAn0XT6xJePN95umsrE.webp", "pw": 1100, "ph": 1061, "bx": 0.4945, "by": 0.5119, "bd": 0.9925, "ba": 0.4754}},
-    {"id": "tort", "nr": "05", "krotko": "Tort", "tytul": "Tort czekoladowy", "reszta": "", "cena": 0, "miara": "24 cm", "zast": true, "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "w6ccdFYLNdUt5VcsUkEWWEJVxrY.webp", "pw": 1100, "ph": 1032, "bx": 0.5009, "by": 0.7063, "bd": 0.9922, "ba": 0.4379, "lustro": true}},
-    {"id": "box", "nr": "06", "krotko": "Box", "tytul": "Box dla dwojga", "reszta": "", "sklad": ["2× ptyś Lotus z owocami leśnymi", "2× brownie pistacjowe w białej czekoladzie", "2× ciastko NYC o smaku sernika cynamonowego", "2× cake pop marchewkowy"], "cena": 125, "miara": "8 sztuk", "zast": true, "ciasto": {"w": 64, "obr": 58, "cien": "dysk", "f": "e9LdZK2SAn0XT6xJePN95umsrE.webp", "pw": 1100, "ph": 1061, "bx": 0.5055, "by": 0.5119, "bd": 0.9925, "ba": 0.4754, "lustro": true}},
+    {"id": "box", "nr": "01", "krotko": "Box", "tytul": "Box dla dwojga", "reszta": "", "sklad": ["2× ptyś Lotus z owocami leśnymi", "2× brownie z kremem pistacjowym", "2× ciastko NYC o smaku sernika cynamonowego", "2× cake pop marchewkowy"], "cena": 120, "miara": "8 sztuk", "ciasto": {"w": 66, "obr": 0, "cien": "brak", "f": "YaxTl71vaoGvGI2ixOpGwr5QGeM.webp", "pw": 880, "ph": 1142, "bx": 0.5, "by": 0.745, "bd": 1.0, "ba": 0.0}},
+    {"id": "baskijski", "nr": "02", "krotko": "Baskijski", "tytul": "Sernik baskijski", "reszta": "na korzennym spodzie", "cena": 220, "miara": "24 cm", "ciasto": {"w": 76, "obr": 10, "cien": "bryla", "f": "Y83U66TuHwd1qLNBxTAFA0VbFg.webp", "pw": 1000, "ph": 691, "bx": 0.499, "by": 0.612, "bd": 0.99, "ba": 0.495}},
+    {"id": "smietankowy", "nr": "03", "krotko": "Śmietankowy", "tytul": "Sernik śmietankowy", "reszta": "z polewą z białej czekolady z pomarańczą i ganache z białej czekolady", "cena": 220, "miara": "24 cm", "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "aKhZ5Ex6DuMnZmya8csDwtl7zLQ.webp", "pw": 1100, "ph": 970, "bx": 0.4968, "by": 0.6528, "bd": 0.9918, "ba": 0.4601}},
+    {"id": "czekoladowy", "nr": "04", "krotko": "Czekoladowy", "tytul": "Sernik z polewą czekoladową", "reszta": "i czekoladowym ganache", "cena": 220, "miara": "24 cm", "ciasto": {"w": 74, "obr": 10, "cien": "bryla", "f": "w6ccdFYLNdUt5VcsUkEWWEJVxrY.webp", "pw": 1100, "ph": 1032, "bx": 0.4991, "by": 0.7063, "bd": 0.9922, "ba": 0.4379}},
+    {"id": "tarta", "nr": "05", "krotko": "Tarta", "tytul": "Tarta pistacjowa", "reszta": "z malinami", "cena": 190, "miara": "24 cm", "ciasto": {"w": 64, "obr": 58, "cien": "dysk", "f": "e9LdZK2SAn0XT6xJePN95umsrE.webp", "pw": 1100, "ph": 1061, "bx": 0.4945, "by": 0.5119, "bd": 0.9925, "ba": 0.4754}},
+    {"id": "tort", "nr": "06", "krotko": "Tort", "tytul": "Tort czekoladowy", "reszta": "z kremem czekoladowym", "cena": 300, "miara": "24 cm", "ciasto": {"w": 80, "obr": 10, "cien": "bryla", "f": "VmHOxUZcgfZvoWnf0yFaZDaXjgw.webp", "pw": 1100, "ph": 777, "bx": 0.4973, "by": 0.6283, "bd": 0.9897, "ba": 0.5001}},
+    {"id": "marchewkowy", "nr": "07", "krotko": "Marchewkowy", "tytul": "Tort marchewkowy", "reszta": "z kremem cream cheese", "cena": 250, "miara": "24 cm", "ciasto": {"w": 72, "obr": 10, "cien": "bryla", "f": "yXOtkJRnRfkHUP8S0Nt1sGy6jyA.webp", "pw": 1081, "ph": 1025, "bx": 0.4995, "by": 0.7021, "bd": 0.9893, "ba": 0.4535}},
 ]
 // scena otwiera się na pierwszym cieście z prawdziwym zdjęciem
 const SC_START = Math.max(0, SC_P.findIndex((q) => !q.zast))
+// Odbiór przez cały rok: codziennie w Kawiarni Centrum albo w Nova Park, najwcześniej za SC_MIN_DNI dni (zamówienie
+// min. 48 godzin przed odbiorem). Dzień wybiera się w koszyku z kalendarza.
 const SC_ODBIORY = [
-    { kiedy: "23.12 od 14:00", gdzie: "Kawiarnia Centrum", adres: "ul. Sikorskiego 126" },
-    { kiedy: "23.12 od 14:00", gdzie: "Nova Park", adres: "" },
-    { kiedy: "24.12 do 12:00", gdzie: "Nova Park", adres: "" },
+    { gdzie: "Kawiarnia Centrum", adres: "ul. Sikorskiego 126" },
+    { gdzie: "Nova Park", adres: "centrum handlowe" },
 ]
-const SC_KLUCZ = "gk2-koszyk-swieta-v2"
+const SC_MIN_DNI = 2
+const SC_KLUCZ = "gk2-koszyk-zamow-v1"
 const SC_MAKS = 5
 const SC_ZADATEK = 0.3
 // sprężyna domykająca przejście: sztywność i tłumienie (lekko niedotłumiona, ciasto minimalnie „dobija”)
@@ -850,6 +854,12 @@ const SC_SZT = 74
 const SC_TLU = 13.6
 
 const wnZl = (n: number) => n + " zł"
+// Najwcześniejszy dzień odbioru jako RRRR-MM-DD (dziś + SC_MIN_DNI).
+function scMinIso() {
+    const d = new Date()
+    d.setDate(d.getDate() + SC_MIN_DNI)
+    return d.getFullYear() + "-" + dwa(d.getMonth() + 1) + "-" + dwa(d.getDate())
+}
 
 function IkonaTorba() {
     return (
@@ -959,12 +969,16 @@ function Witryna() {
     const [panel, ustawPanel] = useState("")
     const [koszyk, ustawKoszyk] = useState<Record<string, number>>({})
     const [odbior, ustawOdbior] = useState(-1)
+    const [dzien, ustawDzien] = useState("")
+    const [calosc, ustawCalosc] = useState(false)
+    const [makieta, ustawMakiete] = useState(false)
     const [ilosc, ustawIlosc] = useState(1)
     const [bilet, ustawBilet] = useState<{ i: number; n: number; k: number } | null>(null)
     const [leci, ustawLeci] = useState(false)
     const [hop, ustawHop] = useState(0)
     const [dodano, ustawDodano] = useState(false)
-    const [otwarte, ustawOtwarte] = useState(true)
+    // zamówienia przez cały rok: sklep jest zawsze otwarty
+    const otwarte = true
     const [wczytany, ustawWczytany] = useState(false)
 
     const pozniej = (klucz: string, fn: () => void, ms: number) => {
@@ -988,7 +1002,7 @@ function Witryna() {
         })
     }
 
-    // Start: koszyk z przeglądarki, termin zamówień, jednostki sceny, wejście sceny przy pierwszym pokazaniu.
+    // Start: koszyk z przeglądarki, jednostki sceny, wejście sceny przy pierwszym pokazaniu.
     useEffect(() => {
         if (typeof window === "undefined") return
         try {
@@ -1001,10 +1015,12 @@ function Witryna() {
                 })
                 ustawKoszyk(k)
                 if (typeof z.o === "number" && z.o >= 0 && z.o < SC_ODBIORY.length) ustawOdbior(z.o)
+                // zapamiętany dzień odbioru liczy się tylko, gdy nadal jest co najmniej 48 godzin naprzód
+                if (typeof z.d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(z.d) && z.d >= scMinIso()) ustawDzien(z.d)
+                if (z.c === true) ustawCalosc(true)
             }
         } catch (e) {}
         ustawWczytany(true)
-        ustawOtwarte(Date.now() < KONIEC_ZAMOWIEN)
         const s = scena.current
         const k = korzen.current
         const mq = window.matchMedia("(max-width: 809px), (max-aspect-ratio: 21/20)")
@@ -1023,7 +1039,7 @@ function Witryna() {
         window.addEventListener("resize", mierz)
         const ruch = !window.matchMedia("(prefers-reduced-motion: reduce)").matches
         const maIO = typeof IntersectionObserver !== "undefined"
-        // Wejście sceny (gdy sklep jest odsłonięty, czyli kokarda rozwiązana, i scena stoi na ekranie): wstęga rozwija się od lewej,
+        // Wejście sceny (gdy sekcja jest odsłonięta, czyli weszła na ekran, i scena stoi na ekranie): wstęga rozwija się od lewej,
         // ciasto wjeżdża po niej z prawej. Tu idzie tylko liniowy postęp, krzywe są w CSS.
         // Po zejściu z ekranu scena zasypia, a przy powrocie rozkwita jeszcze raz.
         const sekcja = k ? (k.closest(".gk2-swieta") as HTMLElement | null) : null
@@ -1143,22 +1159,24 @@ function Witryna() {
         razem += n * p.cena
     })
     const zadatek = Math.ceil(razem * SC_ZADATEK)
+    // płatność teraz: zadatek 30% albo pełna kwota
+    const teraz = calosc ? razem : zadatek
 
     // Koszyk: zapis w przeglądarce i licznik w menu oraz na pasku telefonu (bez przerysowywania całej strony).
     useEffect(() => {
         koszykRef.current = koszyk
         if (!wczytany) return
         try {
-            window.localStorage.setItem(SC_KLUCZ, JSON.stringify({ k: koszyk, o: odbior }))
+            window.localStorage.setItem(SC_KLUCZ, JSON.stringify({ k: koszyk, o: odbior, d: dzien, c: calosc }))
         } catch (e) {}
         const root = korzen.current ? (korzen.current.closest(".gk2") as HTMLElement | null) : null
         if (root) {
             root.setAttribute("data-koszyk", String(suma))
             root.style.setProperty("counter-reset", "gk2koszyk " + suma)
         }
-    }, [koszyk, odbior, suma, wczytany])
+    }, [koszyk, odbior, dzien, calosc, suma, wczytany])
 
-    // „Zamów na Święta” w menu, na pierwszym ekranie i na pasku telefonu otwiera koszyk, jeśli coś w nim jest.
+    // „Zamów wypieki” w menu, na pierwszym ekranie i na pasku telefonu otwiera koszyk, jeśli coś w nim jest.
     useEffect(() => {
         const otworzKoszyk = () => {
             if (Object.keys(koszykRef.current).some((k) => koszykRef.current[k] > 0)) ustawPanel("koszyk")
@@ -1418,6 +1436,7 @@ function Witryna() {
         if (n > 0) k[id] = n
         else delete k[id]
         ustawKoszyk(k)
+        ustawMakiete(false)
     }
     const dodaj = () => {
         const p = SC_P[akt]
@@ -1505,7 +1524,7 @@ function Witryna() {
                 </button>
                 <div className="gk2-wn-koszyk-glowa">
                     <Wyc a={P.logotyp} rozmiar={1024} alt="Górka & Kulka" className="gk2-wn-koszyk-logo" />
-                    <span className="gk2-e">Bilecik odbioru · Święta 2026</span>
+                    <span className="gk2-e">Bilecik odbioru · Na zamówienie</span>
                 </div>
                 {suma === 0 ? (
                     <p className="gk2-wn-pusto">{"Bilecik jest jeszcze pusty. Wybierz ciasto i dodaj je tutaj."}</p>
@@ -1535,25 +1554,68 @@ function Witryna() {
                                     )
                                 })}
                             </ul>
-                            <div className="gk2-wn-odbiory" role="radiogroup" aria-label="Odbiór">
-                                <span className="gk2-e gk2-wn-etykieta">Odbiór — wybierz</span>
-                                {SC_ODBIORY.map((o) => o.kiedy)
-                                    .filter((k, i, a) => a.indexOf(k) === i)
-                                    .map((dzien) => (
-                                        <div className="gk2-wn-odb-rzad" key={dzien}>
-                                            <b>{dzien}</b>
-                                            <span>
-                                                {SC_ODBIORY.map((o, i) =>
-                                                    o.kiedy === dzien ? (
-                                                        <button key={i} type="button" role="radio" aria-checked={odbior === i} aria-label={o.kiedy + ", " + o.gdzie} className={"gk2-wn-odb" + (odbior === i ? " gk2-wn-odb-on" : "")} onClick={() => ustawOdbior(i)}>
-                                                            {o.gdzie}
-                                                        </button>
-                                                    ) : null
-                                                )}
-                                            </span>
-                                        </div>
-                                    ))}
-                                {odbior >= 0 ? <p className="gk2-wn-odb-wybor">{SC_ODBIORY[odbior].kiedy + ", " + SC_ODBIORY[odbior].gdzie + (SC_ODBIORY[odbior].adres ? ", " + SC_ODBIORY[odbior].adres : "")}</p> : null}
+                            <div className="gk2-wn-odbiory">
+                                <span className="gk2-e gk2-wn-etykieta">Odbiór — wybierz miejsce i dzień</span>
+                                <div className="gk2-wn-odb-rzad" role="radiogroup" aria-label="Miejsce odbioru">
+                                    <span>
+                                        {SC_ODBIORY.map((o, i) => (
+                                            <button
+                                                key={i}
+                                                type="button"
+                                                role="radio"
+                                                aria-checked={odbior === i}
+                                                className={"gk2-wn-odb" + (odbior === i ? " gk2-wn-odb-on" : "")}
+                                                onClick={() => {
+                                                    ustawOdbior(i)
+                                                    ustawMakiete(false)
+                                                }}
+                                            >
+                                                {o.gdzie}
+                                            </button>
+                                        ))}
+                                    </span>
+                                </div>
+                                {odbior >= 0 ? <p className="gk2-wn-odb-wybor">{SC_ODBIORY[odbior].gdzie + ", " + SC_ODBIORY[odbior].adres + " · codziennie"}</p> : null}
+                                <Termin
+                                    id="odbior"
+                                    etykieta="Dzień odbioru · najwcześniej za 48h"
+                                    dialog="Wybierz dzień odbioru"
+                                    odDni={SC_MIN_DNI}
+                                    start={dzien}
+                                    naWybor={(iso) => {
+                                        ustawDzien(iso)
+                                        ustawMakiete(false)
+                                    }}
+                                />
+                            </div>
+                            <div className="gk2-wn-platnosc" role="radiogroup" aria-label="Ile płacisz teraz">
+                                <span className="gk2-e gk2-wn-etykieta">Płatność online</span>
+                                <span>
+                                    <button
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={!calosc}
+                                        className={"gk2-wn-odb" + (!calosc ? " gk2-wn-odb-on" : "")}
+                                        onClick={() => {
+                                            ustawCalosc(false)
+                                            ustawMakiete(false)
+                                        }}
+                                    >
+                                        Zadatek 30%
+                                    </button>
+                                    <button
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={calosc}
+                                        className={"gk2-wn-odb" + (calosc ? " gk2-wn-odb-on" : "")}
+                                        onClick={() => {
+                                            ustawCalosc(true)
+                                            ustawMakiete(false)
+                                        }}
+                                    >
+                                        Pełna kwota
+                                    </button>
+                                </span>
                             </div>
                         </div>
                         <dl className="gk2-wn-sumy">
@@ -1562,35 +1624,27 @@ function Witryna() {
                                 <dd>{wnZl(razem)}</dd>
                             </div>
                             <div>
-                                <dt>Zadatek 30% teraz</dt>
-                                <dd>{wnZl(zadatek)}</dd>
+                                <dt>{calosc ? "Pełna kwota teraz" : "Zadatek 30% teraz"}</dt>
+                                <dd>{wnZl(teraz)}</dd>
                             </div>
                             <div>
                                 <dt>Przy odbiorze</dt>
-                                <dd>{wnZl(razem - zadatek)}</dd>
+                                <dd>{wnZl(razem - teraz)}</dd>
                             </div>
                         </dl>
-                        {otwarte ? (
-                            <a
-                                className="gk2-wn-przycisk gk2-wn-zaplac"
-                                href={ZAMOWIENIA}
-                                aria-disabled={odbior < 0 ? "true" : undefined}
-                                tabIndex={odbior < 0 ? -1 : undefined}
-                                onClick={(e) => {
-                                    if (odbior < 0) e.preventDefault()
-                                }}
-                            >
-                                {odbior < 0 ? "Wybierz odbiór" : "Zapłać zadatek " + wnZl(zadatek)}
-                                {odbior < 0 ? null : <IkonaDalej />}
-                            </a>
+                        {makieta ? (
+                            <p className="gk2-wn-makieta" role="status">
+                                {"To jeszcze makieta. W\u00a0gotowym sklepie przejdziesz stąd do\u00a0płatności: BLIK, karta albo Przelewy24."}
+                            </p>
                         ) : (
-                            <span className="gk2-wn-przycisk gk2-wn-zaplac" aria-disabled="true">
-                                Zamówienia zamknięte
-                            </span>
+                            <button type="button" className="gk2-wn-przycisk gk2-wn-zaplac" disabled={odbior < 0 || !dzien} onClick={() => ustawMakiete(true)}>
+                                {odbior < 0 ? "Wybierz miejsce odbioru" : !dzien ? "Wybierz dzień odbioru" : (calosc ? "Zapłać całość " : "Zapłać zadatek ") + wnZl(teraz)}
+                                {odbior < 0 || !dzien ? null : <IkonaDalej />}
+                            </button>
                         )}
                     </>
                 )}
-                <p className="gk2-e gk2-wn-stopka">{otwarte ? "Zamówienia do 21 grudnia" : "Zamówienia przyjmowaliśmy do 21 grudnia"}</p>
+                <p className="gk2-e gk2-wn-stopka">Zamówienia min. 48h przed odbiorem</p>
             </div>
         ) : null
 
@@ -1624,7 +1678,7 @@ function Witryna() {
                 }}
                 role="group"
                 aria-roledescription="karuzela"
-                aria-label="Wypieki na Święta"
+                aria-label="Wypieki i torty na zamówienie"
             >
                 <i className="gk2-sc-wstega" aria-hidden="true">
                     <i>
@@ -1682,7 +1736,7 @@ function Witryna() {
                         <span className="gk2-wn-bilet-logo">
                             <Wyc a={P.logotyp} rozmiar={1024} alt="" />
                         </span>
-                        <span style={{ ["--l" as any]: 1 }}>Odbiór świąteczny 2026</span>
+                        <span style={{ ["--l" as any]: 1 }}>Odbiór na zamówienie</span>
                         <span className="gk2-wn-bilet-kreska" style={{ ["--l" as any]: 2 }} />
                         <span className="gk2-wn-bilet-rzad" style={{ ["--l" as any]: 3 }}>
                             <em>{bilet.n + " × " + bp.tytul}</em>
@@ -1735,35 +1789,51 @@ function Witryna() {
     )
 }
 
-// Kubek na wynos: wycięty z pliku marki, a etykieta jest złożona na nowo (ostra w każdym rozmiarze).
+// Zestaw 6 × 500 ml z wysyłką (sekcja 08). Kubek jest wycięty z pliku marki, a etykieta złożona na nowo (ostra w każdym rozmiarze).
 function Kubek(props: { tiltRef: (el: HTMLDivElement | null) => void }) {
     const [wybrany, ustawWybrany] = useState(0)
     const [zapisany, ustawZapisany] = useState(false)
-    const smak = SMAKI[wybrany]
+    const smak = ZESTAW[wybrany]
     const L = P.logotyp
     const okno = [L.b[0] * L.w, L.b[1] * L.h, (L.b[2] - L.b[0]) * L.w, (L.b[3] - L.b[1]) * L.h].map((n) => n.toFixed(1)).join(" ")
     return (
         <section className="gk2-kubek" id="gk2-kubek" data-motyw="jasny">
             <div className="gk2-kubek-tekst">
-                <div className="gk2-e">08 — Na wynos</div>
-                <Linie linie={["Zapas", "lata."]} className="gk2-h2" />
-                <p className="gk2-lead">Kubek 450 ml prosto do zamrażarki. Na wypadek, gdyby Szary Dzień przyszedł bez zapowiedzi.</p>
+                <div className="gk2-e">08 — Wysyłka w Polskę</div>
+                <Linie linie={["Zapas", "w zamrażarce."]} className="gk2-h2 gk2-h2-ciasna" />
+                <p className="gk2-lead">
+                    {"Sześć kubków po 500\u00a0ml albo cały tort w\u00a0paczce termicznej. Pakujemy w\u00a0szóstki, żeby lody dojechały zamrożone na\u00a0kamień w\u00a0każdy kąt Polski — na\u00a0wypadek, gdyby Szary Dzień przyszedł bez zapowiedzi."}
+                </p>
                 <div className="gk2-wybor" role="group" aria-label="Wybierz smak">
-                    {SMAKI.map((s, i) => (
+                    {ZESTAW.map((s, i) => (
                         <button key={s.nr} type="button" aria-pressed={i === wybrany} aria-label={s.nazwa.join(" ")} title={s.nazwa.join(" ")} style={{ background: s.kolor }} onClick={() => ustawWybrany(i)} />
                     ))}
                     <span className="gk2-wybor-nazwa gk2-e">Smak: {smak.nazwa.join(" ")}</span>
                 </div>
-                <button type="button" className="gk2-przycisk" onClick={() => ustawZapisany(true)}>
-                    {zapisany ? "Dzięki, damy znać ✓" : "Zapisz mnie na start sklepu"}
-                </button>
+                {zapisany ? (
+                    <p className="gk2-d gk2-kubek-dzieki">Jesteś na liście. Damy znać przed pierwszym dropem.</p>
+                ) : (
+                    <form
+                        className="gk2-kubek-zapis"
+                        onSubmit={(e) => {
+                            e.preventDefault()
+                            ustawZapisany(true)
+                        }}
+                    >
+                        <input type="email" required placeholder="twoj@email.pl" autoComplete="email" aria-label="Twój e-mail" />
+                        <button type="submit" className="gk2-przycisk">
+                            Zapisz mnie na pierwszy drop
+                        </button>
+                    </form>
+                )}
                 <p className="gk2-drobny">Sklep internetowy i wysyłka w Polsce — wkrótce.</p>
             </div>
             <div className="gk2-kubek-foto">
+                <span className="gk2-e gk2-kubek-znaczek">Zestaw 6 × 500 ml</span>
                 <div className="gk2-kubek-cien" aria-hidden="true" />
                 <div className="gk2-kubek-tilt" ref={props.tiltRef}>
                     <div className="gk2-kubek-obraz">
-                        <img src={KUBEK} width={630} height={668} alt={"Kubek lodów Górka & Kulka 450 ml, smak: " + smak.nazwa.join(" ")} loading="lazy" decoding="async" draggable={false} />
+                        <img src={KUBEK} width={630} height={668} alt={"Kubek lodów Górka & Kulka 500 ml z zestawu 6 × 500 ml, smak: " + smak.nazwa.join(" ")} loading="lazy" decoding="async" draggable={false} />
                         <svg className="gk2-etykieta" viewBox="0 0 300 400" aria-hidden="true">
                             <rect x="0" y="0" width="300" height="327" fill="#FFFFFF" />
                             <svg x="16.5" y="23.5" width="267" height="43.6" viewBox={okno} preserveAspectRatio="xMidYMid meet">
@@ -1783,7 +1853,7 @@ function Kubek(props: { tiltRef: (el: HTMLDivElement | null) => void }) {
                                 @gorka.kulka
                             </text>
                             <text x="281" y="304" textAnchor="end" className="gk2-et">
-                                450 ml
+                                500 ml
                             </text>
                         </svg>
                     </div>
@@ -2485,7 +2555,7 @@ const CSS_A = [
     ".gk2-podpis { position: absolute; left: 0; top: 0; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .5s ease; will-change: transform; z-index: 4; padding: 7px 12px; border-radius: 999px; background: rgba(255,255,255,.62); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }",
     ".gk2-tylko-dotyk { display: none; }",
     "@media (hover: none) { .gk2-tylko-mysz { display: none; } .gk2-tylko-dotyk { display: inline; } }",
-    // Duży przycisk „Zamów na Święta”: nad obiema warstwami i nad kulką, pod napisem.
+    // Duży przycisk „Zamów wypieki”: nad obiema warstwami i nad kulką, pod napisem.
     ".gk2-hero-cta { position: absolute; left: var(--m); top: calc(max(calc(var(--vh) * 13), 84px) + var(--hs) * 1.86 + 104px); z-index: 6; display: inline-flex; align-items: center; gap: 16px; padding: 24px 34px 22px 30px; border-radius: 999px; background: var(--tusz); color: var(--maslo); font-size: clamp(22px, 1.9vw, 34px); line-height: 1; cursor: pointer; white-space: nowrap; box-shadow: 0 18px 44px -22px rgba(0,0,0,.6); transition: background .25s ease; -webkit-tap-highlight-color: transparent; }",
     ".gk2-hero-cta i { width: 10px; height: 10px; border-radius: 50%; background: var(--roz); display: block; flex: none; animation: gk2-puls 2.4s ease-in-out infinite; }",
     ".gk2-hero-cta svg { width: .82em; height: .82em; flex: none; margin-top: -.08em; transition: transform .25s ease; }",
@@ -2931,6 +3001,43 @@ const CSS_B = [
     "@keyframes gk2-napis { from { opacity: 0; transform: translate3d(0, 12px, 0); } to { opacity: 1; transform: none; } }",
     "@keyframes gk2-slajd { 0% { opacity: 0; transform: scale(1.02); } 5% { opacity: 1; } 33% { opacity: 1; } 40% { opacity: 0; transform: scale(1.14); } 100% { opacity: 0; transform: scale(1.14); } }",
 
+    "/* Po świętach (noworoczna odsłona 2027) */",
+    ".gk2-swieta-lep { position: relative; }",
+    ".gk2-zajawka { display: inline-flex; align-items: center; gap: 12px; padding: 9px 18px 9px 14px; border: 1.5px solid var(--tusz); border-radius: 999px; background: var(--maslo); color: var(--tusz); white-space: nowrap; cursor: pointer; box-shadow: 0 14px 30px -20px rgba(0,0,0,.55); transition: background .25s ease, color .25s ease; -webkit-tap-highlight-color: transparent; }",
+    ".gk2-zajawka b { font-size: 24px; line-height: 1; letter-spacing: 0; padding-top: 2px; }",
+    ".gk2-zajawka i { font-style: normal; font-size: 15px; line-height: 1; transition: transform .25s ease; }",
+    "@media (hover: hover) { .gk2-zajawka:hover { background: var(--tusz); color: var(--maslo); } .gk2-zajawka:hover i { transform: translateX(5px); } }",
+    ".gk2-zajawka:focus-visible { outline: 2px solid var(--tusz); outline-offset: 4px; }",
+    ".gk2-zajawka-hero { position: absolute; left: var(--m); top: calc(max(calc(var(--vh) * 13), 84px) + var(--hs) * 1.86 + 104px + 46px + clamp(22px, 1.9vw, 34px) + 18px); z-index: 6; }",
+    ".gk2-zajawka-manifest { display: none; }",
+    "@media (max-width: 1199px) { .gk2-zajawka-hero { white-space: normal; max-width: 306px; padding: 10px 14px; border-radius: 22px; } .gk2-zajawka-hero span { flex: 1; } }",
+    "@media (max-height: 559px) { .gk2-zajawka-hero { display: none; } .gk2-zajawka-manifest { display: inline-flex; margin-top: 44px; } }",
+    ".gk2-stolik-tel { margin-top: 18px; max-width: 34em; font-size: 13px; line-height: 1.6; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }",
+    ".gk2-stolik-tel a { font-size: clamp(24px, 2.2vw, 34px); line-height: 1; letter-spacing: .01em; white-space: nowrap; border-bottom: 2px solid currentColor; padding-bottom: 3px; transition: color .25s ease; }",
+    "@media (hover: hover) { .gk2-stolik-tel a:hover { color: var(--rubin); } }",
+    ".gk2-drobny-link { border-bottom: 1px solid currentColor; padding-bottom: 1px; white-space: nowrap; }",
+    "@media (hover: hover) { .gk2-drobny-link:hover { color: var(--rubin); } }",
+    ".gk2-smaki-metka { position: absolute; left: var(--m); bottom: calc(var(--vh) * 7); z-index: 20; display: flex; align-items: center; gap: 14px; max-width: calc(100% - var(--m) * 2 - 40px); color: var(--tusz); transition: color .4s ease; }",
+    ".gk2-smaki-metka b { flex: none; font-weight: 400; border: 1.5px solid currentColor; border-radius: 999px; padding: 6px 12px 5px; white-space: nowrap; }",
+    ".gk2-smaki-metka span { opacity: .82; }",
+    ".gk2-kubek-znaczek { position: absolute; right: 1%; top: 7%; z-index: 3; padding: 9px 14px 8px; border-radius: 999px; background: var(--tusz); color: var(--maslo); white-space: nowrap; transform: rotate(7deg); box-shadow: 0 12px 26px -16px rgba(0,0,0,.6); }",
+    ".gk2-kubek-zapis { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 14px; max-width: 580px; }",
+    ".gk2-kubek-zapis input { flex: 1 1 200px; min-width: 0; min-height: 46px; background: transparent; border: 0; border-bottom: 1.5px solid var(--tusz); border-radius: 0; color: var(--tusz); padding: 12px 2px; font: inherit; font-size: 16px; outline: none; transition: border-color .25s ease; }",
+    ".gk2-kubek-zapis input:focus { border-bottom-color: var(--rubin); }",
+    ".gk2-kubek-zapis input::placeholder { color: rgba(17,17,17,.42); }",
+    ".gk2-kubek-dzieki { font-size: clamp(24px, 2.4vw, 38px); line-height: 1; }",
+    ".gk2-data-pelna { margin-top: .42em; font-size: clamp(28px, 3.5vw, 62px); line-height: .95; color: var(--maslo); }",
+    ".gk2-data-pelna span { white-space: nowrap; }",
+    ".gk2-data-pelna + .gk2-h2 { margin-top: 14px; }",
+    ".gk2-wn-koszyk .gk2-termin { margin-top: 8px; gap: 2px; }",
+    ".gk2-wn-koszyk .gk2-termin > .gk2-e { opacity: .75; }",
+    ".gk2-wn-koszyk .gk2-termin-pole { min-height: 40px; padding: 8px 2px 9px; font-size: 13px; border-bottom: 1.5px dashed rgba(17,17,17,.6); }",
+    ".gk2-wn-koszyk .gk2-termin-pelne { letter-spacing: .02em; }",
+    ".gk2-wn-koszyk .gk2-kalendarz { position: static; width: 100%; margin-top: 8px; box-shadow: none; }",
+    ".gk2-wn-platnosc { display: grid; gap: 6px; padding: 12px 0 0; }",
+    ".gk2-wn-platnosc > span + span { display: flex; flex-wrap: wrap; gap: 6px; }",
+    ".gk2-wn-makieta { margin-top: 10px; padding: 12px 14px; border: 1.5px dashed rgba(17,17,17,.6); border-radius: 14px; font-size: 12px; line-height: 1.5; }",
+
     "/* Telefon */",
     "@media (max-width: 809px), (max-aspect-ratio: 21/20) {",
     "  .gk2 { --m: 5vw; font-size: 14px; }",
@@ -3061,6 +3168,21 @@ const CSS_B = [
     "  .gk2-pasek-zamow { position: sticky; bottom: 12px; z-index: 66; display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 56px; margin: -68px var(--m) 12px; padding: 0 7px 0 18px; border-radius: 999px; background: var(--tusz); color: #F2EFE8; line-height: 1.35; transform: translate3d(0, 160%, 0); transition: transform .45s cubic-bezier(.2,.85,.25,1); box-shadow: 0 14px 36px -16px rgba(0,0,0,.55); }",
     "  .gk2-pasek-zamow.gk2-pasek-widac { transform: none; }",
     "  .gk2-pasek-zamow b { font-weight: 400; color: var(--tusz); background: var(--roz); border-radius: 999px; padding: 12px 16px; }",
+    "  /* Po świętach */",
+    "  .gk2-ryc span + span { display: block; }",
+    "  .gk2-zajawka-hero { display: none; }",
+    "  .gk2-zajawka-manifest { display: inline-flex; max-width: 100%; margin-top: calc(var(--vh) * 6); padding: 12px 16px 12px 14px; white-space: normal; border-radius: 22px; gap: 12px; }",
+    "  .gk2-zajawka-manifest b { font-size: 30px; }",
+    "  .gk2-zajawka-manifest span { flex: 1; }",
+    "  .gk2-stolik-tel { margin-top: 16px; }",
+    "  .gk2-stolik-tel a { font-size: 7vw; }",
+    "  .gk2-smaki-metka { bottom: calc(var(--vh) * 5); flex-direction: column; align-items: flex-start; gap: 9px; max-width: calc(100% - var(--m) * 2 - 26px); }",
+    "  .gk2-kubek-znaczek { right: -3%; top: 5%; }",
+    "  .gk2-kubek-zapis { flex-direction: column; align-items: stretch; }",
+    "  .gk2-kubek-zapis input { flex: none; }",
+    "  .gk2-kubek-zapis .gk2-przycisk { padding-left: 16px; padding-right: 16px; }",
+    "  .gk2-data-pelna { font-size: 8.2vw; }",
+    "  .gk2-h2-ciasna { font-size: 13.2vw; }",
     "}",
     "@media (prefers-reduced-motion: reduce) {",
     "  .gk2 *, .gk2 *::before, .gk2 *::after { animation: none !important; transition: none !important; }",
@@ -3140,15 +3262,9 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
             geo.iw = el.ilu.offsetWidth
             geo.ih = el.ilu.offsetHeight
         }
-        if (el.podpis) geo.pw = el.podpis.offsetWidth || 150
         if (el.portal1) {
             geo.p1w = el.portal1.offsetWidth
             geo.p1h = el.portal1.offsetHeight
-        }
-        // Opakowanie liczy się od prawdziwej szerokości sceny (bez paska przewijania).
-        if (el.opak) {
-            el.opak.style.setProperty("--sw", el.opak.clientWidth + "px")
-            el.opak.style.setProperty("--sh", el.opak.clientHeight + "px")
         }
         // Chromowy rożek stoi dokładnie na środku kropki smaku.
         if (el.rozek && el.gala0) {
@@ -3277,12 +3393,6 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
                     el.kula.style.transform = "translate3d(" + (s.x - 100).toFixed(1) + "px," + (s.y - 100).toFixed(1) + "px,0) scale(" + (r / 100).toFixed(4) + ")"
                     el.kula.style.opacity = reduce ? "0" : clamp(1 - pr * 3.2, 0, 1).toFixed(3)
                 }
-                if (el.podpis) {
-                    el.podpis.style.opacity = !reduce && s.droga < 260 && p < 0.03 ? "1" : "0"
-                    const px = clamp(s.x - geo.pw / 2, 10, sw - geo.pw - 10)
-                    const py = Math.max(s.y - r - 46, 64)
-                    el.podpis.style.transform = "translate3d(" + px.toFixed(1) + "px," + py.toFixed(1) + "px,0)"
-                }
                 const pk = reduce ? 1 : p
                 // Klatki z grafiki marki: Kulka podaje lody, Szary Dzień próbuje i się uśmiecha.
                 const k = pk >= 0.8 ? 4 : pk >= 0.68 ? 3 : pk >= 0.56 ? 2 : pk >= 0.44 ? 1 : 0
@@ -3361,60 +3471,14 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
             }
         }
 
-        // 4. Święta: kokarda puszcza, wstążka się zsuwa, papier rozchyla się na cztery strony
+        // 4. Na zamówienie: bez rozpakowywania. Sklep odsłania się, gdy sekcja wchodzi na ekran (wtedy rusza też scena ciast).
         const swieta = el.swieta as HTMLElement | undefined
-        if (swieta && el.opak && !reduce) {
-            const r = swieta.getBoundingClientRect()
-            if (r.bottom > -80 && r.top < vh + 80) {
-                const dl = el.swietaDroga ? el.swietaDroga.offsetHeight : vh * 2.3
-                const p = gladko("swieta", clamp(-r.top / Math.max(1, dl), 0, 1))
-                if (Math.abs(p - s.swieta) > 0.0003) {
-                    s.swieta = p
-                    const f = (a: number, b: number) => clamp((p - a) / (b - a), 0, 1)
-                    // Ciągniemy za końce: pętle chowają się w węźle, ogony się wydłużają.
-                    const a1 = easeInOut(f(0.03, 0.3))
-                    const a2 = easeIn(f(0.3, 0.55))
-                    const a3 = easeOut(f(0.27, 0.38))
-                    const sk = lerp(1, 0.05, a1).toFixed(4)
-                    przesun(el.kok_petlaL, "rotate(" + (a1 * 18).toFixed(2) + "deg) scale(" + sk + ")")
-                    przesun(el.kok_petlaP, "rotate(" + (-a1 * 18).toFixed(2) + "deg) scale(" + sk + ")")
-                    const petle = (1 - a3).toFixed(3)
-                    if (el.kok_petlaL) el.kok_petlaL.style.opacity = petle
-                    if (el.kok_petlaP) el.kok_petlaP.style.opacity = petle
-                    const dluzszy = " scale(" + (1 - 0.04 * a1).toFixed(4) + "," + (1 + 0.4 * a1).toFixed(4) + ")"
-                    przesun(el.kok_ogonL, "translate3d(" + (-a2 * 14).toFixed(2) + "vw," + (a2 * 118).toFixed(2) + "vh,0) rotate(" + (a2 * 16).toFixed(2) + "deg)" + dluzszy)
-                    przesun(el.kok_ogonP, "translate3d(" + (a2 * 14).toFixed(2) + "vw," + (a2 * 118).toFixed(2) + "vh,0) rotate(" + (-a2 * 16).toFixed(2) + "deg)" + dluzszy)
-                    if (el.kok_wezel) {
-                        el.kok_wezel.style.transform = "scale(" + lerp(1, 0.45, a3).toFixed(4) + ")"
-                        el.kok_wezel.style.opacity = (1 - a3).toFixed(3)
-                    }
-                    if (el.kokCien) el.kokCien.style.opacity = (1 - Math.max(a3, a1 * 0.55)).toFixed(3)
-                    // Wstążka zjeżdża z paczki.
-                    const b1 = easeInOut(f(0.4, 0.58))
-                    const b2 = easeInOut(f(0.45, 0.63))
-                    przesun(el.pasHL, "translate3d(" + (-b1 * 102).toFixed(2) + "%,0,0)")
-                    przesun(el.pasHP, "translate3d(" + (b1 * 102).toFixed(2) + "%,0,0)")
-                    przesun(el.pasVG, "translate3d(0," + (-b2 * 102).toFixed(2) + "%,0)")
-                    przesun(el.pasVD, "translate3d(0," + (b2 * 102).toFixed(2) + "%,0)")
-                    // Papier rozchodzi się na cztery strony, pod spodem czeka sklep.
-                    const c1 = easeInOut(f(0.58, 0.84))
-                    const c2 = easeInOut(f(0.62, 0.88))
-                    el.opak.style.setProperty("--cien", clamp(f(0.56, 0.62), 0, 1).toFixed(2))
-                    przesun(el.cw_a, "translate3d(" + (-c1 * 104).toFixed(2) + "%," + (-c1 * 104).toFixed(2) + "%,0) rotate(" + (-c1 * 6).toFixed(2) + "deg)")
-                    przesun(el.cw_d, "translate3d(" + (c1 * 104).toFixed(2) + "%," + (c1 * 104).toFixed(2) + "%,0) rotate(" + (-c1 * 6).toFixed(2) + "deg)")
-                    przesun(el.cw_b, "translate3d(" + (c2 * 104).toFixed(2) + "%," + (-c2 * 104).toFixed(2) + "%,0) rotate(" + (c2 * 6).toFixed(2) + "deg)")
-                    przesun(el.cw_c, "translate3d(" + (-c2 * 104).toFixed(2) + "%," + (c2 * 104).toFixed(2) + "%,0) rotate(" + (c2 * 6).toFixed(2) + "deg)")
-                    const otwarte = p > 0.66
-                    if (otwarte !== s.otwarte) {
-                        s.otwarte = otwarte
-                        swieta.classList.toggle("gk2-swieta-otwarte", otwarte)
-                    }
-                    el.opak.style.visibility = p > 0.9 ? "hidden" : "visible"
-                }
-            }
+        if (swieta && !s.otwarte && swieta.getBoundingClientRect().top < vh * 0.8) {
+            s.otwarte = true
+            swieta.classList.add("gk2-swieta-otwarte")
         }
 
-        // 5. Wigilie firmowe: zdjęcie stołu przesuwa się w oknie
+        // 5. Dla firm: zdjęcie stołu przesuwa się w oknie
         if (el.firmyOkno && el.firmyObraz && !reduce) {
             const r = el.firmyOkno.getBoundingClientRect()
             if (r.bottom > -80 && r.top < vh + 80) {
@@ -3480,6 +3544,7 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
                     const dzieci = el.smakiKropki.children
                     for (let i = 0; i < dzieci.length; i++) dzieci[i].classList.toggle("gk2-on", i === aktywny)
                     el.smakiKropki.style.color = SMAKI[aktywny].tekst
+                    if (el.smakiMetka) el.smakiMetka.style.color = SMAKI[aktywny].tekst
                 }
                 if (el.rozek && !reduce) {
                     const odchyl = (f - Math.round(f)) * 12
@@ -3528,8 +3593,8 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
             }
         }
 
-        // 12. Telefon: pasek „Zamów” do 21.12, schowany na pierwszym ekranie (tam jest duży przycisk), przy sklepie,
-        // przy formularzach (wigilia, stolik) i w stopce
+        // 12. Telefon: pasek „Zamów” przez cały rok, schowany na pierwszym ekranie (tam jest duży przycisk), przy sklepie,
+        // przy formularzach (dla firm, stolik) i w stopce
         const pasek = el.pasekZamow as HTMLElement | undefined
         if (pasek) {
             let pokaz = false
@@ -3632,11 +3697,12 @@ function silnik(root: HTMLDivElement, el: Record<string, any>, slowa: { current:
 interface Props {
     film1: string
     film2: string
+    goscinnie?: string
     style?: React.CSSProperties
 }
 
 /**
- * Górka & Kulka — propozycja: wersja ze Szarym Dniem na start i dużym przyciskiem „Zamów na Święta”.
+ * Górka & Kulka — strona po świętach: Szary Dzień na start, duży przycisk „Zamów wypieki” i zajawka 18.01.
  *
  * @framerIntrinsicWidth 1440
  * @framerSupportedLayoutWidth any
@@ -3653,12 +3719,11 @@ export default function KonceptFunduszWitryna(props: Props) {
     const slowaRef = useRef<Array<HTMLSpanElement | null>>([])
     const [pogoda, ustawPogode] = useState<null | { temp: number; chmury: number; rodzaj: string }>(null)
     const [dzien, ustawDzien] = useState({ krotko: "18.01", dlugo: "poniedziałek, 18 stycznia 2027" })
-    // Pasek „Zamów” na telefonie: tylko do końca zamówień świątecznych.
-    const [przedKoncemZamowien, ustawPrzedKoncem] = useState(true)
+    // Smaki gościnne: jedno zdanie w jednym miejscu (metka w sekcji 07), do podmiany we Framerze bez ruszania kodu.
+    const goscinnie = String(props.goscinnie || GOSCINNIE).replace(/[.\s]+$/, "")
 
     useEffect(() => {
         const teraz = Date.now()
-        ustawPrzedKoncem(teraz < KONIEC_ZAMOWIEN)
         const w = najszarszy(teraz)
         ustawDzien({ krotko: dwa(w.dzien) + ".01", dlugo: "poniedziałek, " + w.dzien + " stycznia " + w.rok })
     }, [])
@@ -3713,19 +3778,21 @@ export default function KonceptFunduszWitryna(props: Props) {
 
     const skok = (id: string) => (e: React.MouseEvent) => {
         e.preventDefault()
-        // Do Świąt przewijamy od razu za kokardę: paczka rozpakowuje się po drodze, a na końcu czeka sklep.
-        const sekcja = E.current.swieta as HTMLElement | undefined
-        const droga = E.current.swietaDroga as HTMLElement | undefined
-        if (id === "gk2-swieta" && sekcja && droga && droga.offsetHeight > 0 && typeof window !== "undefined") {
-            window.scrollTo({ top: sekcja.getBoundingClientRect().top + window.scrollY + droga.offsetHeight * 0.93, behavior: "smooth" })
-            return
-        }
         przewinDo(id)
     }
 
+    // „Zamów wypieki”: na telefonie od razu do sceny z ciastem (karta i przycisk „Dodaj do koszyka” w jednym kadrze),
+    // na komputerze do początku sekcji, która mieści się na ekranie w całości.
     const doSklepu = (e: React.MouseEvent) => {
-        skok("gk2-swieta")(e)
-        if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("gk2-koszyk-otworz"))
+        e.preventDefault()
+        if (typeof window === "undefined") return
+        const sekcja = E.current.swieta as HTMLElement | undefined
+        const sc = sekcja ? (sekcja.querySelector(".gk2-sc") as HTMLElement | null) : null
+        const waski = window.matchMedia("(max-width: 809px), (max-aspect-ratio: 21/20)").matches
+        const spokojnie = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        if (sc && waski) window.scrollTo({ top: Math.max(0, sc.getBoundingClientRect().top + window.scrollY - 60), behavior: spokojnie ? "auto" : "smooth" })
+        else przewinDo("gk2-zamow")
+        window.dispatchEvent(new CustomEvent("gk2-koszyk-otworz"))
     }
 
     // Napis startowy: dwie linie na komputerze, cztery na telefonie (każde słowo osobno).
@@ -3750,21 +3817,6 @@ export default function KonceptFunduszWitryna(props: Props) {
     // Klatka rysunku: grafika na białym tle mnożona z kolorem warstwy, pod nią miękka poświata (kończy się przed krawędzią).
     const klatkaTlo = (src: string): React.CSSProperties => ({ backgroundImage: "url(" + src + "), radial-gradient(closest-side at 58% 58%, rgba(255,255,255,.5), rgba(255,255,255,0))" })
 
-    // Papier do pakowania: ta sama treść w czterech ćwiartkach, każda pokazuje swój kawałek.
-    const papier = (
-        <div className="gk2-papier">
-            <div className="gk2-papier-gora gk2-e">
-                <span>03 — Święta 2026</span>
-                <span>Zamówienia 1–21 grudnia</span>
-            </div>
-            <div className="gk2-d gk2-papier-napis">
-                <span>Rozpakuj</span>
-                <span>Święta.</span>
-            </div>
-            <div className="gk2-e gk2-papier-dol">Przewijaj. Kokarda puści ↓</div>
-        </div>
-    )
-
     return (
         <div className="gk2" ref={rootRef} style={props.style} data-pogoda={rodzajPogody || undefined}>
             <style dangerouslySetInnerHTML={{ __html: CSS }} />
@@ -3778,7 +3830,7 @@ export default function KonceptFunduszWitryna(props: Props) {
                     <nav className="gk2-nav-linki" aria-label="Główne">
                         {[
                             ["U nas", "gk2-unas"],
-                            ["Święta", "gk2-swieta"],
+                            ["Na zamówienie", "gk2-zamow"],
                             ["Dla firm", "gk2-firmy"],
                             ["Stolik", "gk2-stolik"],
                             ["Lokale", "gk2-lokale"],
@@ -3789,10 +3841,9 @@ export default function KonceptFunduszWitryna(props: Props) {
                         ))}
                     </nav>
                     <div className="gk2-nav-prawo">
-                        <span className="gk2-nav-jezyk">PL / EN</span>
-                        <a className="gk2-pigulka" href="#gk2-swieta" onClick={doSklepu}>
+                        <a className="gk2-pigulka" href="#gk2-zamow" onClick={doSklepu}>
                             <i />
-                            Zamów na Święta
+                            Zamów wypieki
                             <b className="gk2-licznik" aria-hidden="true" />
                         </a>
                     </div>
@@ -3845,20 +3896,20 @@ export default function KonceptFunduszWitryna(props: Props) {
                         </div>
                         <div className="gk2-ryc gk2-e">
                             <span ref={u("ryc")}>{RYCINY[1]}</span>
-                            <span>Przewijaj dalej ↓</span>
                         </div>
                     </div>
                     <div className="gk2-kula" ref={u("kula")} aria-hidden="true" />
-                    <div className="gk2-podpis gk2-e" ref={u("podpis")} aria-hidden="true">
-                        <span className="gk2-tylko-mysz">Przesuń kulkę</span>
-                        <span className="gk2-tylko-dotyk">Dotknij i przesuń kulkę</span>
-                    </div>
-                    <a className="gk2-hero-cta gk2-d" href="#gk2-swieta" onClick={doSklepu}>
+                    <a className="gk2-hero-cta gk2-d" href="#gk2-zamow" onClick={doSklepu}>
                         <i aria-hidden="true" />
-                        <span>Zamów na Święta</span>
+                        <span>Zamów wypieki</span>
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M3 12h16M13 5.5l6.5 6.5-6.5 6.5" fill="none" stroke="currentColor" strokeWidth="2.6" />
                         </svg>
+                    </a>
+                    <a className="gk2-zajawka gk2-zajawka-hero" href="#gk2-dzien" onClick={skok("gk2-dzien")}>
+                        <b className="gk2-d">{dzien.krotko}</b>
+                        <span className="gk2-e">{"— Świętujemy Najszarszy Dzień w\u00a0roku"}</span>
+                        <i aria-hidden="true">→</i>
                     </a>
                 </div>
             </section>
@@ -3891,8 +3942,13 @@ export default function KonceptFunduszWitryna(props: Props) {
                         )
                     })}
                 </p>
+                <a className="gk2-zajawka gk2-zajawka-manifest" href="#gk2-dzien" onClick={skok("gk2-dzien")}>
+                    <b className="gk2-d">{dzien.krotko}</b>
+                    <span className="gk2-e">{"— Świętujemy Najszarszy Dzień w\u00a0roku"}</span>
+                    <i aria-hidden="true">→</i>
+                </a>
                 <div className="gk2-plaza" ref={u("plaza")}>
-                    <span className="gk2-e gk2-plaza-podpis">Ryc. 7 — Kulka po sezonie</span>
+                    <span className="gk2-e gk2-plaza-podpis">Ryc. 3 — Kulka po sezonie</span>
                     <Wyc a={P.parasol} rozmiar={1024} className="gk2-plaza-parasol" />
                     <Wyc a={P.lezak} rozmiar={1024} className="gk2-plaza-lezak" alt="Kulka odpoczywa na leżaku pod parasolem" />
                 </div>
@@ -3937,77 +3993,52 @@ export default function KonceptFunduszWitryna(props: Props) {
                 </div>
             </section>
 
-            <section className="gk2-swieta" ref={u("swieta")} id="gk2-swieta" data-motyw="jasny">
+            <section className="gk2-swieta" ref={u("swieta")} id="gk2-zamow" data-motyw="jasny">
                 <div className="gk2-swieta-lep">
                     <div className="gk2-sklep">
-                        <i className="gk2-sklep-wstazka gk2-sklep-wstazka-a" aria-hidden="true" />
-                        <i className="gk2-sklep-wstazka gk2-sklep-wstazka-b" aria-hidden="true" />
-                        <i className="gk2-sklep-kokarda" aria-hidden="true" />
                         <div className="gk2-sklep-tekst">
-                            <div className="gk2-e gk2-s">03 — Święta 2026</div>
-                            <Linie linie={["Wypieki", "na Święta."]} className="gk2-h2 gk2-h2-sklep" bezWjazdu />
+                            <div className="gk2-e gk2-s">03 — Na zamówienie</div>
+                            <Linie linie={["Wypieki", "i torty."]} className="gk2-h2 gk2-h2-sklep" bezWjazdu />
                             <p className="gk2-lead gk2-s" style={{ ["--i" as any]: 1 }}>
-                                {"Serniki, tarta pistacjowa, tort czekoladowy i\u00a0box dla dwojga. Pieczemy sami, na\u00a0zamówienie. Przesuń i\u00a0wybierz."}
+                                {"Serniki, tarta, torty i\u00a0box dla dwojga. Robimy od\u00a0podstaw w\u00a0naszej pracowni, pod\u00a0Twoje zamówienie. Przesuń i\u00a0wybierz."}
                             </p>
                             <dl className="gk2-fakty gk2-s" style={{ ["--i" as any]: 2 }}>
                                 <div>
                                     <dt>Zamówienia</dt>
-                                    <dd>{"1–21\u00a0grudnia, przez stronę"}</dd>
+                                    <dd>{"przez stronę, min.\u00a048h przed odbiorem"}</dd>
                                 </div>
                                 <div>
                                     <dt>Odbiór</dt>
-                                    <dd>
-                                        <span>
-                                            <b>23 grudnia od 14:00</b>{" · Kawiarnia Centrum (ul.\u00a0Sikorskiego\u00a0126) i\u00a0Nova Park"}
-                                        </span>
-                                        <span>
-                                            <b>24 grudnia do 12:00</b>{" · Nova Park"}
-                                        </span>
-                                    </dd>
+                                    <dd>{"codziennie · Kawiarnia Centrum (ul.\u00a0Sikorskiego\u00a0126) oraz Nova Park"}</dd>
                                 </div>
                                 <div>
                                     <dt>Zadatek</dt>
-                                    <dd>{"30% płatne online"}</dd>
+                                    <dd>{"30% płatne online (lub pełna kwota)"}</dd>
                                 </div>
                             </dl>
                         </div>
                         <Witryna />
                     </div>
-                    <div className="gk2-opak" ref={u("opak")} aria-hidden="true">
-                        {["a", "b", "c", "d"].map((k) => (
-                            <div key={k} className={"gk2-cw gk2-cw-" + k} ref={u("cw_" + k)}>
-                                {papier}
-                            </div>
-                        ))}
-                        <i className="gk2-pas gk2-pas-h gk2-pas-hl" ref={u("pasHL")} />
-                        <i className="gk2-pas gk2-pas-h gk2-pas-hp" ref={u("pasHP")} />
-                        <i className="gk2-pas gk2-pas-v gk2-pas-vg" ref={u("pasVG")} />
-                        <i className="gk2-pas gk2-pas-v gk2-pas-vd" ref={u("pasVD")} />
-                        <div className="gk2-kok-cien" ref={u("kokCien")} />
-                        <Kokarda u={u} />
-                    </div>
                 </div>
-                <div className="gk2-swieta-droga" ref={u("swietaDroga")} aria-hidden="true" />
             </section>
 
             <section className="gk2-firmy" ref={u("firmy")} id="gk2-firmy" data-motyw="jasny">
                 <div className="gk2-firmy-glowa">
                     <div className="gk2-e">04 — Dla firm</div>
-                    <Linie linie={["Wigilia", "firmowa."]} className="gk2-h2" />
+                    <Linie linie={["Przy jednym", "stole."]} className="gk2-h2" />
                 </div>
                 <figure className="gk2-firmy-foto gk2-wjazd" data-wjazd="">
                     <div className="gk2-firmy-okno" ref={u("firmyOkno")}>
-                        <img ref={u("firmyObraz")} src={FOTO_WIGILIA} alt="Dwie filiżanki kawy, brownie z kremem i malinami i świeczka na stole, w tle lampki i czerwony wazon" loading="lazy" decoding="async" />
+                        <img ref={u("firmyObraz")} src={FOTO_FIRMY} alt="Dwie filiżanki kawy, brownie z kremem i malinami i świeczka na stole, w tle lampki i czerwony wazon" loading="lazy" decoding="async" />
                     </div>
-                    <i className="gk2-firmy-kokarda" aria-hidden="true" />
                     <figcaption className="gk2-e">Kawiarnia Centrum, ul. Sikorskiego 126</figcaption>
                 </figure>
                 <div className="gk2-firmy-tresc">
-                    <p className="gk2-lead">{"Zamknijcie rok przy jednym stole. Dwie godziny, nasza obsługa i\u00a0specjalne menu ułożone na\u00a0tę okazję. Podajcie termin i\u00a0liczbę osób, a\u00a0odpiszemy z\u00a0ofertą."}</p>
+                    <p className="gk2-lead">{"Śniadanie dla zespołu na\u00a0Sikorskiego\u00a0126, kameralne spotkanie przy kawie albo nasze wypieki i\u00a0lody prosto do\u00a0Waszego biura. Podajcie termin i\u00a0liczbę osób, a\u00a0wrócimy z\u00a0konkretną propozycją."}</p>
                     <ul className="gk2-trojka">
                         <li>
-                            <b className="gk2-d">2 godziny</b>
-                            <span>przy wspólnym stole</span>
+                            <b className="gk2-d">Na miejscu lub u Was</b>
+                            <span>{"Kawiarnia Centrum albo dostawa do\u00a0firmy"}</span>
                         </li>
                         <li>
                             <b className="gk2-d">Obsługa</b>
@@ -4015,7 +4046,7 @@ export default function KonceptFunduszWitryna(props: Props) {
                         </li>
                         <li>
                             <b className="gk2-d">Menu</b>
-                            <span>{"specjalne, układane na\u00a0tę okazję"}</span>
+                            <span>{"układane specjalnie pod\u00a0okazję"}</span>
                         </li>
                     </ul>
                     <Zapytanie />
@@ -4033,6 +4064,12 @@ export default function KonceptFunduszWitryna(props: Props) {
                     <div className="gk2-e">05 — Stolik</div>
                     <Linie linie={["Zarezerwuj", "stolik."]} className="gk2-h2" />
                     <p className="gk2-lead">{"Śniadanie, kawa, kawałek ciasta w\u00a0Kawiarni Centrum. Zostaw prośbę, a\u00a0my oddzwonimy albo napiszemy SMS, żeby ją potwierdzić."}</p>
+                    <p className="gk2-stolik-tel">
+                        <span>{"Chcesz wpaść dzisiaj za\u00a0chwilę? Zadzwoń prosto do\u00a0kawiarni:"}</span>{" "}
+                        <a className="gk2-d" href={TEL_KAWIARNI_LINK}>
+                            {TEL_KAWIARNI}
+                        </a>
+                    </p>
                     <Stolik />
                 </div>
             </section>
@@ -4050,7 +4087,7 @@ export default function KonceptFunduszWitryna(props: Props) {
                     <figure className="gk2-farma">
                         <Laka oknoRef={u("farma")} />
                         <figcaption className="gk2-e">
-                            <span>Ryc. 8 — Górka i Kulka u krów z Juchowa.</span>
+                            <span>Ryc. 4 — Górka i Kulka u krów z Juchowa.</span>
                             <a className="gk2-zrodla-link" href={JUCHOWO_FILM} target="_blank" rel="noopener noreferrer">
                                 Zobacz prawdziwe Juchowo ↗
                             </a>
@@ -4088,7 +4125,6 @@ export default function KonceptFunduszWitryna(props: Props) {
                                     ))}
                                 </h3>
                                 <p className="gk2-lead">{sm.opis}</p>
-                                <p className="gk2-e gk2-smak-stopka">Karta zmienia się jak pogoda. Dziś gościnnie: pumpkin spice latte i matcha z truskawką.</p>
                             </div>
                             <div className="gk2-gala" ref={u("gala" + i)} style={{ backgroundColor: sm.gala }} aria-hidden="true" />
                         </div>
@@ -4102,6 +4138,10 @@ export default function KonceptFunduszWitryna(props: Props) {
                             <li key={sm.nr} />
                         ))}
                     </ol>
+                    <p className="gk2-e gk2-smaki-metka" ref={u("smakiMetka")}>
+                        <b>Dziś w witrynie</b>
+                        <span>{"Karta zmienia się jak pogoda. Dziś gościnnie: " + goscinnie + "."}</span>
+                    </p>
                 </div>
             </section>
 
@@ -4109,9 +4149,12 @@ export default function KonceptFunduszWitryna(props: Props) {
 
             <section className="gk2-noc" ref={u("noc")} id="gk2-dzien" data-motyw="ciemny">
                 <div className="gk2-noc-tekst">
-                    <div className="gk2-e">09 — Święto marki · {dzien.dlugo}</div>
+                    <div className="gk2-e">09 — Święto marki · tak otwieramy rok w naszych lokalach</div>
                     <div className="gk2-d gk2-data gk2-wjazd" data-wjazd="">
                         {dzien.krotko}
+                    </div>
+                    <div className="gk2-d gk2-data-pelna gk2-wjazd" data-wjazd="">
+                        {dzien.dlugo.split(", ")[0] + ","} <span>{dzien.dlugo.split(", ").slice(1).join(", ")}</span>
                     </div>
                     <Linie linie={["Najszarszy", "Dzień."]} className="gk2-h2 gk2-h2-szary" />
                     <p className="gk2-lead">
@@ -4130,7 +4173,7 @@ export default function KonceptFunduszWitryna(props: Props) {
                 <div className="gk2-lokale-gora">
                     <div>
                         <div className="gk2-e">10 — Lokale</div>
-                        <Linie linie={["Trzy adresy", "w Gorzowie."]} className="gk2-h2" />
+                        <Linie linie={["Cztery adresy", "w Gorzowie."]} className="gk2-h2 gk2-h2-ciasna" />
                     </div>
                     <figure className="gk2-luk">
                         <div className="gk2-luk-okno" ref={u("okno")}>
@@ -4144,6 +4187,7 @@ export default function KonceptFunduszWitryna(props: Props) {
                         ["Kawiarnia Centrum", "ul. Sikorskiego 126", "Kawiarnia, lody, ciasta · codziennie 10–19", "Górka & Kulka Sikorskiego 126 Gorzów Wielkopolski"],
                         ["Nova Park", "Centrum handlowe Nova Park", "Lodziarnia · godziny galerii", "Górka & Kulka Nova Park Gorzów Wielkopolski"],
                         ["Górczyn", "Lodziarnia sezonowa", "Otwarta w sezonie, wiosna–lato", "Górka & Kulka Górczyn Gorzów Wielkopolski"],
+                        ["Pracownia", "ul. Słoneczna 62", "Tu robimy lody i ciasta · okienko", "ul. Słoneczna 62, 66-400 Gorzów Wielkopolski"],
                     ].map((l) => (
                         <li key={l[0]}>
                             <span className="gk2-d gk2-lista-nazwa">{l[0]}</span>
@@ -4183,24 +4227,22 @@ export default function KonceptFunduszWitryna(props: Props) {
                     <span>Makieta koncepcyjna. To jeszcze nie jest działający sklep.</span>
                 </div>
             </footer>
-            {przedKoncemZamowien ? (
-                <a className="gk2-pasek-zamow" ref={u("pasekZamow")} href="#gk2-swieta" onClick={doSklepu}>
-                    <span className="gk2-e gk2-pasek-tekst">
-                        Wypieki na Święta
-                        <br />
-                        zamówienia do 21.12
-                    </span>
-                    <span className="gk2-e gk2-pasek-tekst-koszyk">
-                        W koszyku: <i className="gk2-licznik-tekst" />
-                        <br />
-                        zamówienia do 21.12
-                    </span>
-                    <b className="gk2-e">
-                        <span className="gk2-pasek-zamow-a">Zamów →</span>
-                        <span className="gk2-pasek-zamow-b">Koszyk →</span>
-                    </b>
-                </a>
-            ) : null}
+            <a className="gk2-pasek-zamow" ref={u("pasekZamow")} href="#gk2-zamow" onClick={doSklepu}>
+                <span className="gk2-e gk2-pasek-tekst">
+                    Wypieki i torty
+                    <br />
+                    odbiór w 48h
+                </span>
+                <span className="gk2-e gk2-pasek-tekst-koszyk">
+                    W koszyku: <i className="gk2-licznik-tekst" />
+                    <br />
+                    odbiór w 48h
+                </span>
+                <b className="gk2-e">
+                    <span className="gk2-pasek-zamow-a">Zamów →</span>
+                    <span className="gk2-pasek-zamow-b">Koszyk →</span>
+                </b>
+            </a>
         </div>
     )
 }
@@ -4208,4 +4250,5 @@ export default function KonceptFunduszWitryna(props: Props) {
 addPropertyControls(KonceptFunduszWitryna, {
     film1: { type: ControlType.String, title: "Film 1", defaultValue: CDN + "assets/IQjZBI2wSEc8Xk8B4R0DBh6J0o.mp4" },
     film2: { type: ControlType.String, title: "Film 2", defaultValue: CDN + "assets/Qr03SvkgAz41mkdTjNXeLpjLE54.mp4" },
+    goscinnie: { type: ControlType.String, title: "Dziś gościnnie", defaultValue: GOSCINNIE },
 })
