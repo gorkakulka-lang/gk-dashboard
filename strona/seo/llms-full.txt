@@ -53,7 +53,7 @@ Zasady:
 
 ## Punkty w Gorzowie Wielkopolskim
 - Kawiarnia Centrum: ul. Gen. Władysława Sikorskiego 126, 66-400 Gorzów Wielkopolski. Codziennie 10:00–19:00. Tel. +48 574 634 151. [Mapa](https://www.google.com/maps/search/?api=1&query=G%C3%B3rka%20%26%20Kulka%20Sikorskiego%20126%20Gorz%C3%B3w%20Wielkopolski&query_place_id=ChIJxfcSWL0fB0cR1l_PaIEVq-Y)
-- Nova Park: Centrum handlowe Nova Park, ul. Przemysłowa 2, 66-400 Gorzów Wielkopolski. W godzinach otwarcia galerii. [Mapa](https://www.google.com/maps/search/?api=1&query=G%C3%B3rka%20%26%20Kulka%20Nova%20Park%20Gorz%C3%B3w%20Wielkopolski&query_place_id=ChIJ2wuN-4EfB0cRwxaw1Rw7lyU)
+- Nova Park: Centrum handlowe Nova Park, ul. Przemysłowa 2, 66-400 Gorzów Wielkopolski. Pon.–pt. 9:00–21:00, sob. 10:00–21:00. [Mapa](https://www.google.com/maps/search/?api=1&query=G%C3%B3rka%20%26%20Kulka%20Nova%20Park%20Gorz%C3%B3w%20Wielkopolski&query_place_id=ChIJ2wuN-4EfB0cRwxaw1Rw7lyU)
 - Górczyn: Park Górczyński, 66-400 Gorzów Wielkopolski. Lodziarnia sezonowa, od 1 kwietnia do 15 września, 12:00–20:00; poza sezonem nieczynna. [Mapa](https://www.google.com/maps/search/?api=1&query=Park%20G%C3%B3rczy%C5%84ski%20Gorz%C3%B3w%20Wielkopolski&query_place_id=ChIJqQ-S9SQgB0cRNudIaZXqouA)
 - Pracownia z okienkiem: ul. Słoneczna 62, 66-400 Gorzów Wielkopolski. Okienko sezonowe, od 1 kwietnia do 15 września, 12:00–20:00; poza sezonem nieczynne. [Mapa](https://www.google.com/maps/search/?api=1&query=ul.%20S%C5%82oneczna%2062%2C%2066-400%20Gorz%C3%B3w%20Wielkopolski)
 
@@ -75,6 +75,7 @@ W sezonie (start 1 maja) lody sprzedajemy także z dwóch przyczep: Promenada w 
 - Telefon (firma): +48 500 344 913
 - Telefon (Kawiarnia Centrum): +48 574 634 151
 - Instagram: https://www.instagram.com/gorka.kulka/
+- Facebook: https://www.facebook.com/gorka.kulka
 
 ## Strony
 - [Strona główna i zamówienia świąteczne](https://gorkaikulka.pl/): Oferta wypieków na Święta 2026, zasady zamówień, rezerwacja stolika, adresy.

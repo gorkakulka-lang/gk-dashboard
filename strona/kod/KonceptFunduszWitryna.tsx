@@ -4185,7 +4185,7 @@ export default function KonceptFunduszWitryna(props: Props) {
                 <ul className="gk2-lista">
                     {[
                         ["Kawiarnia Centrum", "ul. Sikorskiego 126", "Kawiarnia, lody, ciasta · codziennie 10–19", "Górka & Kulka Sikorskiego 126 Gorzów Wielkopolski"],
-                        ["Nova Park", "Centrum handlowe Nova Park", "Lodziarnia · godziny galerii", "Górka & Kulka Nova Park Gorzów Wielkopolski"],
+                        ["Nova Park", "Centrum handlowe Nova Park", "Lodziarnia · pn–pt 9–21 · sob 10–21", "Górka & Kulka Nova Park Gorzów Wielkopolski"],
                         ["Górczyn", "Park Górczyński", "Lodziarnia · 1.04–15.09 · 12–20", "Park Górczyński Gorzów Wielkopolski"],
                         ["Pracownia", "ul. Słoneczna 62", "Okienko z lodami · 1.04–15.09 · 12–20", "ul. Słoneczna 62, 66-400 Gorzów Wielkopolski"],
                     ].map((l) => (
