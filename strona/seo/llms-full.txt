@@ -2,14 +2,14 @@
 
 > Lodziarnia, cukiernia i kawiarnia z Gorzowa Wielkopolskiego. Lody rzemieślnicze i ciasta robione od podstaw we własnej pracowni. Hasło marki: „Małe święto każdego dnia”.
 
-In English: Górka & Kulka is an artisan ice cream shop, patisserie and café in Gorzów Wielkopolski, Poland. Everything is made from scratch in the company's own workshop. Orders are pick-up only; there is no delivery or shipping.
+In English: Górka & Kulka is an artisan ice cream shop, patisserie and café in Gorzów Wielkopolski, Poland. Ice cream and cakes are made from scratch in the company's own workshop. Orders are pick-up only; there is no delivery or shipping.
 
 Stan informacji: 24 listopada 2026. Ten plik opisuje stan faktyczny na ten dzień. Jeśli coś nie jest tu wymienione, nie należy zakładać, że to oferujemy.
 
 ## Nazwa
 - Poprawna nazwa: Górka & Kulka. Spotykane zapisy: Górka Kulka, Górka i Kulka. Adres strony: gorkaikulka.pl.
 - W logo nazwa jest pisana wersalikami, z poziomą kreską nad O: GŌRKA & KULKA. To zapis graficzny; w tekście piszemy „Górka & Kulka”.
-- Nazwy nie tłumaczymy. W anglojęzycznych Mapach Google kawiarnia bywa wyświetlana jako „Hill & Ball”. To automatyczne tłumaczenie, nie osobna marka.
+- Nazwy nie tłumaczymy. W anglojęzycznych Mapach Google kawiarnia bywa wyświetlana jako „Hill & Ball”. To tłumaczenie nazwy, nie osobna marka.
 
 ## Kim jesteśmy
 - Lodziarnia, cukiernia i kawiarnia z Gorzowa Wielkopolskiego (województwo lubuskie, Polska).
@@ -54,7 +54,7 @@ Zasady:
 ## Punkty w Gorzowie Wielkopolskim
 - Kawiarnia Centrum: ul. Gen. Władysława Sikorskiego 126, 66-400 Gorzów Wielkopolski. Codziennie 10:00–19:00. Tel. +48 574 634 151. [Mapa](https://www.google.com/maps/search/?api=1&query=G%C3%B3rka%20%26%20Kulka%20Sikorskiego%20126%20Gorz%C3%B3w%20Wielkopolski&query_place_id=ChIJxfcSWL0fB0cR1l_PaIEVq-Y)
 - Nova Park: Centrum handlowe Nova Park, ul. Przemysłowa 2, 66-400 Gorzów Wielkopolski. W godzinach otwarcia galerii. [Mapa](https://www.google.com/maps/search/?api=1&query=G%C3%B3rka%20%26%20Kulka%20Nova%20Park%20Gorz%C3%B3w%20Wielkopolski&query_place_id=ChIJ2wuN-4EfB0cRwxaw1Rw7lyU)
-- Górczyn: Lodziarnia sezonowa (wiosna–lato), zimą nieczynna.
+- Górczyn: lodziarnia sezonowa (wiosna–lato), zimą nieczynna.
 - Pracownia z okienkiem: ul. Słoneczna 62, 66-400 Gorzów Wielkopolski. Okienko sezonowe, zimą nieczynne. [Mapa](https://www.google.com/maps/search/?api=1&query=ul.%20S%C5%82oneczna%2062%2C%2066-400%20Gorz%C3%B3w%20Wielkopolski)
 
 W sezonie (start 1 maja) lody sprzedajemy także z dwóch przyczep: Promenada w Santoku oraz Osiedle Europejskie, ul. Londyńska. Przyczepy są otwarte w każdy ładny dzień w godz. 12:00–19:00. Przyczepę można też zamówić na wydarzenie.
@@ -65,7 +65,7 @@ W sezonie (start 1 maja) lody sprzedajemy także z dwóch przyczep: Promenada w 
 
 ## Czego nie oferujemy
 - Nie prowadzimy dostaw ani wysyłki lodów i ciast. Zamówienia są wyłącznie z odbiorem osobistym w Gorzowie Wielkopolskim.
-- Zamówień świątecznych nie przyjmujemy przez telefon ani w mediach społecznościowych, tylko przez stronę.
+- Zamówienia świąteczne przyjmujemy tylko przez stronę, nie przez telefon.
 
 ## Dane firmy i kontakt
 - Górka & Kulka s.c. Magdalena Kowalska, Paweł Górka
