@@ -95,3 +95,13 @@ body.zaplecze { background: var(--krem); }
 .smaki-panel .akcje { display: flex; flex-wrap: wrap; gap: 0 16px; }
 .smaki-panel .link { min-height: 36px; font-size: 13px; }
 .smaki-panel .ukryty { color: var(--szary); }
+
+/* powroty: najważniejsza liczba, na całą szerokość */
+.kafel.powroty { background: var(--tusz); color: var(--bialy); }
+@media (min-width: 520px) { .kafel.powroty { grid-column: 1 / -1; } }
+
+/* ----- zguba: kod, którym gość przywraca kartę u siebie ----- */
+.zguba-kto { min-height: 0; }
+.zguba-kod { max-width: 250px; margin-top: 12px; padding: 16px 16px 10px; border: 2px solid var(--tusz); gap: 8px; }
+.zguba-kod .podpis { justify-content: center; }
+.zguba-kod .podpis b { font-size: 28px; letter-spacing: .04em; overflow: visible; }

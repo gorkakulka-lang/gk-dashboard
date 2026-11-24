@@ -100,7 +100,14 @@ async function pokazDane() {
   } catch (e) {
     /* lista smaków dojdzie przy następnym odświeżeniu */
   }
-  if (!pisze) rysuj(d, smaki);
+  let powroty = null;
+  try {
+    const p = await rpc('karta_panel_powroty', { p_sesja: sesja });
+    if (p.ok) powroty = p;
+  } catch (e) {
+    /* powroty dojdą przy następnym odświeżeniu */
+  }
+  if (!pisze) rysuj(d, smaki, powroty);
   clearInterval(zegar);
   zegar = setInterval(() => {
     if (document.visibilityState === 'visible') pokazDane().then((ok) => ok || start());
@@ -124,7 +131,14 @@ function zdarzenie(e) {
   return `${imie} · nagroda: ${e.typ === 'nagroda-kawa' ? 'kawa' : 'lody'}${gdzie}`;
 }
 
-function rysuj(d, smaki) {
+function rysuj(d, smaki, powroty) {
+  // Powroty: gość „wrócił”, gdy ma wizyty w co najmniej dwóch różnych dniach.
+  const pw = powroty && powroty.z_wizyta ? Math.round((100 * powroty.wrocili) / powroty.z_wizyta) + '%' : '–';
+  const pwOpis = !powroty
+    ? 'Nie udało się policzyć. Odśwież stronę.'
+    : powroty.z_wizyta
+      ? `goście z wizytą: ${powroty.z_wizyta} · wrócili innego dnia: ${powroty.wrocili} · z nich w ostatnich 30 dniach: ${powroty.wrocili_30} · stali, 5 dni i więcej: ${powroty.stali}`
+      : 'Jeszcze nikt nie miał wizyty. Liczymy gości, którzy przyszli w co najmniej dwa różne dni.';
   const lokale = d.lokale
     .map((l) => {
       const u = uwagi[l.slug];
@@ -148,6 +162,7 @@ function rysuj(d, smaki) {
     : '<li><time></time><span>Jeszcze nic się nie wydarzyło.</span></li>';
   app.innerHTML = `${pasek('Panel')}
     <section class="kafle">
+      <div class="kafel powroty"><b>${pw}</b><span>Wracają</span><small>${pwOpis}</small></div>
       <div class="kafel"><b>${d.goscie.razem}</b><span>Goście z kartą</span><small>dziś +${d.goscie.dzis} · 7 dni +${d.goscie.tydzien} · zgoda na smaki: ${d.goscie.zgody}</small></div>
       <div class="kafel"><b>${d.kroki.dzis}</b><span>Kroki dziś</span><small>7 dni: ${d.kroki.tydzien} · razem: ${d.kroki.razem}</small></div>
       <div class="kafel"><b>${d.nagrody.czekaja}</b><span>Nagrody do odebrania</span><small>wydane w 7 dni: ${d.nagrody.tydzien} · razem: ${d.nagrody.razem}</small></div>

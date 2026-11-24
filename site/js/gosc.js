@@ -1,6 +1,7 @@
 // Karta gościa: zapis, droga Kulki i Górki, kod do skanu.
 import { rpc, pamiec, esc, czekaj } from './api.js';
 import { wolacz, ladnie } from './wolacz.js';
+import { svgQr } from './qr.js';
 
 const app = document.getElementById('app');
 const K_TOKEN = 'gk.karta.token';
@@ -9,6 +10,8 @@ const K_LOKAL = 'gk.karta.lokal';
 const POL = (164.3 + 12) / 2; // tyle pikseli każda postać przechodzi przez 10 kroków
 const BEZ_RUCHU = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ZGODA_TEKST = 'Piszcie mi o nowych smakach.';
+const PAMIEC_STRONY = '/api/karta'; // ciasteczko ustawiane przez serwer strony, patrz netlify/edge-functions/karta.js
+const WZOR_KLUCZA = /^[0-9a-f]{48}$/;
 
 let token = null;
 let stan = null; // ostatni stan z bazy
@@ -18,6 +21,7 @@ let zajete = false; // trwa animacja
 let dopisek = null; // jednorazowe zdanie zamiast zasady (powitanie, smacznego)
 let zegar = null;
 let dzis = null; // ostatnia odpowiedź „Dziś u nas”
+let utrwalony = null; // klucz, który w tej wizycie trafił już do ciasteczka
 
 const xK = (n) => 8 + (POL * n) / 10;
 const xG = (n) => 264.5 - (POL * n) / 10;
@@ -56,16 +60,6 @@ function scena(n, nagroda) {
   </div>`;
 }
 
-function svgQr(tekst) {
-  const q = window.qrcode(0, 'M');
-  q.addData(tekst, 'Alphanumeric');
-  q.make();
-  const n = q.getModuleCount();
-  let d = '';
-  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c} ${r}h1v1h-1z`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 ${n + 4} ${n + 4}" shape-rendering="crispEdges" role="img" aria-label="Kod QR Twojej karty"><rect x="-2" y="-2" width="${n + 4}" height="${n + 4}" fill="#fff"/><path d="${d}" fill="#111"/></svg>`;
-}
-
 // ===== Widoki =====
 
 function pokazDroge() {
@@ -94,7 +88,7 @@ function pokazKod() {
       <p>${nag ? 'Duża porcja lodów albo kawa. Wybierasz przy ladzie.' : 'Obsługa skanuje go raz, a Kulka i Górka zbliżają się o krok.'}</p>
     </section>
     <section class="kod-karta">
-      <div class="qr">${svgQr('GK1:' + stan.kod)}</div>
+      <div class="qr">${svgQr('GK1:' + stan.kod, 'Kod QR Twojej karty', 'Alphanumeric')}</div>
       <div class="podpis"><b>${esc(ladnie(stan.imie).split(' ')[0])}</b><span>G&amp;K ${String(stan.numer).padStart(6, '0')}</span></div>
     </section>
     <div class="odstep"></div>
@@ -125,15 +119,109 @@ function pokazZapis() {
   document.getElementById('zapis').addEventListener('submit', zapisz);
 }
 
-function pokazMam() {
+function pokazMam(blad = '') {
   widok = 'mam';
   app.dataset.widok = widok;
   app.innerHTML = `${gora('<a class="link" href="#">Wróć</a>')}
     <section class="tekst">
       <h1>Masz już kartę?</h1>
-      <p>Karta mieszka w telefonie, na którym ją założono. Otwórz tę stronę w tej samej przeglądarce, a pojawi się sama.</p>
-      <p>Nowy telefon albo wyczyszczona przeglądarka? Na czas testów daj nam znać, przywrócimy kartę po Twoim e-mailu.</p>
-    </section>`;
+      <p>Powiedz przy ladzie, na jaki e-mail była założona. Dostaniesz kod i wpiszesz go tutaj.</p>
+    </section>
+    <form class="formularz" id="odzysk" novalidate>
+      <label class="pole" for="okod">Kod od obsługi</label>
+      <input class="kod8" id="okod" name="kod" type="text" inputmode="numeric" pattern="[0-9 ]*" maxlength="9" autocomplete="off" placeholder="8 cyfr">
+      <p class="blad" id="blad" role="alert">${esc(blad)}</p>
+      <button class="guzik" type="submit" id="wyslij">Przywróć kartę</button>
+    </form>`;
+  document.getElementById('odzysk').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const pole = document.getElementById('okod');
+    const info = document.getElementById('blad');
+    const guzik = document.getElementById('wyslij');
+    const kod = pole.value.replace(/\D/g, '');
+    info.textContent = '';
+    if (kod.length !== 8) {
+      info.textContent = BLEDY_ODZYSKU.dlugosc;
+      pole.focus();
+      return;
+    }
+    guzik.disabled = true;
+    guzik.textContent = 'Przywracam…';
+    const kodBledu = await odzyskaj(kod);
+    if (!kodBledu || widok !== 'mam') return;
+    guzik.disabled = false;
+    guzik.textContent = 'Przywróć kartę';
+    info.textContent = BLEDY_ODZYSKU[kodBledu] || BLEDY_ODZYSKU.siec;
+  });
+}
+
+// ===== Przywracanie karty kodem od obsługi =====
+
+const BLEDY_ODZYSKU = {
+  dlugosc: 'Kod od obsługi ma 8 cyfr.',
+  kod: 'Ten kod nie działa albo minął jego czas. Poproś przy ladzie o nowy.',
+  limit: 'Za dużo prób. Spróbuj za godzinę.',
+  siec: 'Nie udało się połączyć. Sprawdź internet i spróbuj jeszcze raz.',
+};
+
+// Zwraca null, gdy karta wróciła, albo kod błędu.
+async function odzyskaj(kod) {
+  let odp;
+  try {
+    odp = await rpc('karta_odzyskaj', { p_kod: kod });
+  } catch (e) {
+    odp = { ok: false, blad: 'siec' };
+  }
+  if (!odp.ok) return odp.blad || 'siec';
+  token = odp.token;
+  stan = odp.stan;
+  pamiec(K_TOKEN, token);
+  pamiec(K_STAN, JSON.stringify(stan));
+  utrwal();
+  ekran = { n: Math.min(10, stan.n), nagroda: !!stan.nagroda };
+  ustawAdres('');
+  dopisek = 'Karta wróciła. Kulka i Górka czekały na Ciebie.';
+  pokazDroge();
+  dopisek = null;
+  window.scrollTo(0, 0);
+  ustawTempo();
+  return null;
+}
+
+// ===== Pamięć karty po stronie strony =====
+// Safari kasuje pamięć strony (localStorage) po 7 dniach bez wizyty. Ciasteczka ustawionego
+// przez serwer ta reguła nie dotyczy, więc klucz karty leży w obu miejscach.
+
+async function zeStrony() {
+  const ster = new AbortController();
+  const stoper = setTimeout(() => ster.abort(), 3000);
+  try {
+    const odp = await fetch(PAMIEC_STRONY, { credentials: 'same-origin', cache: 'no-store', signal: ster.signal });
+    if (!odp.ok) return null;
+    const d = await odp.json();
+    return d && typeof d.token === 'string' && WZOR_KLUCZA.test(d.token) ? d.token : null;
+  } catch (e) {
+    return null; // bez tej pamięci karta działa jak dotąd
+  } finally {
+    clearTimeout(stoper);
+  }
+}
+
+function naStrone(klucz) {
+  return fetch(PAMIEC_STRONY, {
+    method: 'POST',
+    credentials: 'same-origin',
+    cache: 'no-store',
+    keepalive: true,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: klucz }),
+  }).catch(() => {});
+}
+
+function utrwal() {
+  if (!token || utrwalony === token) return;
+  utrwalony = token;
+  naStrone(token);
 }
 
 // ===== Dziś u nas: lody w witrynach =====
@@ -290,6 +378,7 @@ async function zapisz(ev) {
   stan = odp.stan;
   pamiec(K_TOKEN, token);
   pamiec(K_STAN, JSON.stringify(stan));
+  utrwal();
   ustawAdres('');
   // Powitanie: gość widzi start drogi, a po chwili pierwszy krok w prezencie.
   const cel = { n: Math.min(10, stan.n), nagroda: !!stan.nagroda };
@@ -497,16 +586,30 @@ async function odswiez() {
     if (odp.blad === 'token') zapomnij();
     return;
   }
+  utrwal();
   await przyjmij(odp.stan);
 }
 
-function zapomnij() {
+async function zapomnij() {
+  const zly = token;
   token = null;
   stan = null;
+  utrwalony = null;
   pamiec(K_TOKEN, null);
   pamiec(K_STAN, null);
   clearInterval(zegar);
   history.replaceState(null, '', location.pathname);
+  // w ciasteczku może leżeć inny, dobry klucz (na przykład adres z ?k= był stary)
+  const zapas = await zeStrony();
+  if (token) return; // w międzyczasie gość założył albo przywrócił kartę
+  if (zapas && zapas !== zly) {
+    token = zapas;
+    pamiec(K_TOKEN, token);
+    ustawAdres();
+    odswiez();
+    return;
+  }
+  if (zapas) naStrone(null);
   trasa();
 }
 
@@ -566,17 +669,49 @@ function ustawTempo() {
   }, widok === 'kod' ? 2500 : 20000);
 }
 
-function start() {
+async function start() {
   const adres = new URL(location.href);
-  if (adres.searchParams.has('nowa')) {
+  const nowa = adres.searchParams.has('nowa');
+  const kodObslugi = adres.searchParams.get('o');
+  window.addEventListener('hashchange', () => {
+    if (!zajete) trasa();
+  });
+  window.addEventListener('resize', dopasuj);
+  if ('ResizeObserver' in window) new ResizeObserver(dopasuj).observe(app);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') odswiez();
+  });
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) odswiez();
+  });
+  if (nowa) {
     // do testów: kilka osób zakłada kartę na jednym telefonie
     pamiec(K_TOKEN, null);
     pamiec(K_STAN, null);
     history.replaceState(null, '', location.pathname);
+    await naStrone(null);
   }
-  const zAdresu = adres.searchParams.has('nowa') ? null : adres.searchParams.get('k');
+  const zAdresu = nowa ? null : adres.searchParams.get('k');
   const zPamieci = pamiec(K_TOKEN);
-  token = zAdresu && /^[0-9a-f]{48}$/.test(zAdresu) ? zAdresu : zPamieci;
+  token = zAdresu && WZOR_KLUCZA.test(zAdresu) ? zAdresu : zPamieci;
+  if (kodObslugi && /^[0-9]{8}$/.test(kodObslugi)) {
+    // gość skierował aparat na kod z ekranu obsługi: wymieniamy go na kartę, zanim cokolwiek pokażemy
+    history.replaceState(null, '', location.pathname + (token ? `?k=${token}` : '#mam'));
+    app.innerHTML = `${gora()}<section class="tekst"><h1>Przywracam kartę…</h1></section>`;
+    const kodBledu = await odzyskaj(kodObslugi);
+    if (!kodBledu) return;
+    if (!token) {
+      pokazMam(BLEDY_ODZYSKU[kodBledu] || BLEDY_ODZYSKU.siec);
+      return;
+    }
+    // kod nie zadziałał, ale w tym telefonie jest już karta: pokazujemy ją
+  }
+  if (!token && !nowa) {
+    // pamięć przeglądarki pusta: może klucz przetrwał w ciasteczku
+    if (location.hash === '#dzis') trasa();
+    else app.innerHTML = gora();
+    token = await zeStrony();
+  }
   if (token) {
     if (token === zPamieci) {
       try {
@@ -596,17 +731,6 @@ function start() {
   } else {
     trasa();
   }
-  window.addEventListener('hashchange', () => {
-    if (!zajete) trasa();
-  });
-  window.addEventListener('resize', dopasuj);
-  if ('ResizeObserver' in window) new ResizeObserver(dopasuj).observe(app);
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') odswiez();
-  });
-  window.addEventListener('pageshow', (e) => {
-    if (e.persisted) odswiez();
-  });
 }
 
 start();

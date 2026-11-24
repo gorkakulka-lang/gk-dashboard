@@ -250,3 +250,6 @@ p { margin: 0; font-size: 15px; line-height: 1.5; }
   [data-widok=zapis] .zgoda { margin-bottom: 10px; }
   [data-widok=zapis] .dol { margin-top: 2px; }
 }
+
+/* „Mam już kartę”: kod od obsługi */
+.formularz input.kod8 { letter-spacing: .2em; font-size: 22px; text-align: center; }

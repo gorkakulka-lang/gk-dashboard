@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Przepływ gościa na atrapie bazy: zapis -> krok powitalny -> kod -> skany -> spotkanie -> nagroda."""
+"""Przepływ gościa na atrapie bazy: zapis -> krok powitalny -> kod -> skany -> spotkanie -> nagroda,
+potem pamięć karty: ciasteczko ustawione przez serwer i powrót karty po wyczyszczeniu pamięci przeglądarki."""
 import sys, os, json, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import atrapa
@@ -65,7 +66,52 @@ with sync_playwright() as p:
         uklad = pg.evaluate('''() => { const d = document.documentElement; const g = document.getElementById('guzik').getBoundingClientRect();
             return { przewija: d.scrollHeight > d.clientHeight + 1, scrollH: d.scrollHeight, clientH: d.clientHeight, guzikDol: Math.round(g.bottom), skala: getComputedStyle(document.querySelector('#ramka .scena')).getPropertyValue('--s') } }''')
         print(nazwa, 'OK', 'qr', qr, 'uklad', json.dumps(uklad))
+        if nazwa == '844':
+            # klucz karty leży też w ciasteczku ustawionym przez serwer strony
+            token = pg.evaluate('localStorage.getItem("gk.karta.token")')
+            c = [x for x in ctx.cookies() if x['name'] == 'gk_karta']
+            assert c and c[0]['value'] == token and c[0]['httpOnly'] and c[0]['secure'] and c[0]['sameSite'] == 'Lax', c
+            assert c[0]['expires'] - time.time() > 390 * 86400, c
+            assert pg.evaluate('document.cookie') == '', 'ciasteczko widoczne dla skryptu'
+            # Safari po 7 dniach bez wizyty: pamięć przeglądarki pusta, adres bez klucza. Karta wraca z ciasteczka.
+            pg.evaluate('localStorage.clear()')
+            pg.goto(BASE + '/'); pg.wait_for_selector('#ramka'); pg.wait_for_timeout(400)
+            assert pg.evaluate('localStorage.getItem("gk.karta.token")') == token
+            assert 'k=' + token in pg.url, pg.url
+            assert pg.inner_text('.czesc') == 'Cześć, Aniu!', pg.inner_text('.czesc')
+            shot(12, 'wrocila-z-ciasteczka')
+            # to samo na „Dziś u nas”: lista pokazuje się od razu, a karta dochodzi z ciasteczka
+            pg.evaluate('localStorage.clear()')
+            pg.goto(BASE + '/#dzis'); pg.wait_for_selector('.dol a:has-text("Droga")')    # dolne menu mówi „Droga”, gdy karta już jest
+            assert pg.evaluate('localStorage.getItem("gk.karta.token")') == token
+            # stary adres z nieistniejącym kluczem nie kasuje dobrej karty z ciasteczka
+            pg.evaluate('localStorage.clear()')
+            pg.goto(BASE + '/?k=' + 'f' * 48); pg.wait_for_selector('#ramka'); pg.wait_for_timeout(400)
+            assert pg.evaluate('localStorage.getItem("gk.karta.token")') == token
+            # ?nowa=1 zapomina kartę w obu miejscach
+            pg.goto(BASE + '/?nowa=1'); pg.wait_for_selector('#zapis')
+            assert not [x for x in ctx.cookies() if x['name'] == 'gk_karta'], ctx.cookies()
+            pg.goto(BASE + '/'); pg.wait_for_selector('#zapis')
+            # klucz, którego baza nie zna (np. po wyczyszczeniu kart testowych): zapis, a ciasteczko znika
+            ctx.add_cookies([{'name': 'gk_karta', 'value': 'e' * 48, 'url': BASE, 'httpOnly': True, 'secure': True, 'sameSite': 'Lax'}])
+            pg.goto(BASE + '/'); pg.wait_for_selector('#zapis'); pg.wait_for_timeout(300)
+            assert not [x for x in ctx.cookies() if x['name'] == 'gk_karta'], ctx.cookies()
+            print('pamiec karty OK')
         ctx.close()
+    # strona bez funkcji brzegowej (/api/karta odpowiada 404): karta działa jak dotąd, z pamięci przeglądarki
+    atrapa.PAMIEC_STRONY = False
+    ctx = b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=2, locale='pl-PL')
+    pg = ctx.new_page()
+    pg.on('pageerror', lambda e: bledy.append(('bez-funkcji', 'pageerror', str(e))))
+    pg.goto(BASE + '/'); pg.wait_for_selector('#zapis')
+    pg.fill('#imie', 'Ewa'); pg.fill('#email', 'ewa-bez-funkcji@example.com'); pg.click('#wyslij')
+    pg.wait_for_selector('#ramka'); pg.wait_for_timeout(2600)
+    pg.goto(BASE + '/'); pg.wait_for_selector('#ramka'); pg.wait_for_timeout(300)
+    assert pg.inner_text('.czesc') == 'Cześć, Ewo!', pg.inner_text('.czesc')
+    assert not ctx.cookies()
+    print('bez funkcji brzegowej OK')
+    ctx.close()
+    atrapa.PAMIEC_STRONY = True
     b.close()
 srv.shutdown()
 print('BLEDY:', json.dumps(bledy, ensure_ascii=False, indent=1) if bledy else 'brak')

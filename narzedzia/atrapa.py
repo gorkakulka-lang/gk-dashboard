@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Atrapa bazy do testów lokalnych (piaskownica nie ma dostępu do Supabase).
-Serwuje site/ i udaje funkcje public.karta_* w pamięci, z tymi samymi odpowiedziami co baza."""
+Serwuje site/ i udaje funkcje public.karta_* w pamięci, z tymi samymi odpowiedziami co baza.
+Udaje też /api/karta, czyli funkcję brzegową netlify/edge-functions/karta.js (ciasteczko z kluczem karty)."""
 import json, sys, os, secrets, time, threading, http.server, socketserver, functools, re, hashlib
 
 SITE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'site')
@@ -8,7 +9,8 @@ ALFABET = '23456789ABCDEFGHJKMNPQRSTVWXYZ'
 
 class Baza:
     def __init__(self):
-        self.goscie = {}      # token -> gosc
+        self.goscie = {}      # token -> gosc (po przywróceniu karty ten sam gość ma kilka tokenów)
+        self.odzyski = {}     # kod od obsługi -> dict(gosc, wygasa, uzyto)
         self.kroki = []       # dict(id, gosc, zrodlo, lokal, urz, kiedy, cofniety)
         self.nagrody = []     # dict(id, gosc, rodzaj, lokal, urz, kiedy, cofnieta)
         self.lokale = {'centrum': {'nazwa': 'Kawiarnia Centrum', 'pin': None, 'aktywny': True},
@@ -37,6 +39,9 @@ class Baza:
     def stan_goscia(self, g):
         return {'imie': g['imie'], 'numer': g['numer'], 'kod': g['kod'], 'postac': 'kulka', **self.stan_drogi(g)}
 
+    def osoby(self):
+        return list({g['numer']: g for g in self.goscie.values()}.values())
+
     def znajdz(self, kod):
         v = re.sub(r'[\s-]', '', (kod or '')).upper()
         if v.startswith('GK1:'): v = v[4:]
@@ -61,6 +66,27 @@ class Baza:
         g = self.goscie.get(p_token or '')
         if not g: return {'ok': False, 'blad': 'token'}
         return {'ok': True, 'stan': self.stan_goscia(g)}
+
+    # ---- zgubiona karta ----
+    def karta_obsluga_odzysk(self, p_token='', p_email=''):
+        u = self._urz(p_token)
+        if not u: return {'ok': False, 'blad': 'urzadzenie'}
+        email = (p_email or '').strip().lower()
+        g = next((x for x in self.goscie.values() if x['email'] == email), None)
+        if not g: return {'ok': True, 'wynik': 'nieznany'}
+        for o in self.odzyski.values():
+            if o['gosc'] is g and not o['uzyto']: o['wygasa'] = 0
+        kod = '%08d' % secrets.randbelow(10 ** 8)
+        self.odzyski[kod] = {'gosc': g, 'wygasa': time.time() + 600, 'uzyto': False}
+        return {'ok': True, 'wynik': 'kod', 'imie': g['imie'], 'numer': g['numer'], 'kod': kod, 'sekund': 600, 'stan': self.stan_drogi(g)}
+
+    def karta_odzyskaj(self, p_kod=''):
+        kod = re.sub(r'[^0-9]', '', p_kod or '')
+        o = self.odzyski.get(kod)
+        if len(kod) != 8 or not o or o['uzyto'] or o['wygasa'] < time.time(): return {'ok': False, 'blad': 'kod'}
+        o['uzyto'] = True
+        token = secrets.token_hex(24); self.goscie[token] = o['gosc']   # stary token działa dalej
+        return {'ok': True, 'token': token, 'stan': self.stan_goscia(o['gosc'])}
 
     # ---- dziś u nas ----
     def _iso(self, t): return time.strftime('%Y-%m-%dT%H:%M:%S+00:00', time.gmtime(t)) if t else None
@@ -229,14 +255,23 @@ class Baza:
         ost += [{'kiedy': iso(k['kiedy']), 'typ': 'zapis', 'imie': k['gosc']['imie'], 'lokal': None} for k in self.kroki if k['zrodlo'] == 'powitanie']
         ost.sort(key=lambda e: e['kiedy'], reverse=True)
         return {'ok': True,
-                'goscie': {'razem': len(self.goscie), 'dzis': len(self.goscie), 'tydzien': len(self.goscie), 'zgody': len([g for g in self.goscie.values() if g['zgoda']])},
+                'goscie': {'razem': len(self.osoby()), 'dzis': len(self.osoby()), 'tydzien': len(self.osoby()), 'zgody': len([g for g in self.osoby() if g['zgoda']])},
                 'kroki': {'razem': len(wiz), 'dzis': len(wiz), 'tydzien': len(wiz)},
-                'nagrody': {'razem': len(nag), 'dzis': len(nag), 'tydzien': len(nag), 'czekaja': len([g for g in self.goscie.values() if self.stan_drogi(g)['nagroda']])},
+                'nagrody': {'razem': len(nag), 'dzis': len(nag), 'tydzien': len(nag), 'czekaja': len([g for g in self.osoby() if self.stan_drogi(g)['nagroda']])},
                 'lokale': [{'slug': s, 'nazwa': l['nazwa'], 'aktywny': l['aktywny'], 'pin': l['pin'] is not None,
                             'kroki_dzis': len([k for k in wiz if k['lokal'] == s]), 'kroki_tydzien': len([k for k in wiz if k['lokal'] == s]),
                             'nagrody_tydzien': len([n for n in nag if n['lokal'] == s]),
                             'urzadzenia': len([u for u in self.urzadzenia.values() if u['lokal'] == s and u['aktywne']])} for s, l in self.lokale.items()],
                 'ostatnie': ost[:20]}
+
+    def karta_panel_powroty(self, p_sesja=''):
+        if p_sesja not in self.sesje: return {'ok': False, 'blad': 'sesja'}
+        dni = {}
+        for k in self.kroki:
+            if k['zrodlo'] == 'wizyta' and not k['cofniety']:
+                dni.setdefault(k['gosc']['numer'], set()).add(time.strftime('%Y-%m-%d', time.localtime(k['kiedy'])))
+        return {'ok': True, 'z_wizyta': len(dni), 'wrocili': len([1 for d in dni.values() if len(d) >= 2]),
+                'wrocili_30': len([1 for d in dni.values() if len(d) >= 2]), 'stali': len([1 for d in dni.values() if len(d) >= 5])}
 
     def karta_panel_pin(self, p_sesja='', p_lokal='', p_pin=''):
         if p_sesja not in self.sesje: return {'ok': False, 'blad': 'sesja'}
@@ -258,6 +293,10 @@ class Baza:
 
 
 BAZA = Baza()
+PAMIEC_STRONY = True   # False udaje stronę bez funkcji brzegowej: /api/karta odpowiada 404
+CIASTKO = 'gk_karta'
+WZOR_KLUCZA = re.compile(r'^[0-9a-f]{48}$')
+CECHY = 'Path=/; Secure; HttpOnly; SameSite=Lax'
 # ta sama polityka co w site/_headers (tam dodatkowo adres bazy w connect-src)
 CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://fnranvobetqcxtawcjop.supabase.co; worker-src 'self' blob:; media-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 
@@ -269,12 +308,37 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.send_header('Referrer-Policy', 'no-referrer')
         self.send_header('X-Content-Type-Options', 'nosniff')
         super().end_headers()
+    def _json(self, dane, status=200, ciastko=None):
+        body = json.dumps(dane).encode()
+        self.send_response(status); self.send_header('Content-Type', 'application/json; charset=utf-8'); self.send_header('Content-Length', str(len(body)))
+        if ciastko is not None: self.send_header('Set-Cookie', ciastko)
+        self.end_headers(); self.wfile.write(body)
+
+    def _api_karta(self, metoda):
+        """To samo, co robi netlify/edge-functions/karta.js."""
+        if metoda == 'GET':
+            klucz = None
+            for cz in (self.headers.get('Cookie') or '').split(';'):
+                n, _, w = cz.partition('=')
+                if n.strip() == CIASTKO: klucz = w.strip()
+            return self._json({'token': klucz if klucz and WZOR_KLUCZA.match(klucz) else None})
+        surowe = self.rfile.read(int(self.headers.get('Content-Length') or 0))
+        if self.headers.get('Origin') != 'http://' + (self.headers.get('Host') or '') or not (self.headers.get('Content-Type') or '').lower().startswith('application/json'):
+            return self._json({'ok': False}, 403)
+        try: klucz = json.loads(surowe)['token']
+        except Exception: return self._json({'ok': False}, 400)
+        if klucz is None: return self._json({'ok': True}, 200, f'{CIASTKO}=; Max-Age=0; {CECHY}')
+        if not isinstance(klucz, str) or not WZOR_KLUCZA.match(klucz): return self._json({'ok': False}, 400)
+        return self._json({'ok': True}, 200, f'{CIASTKO}={klucz}; Max-Age={400 * 24 * 3600}; {CECHY}')
+
     def do_GET(self):
+        if self.path.split('?')[0] == '/api/karta' and PAMIEC_STRONY: return self._api_karta('GET')
         if self.path.split('?')[0] == '/js/konfig.js':
             body = b"export const API = '/atrapa/';\nexport const KLUCZ = 'atrapa';\n"
             self.send_response(200); self.send_header('Content-Type', 'text/javascript'); self.send_header('Content-Length', str(len(body))); self.end_headers(); self.wfile.write(body); return
         return super().do_GET()
     def do_POST(self):
+        if self.path.split('?')[0] == '/api/karta' and PAMIEC_STRONY: return self._api_karta('POST')
         m = re.match(r'^/atrapa/(karta_[a-z_]+)$', self.path)
         n = int(self.headers.get('Content-Length') or 0)
         try: args = json.loads(self.rfile.read(n) or b'{}')

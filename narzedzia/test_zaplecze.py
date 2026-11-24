@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Obsługa (ze sztucznym aparatem, który „widzi” prawdziwy kod QR gościa) i panel właściciela, na atrapie bazy."""
-import sys, os, json, subprocess
+import sys, os, json, subprocess, re, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import atrapa
 from playwright.sync_api import sync_playwright
@@ -84,6 +84,61 @@ with sync_playwright() as p:
     assert B.stan_drogi(B.znajdz(ola['stan']['kod']))['spotkania'] == 1
     pg.fill('#numer', '9999'); pg.wait_for_timeout(2600); pg.click('#recznie button'); pg.wait_for_selector('#wynik.zle'); pg.wait_for_timeout(200)
     shot(10, 'nieznany')
+    # zguba: Tomek nie ma karty w telefonie
+    pg.click('.zakladki [data-z=zguba]'); pg.wait_for_selector('#zguba'); pg.wait_for_timeout(250); shot(12, 'zguba')
+    pg.fill('#zemail', 'tomek(at)example'); pg.click('#zguba button'); pg.wait_for_timeout(150)
+    assert 'Sprawdź e-mail' in pg.inner_text('#zblad'), pg.inner_text('#zblad')
+    pg.fill('#zemail', 'nikt@example.com'); pg.click('#zguba button'); pg.wait_for_selector('#zblad:has-text("Nie ma karty")')
+    shot(13, 'zguba-nie-ma')
+    pg.fill('#zemail', ' Tomek@Example.com '); pg.click('#zguba button'); pg.wait_for_selector('.zguba-kod'); pg.wait_for_timeout(250); shot(14, 'zguba-kod')
+    kod = pg.inner_text('.zguba-kod .podpis b').replace(' ', '')
+    assert re.match(r'^[0-9]{8}$', kod) and kod in B.odzyski, kod
+    assert 'TOMEK' in pg.inner_text('.zguba-kto').upper() and f"Karta nr {tomek['stan']['numer']}" in pg.inner_text('.zguba-kto'), pg.inner_text('.zguba-kto')
+    # kod QR na ekranie obsługi prowadzi pod adres strony z kodem (odczyt niezależnym czytnikiem)
+    w_qr = pg.evaluate('''async () => {
+      const { default: QrScanner } = await import('/vendor/qr-scanner.min.js');
+      const svg = document.querySelector('.zguba-kod .qr svg');
+      const img = new Image();
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(svg));
+      await img.decode();
+      const c = document.createElement('canvas'); c.width = c.height = 640;
+      c.getContext('2d').drawImage(img, 0, 0, 640, 640);
+      return (await QrScanner.scanImage(c, { returnDetailedScanResult: true })).data;
+    }''')
+    assert w_qr == f'{BASE}/?o={kod}', w_qr
+    uklad_zguby = pg.evaluate('({ sh: document.documentElement.scrollHeight, ch: document.documentElement.clientHeight })')
+    # nowy telefon gościa: „Mam już kartę” i kod od obsługi
+    ctxn = b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=2, locale='pl-PL')
+    pn = ctxn.new_page(); nasluch(pn, 'nowy-telefon')
+    pn.goto(BASE + '/'); pn.wait_for_selector('#zapis'); pn.click('.gora .link'); pn.wait_for_selector('#odzysk')
+    pn.evaluate('document.fonts.ready.then(() => 1)'); pn.wait_for_timeout(250); pn.screenshot(path=f'{OUT}/g-mam-01.png')
+    pn.fill('#okod', '1234'); pn.click('#wyslij'); pn.wait_for_timeout(150); assert '8 cyfr' in pn.inner_text('#blad'), pn.inner_text('#blad')
+    pn.fill('#okod', '11111111' if kod == '00000000' else '00000000'); pn.click('#wyslij')
+    pn.wait_for_selector('#blad:has-text("nie działa")'); pn.screenshot(path=f'{OUT}/g-mam-02-zly-kod.png')
+    pn.fill('#okod', kod[:4] + ' ' + kod[4:]); pn.click('#wyslij'); pn.wait_for_selector('#ramka'); pn.wait_for_timeout(400)
+    pn.screenshot(path=f'{OUT}/g-mam-03-wrocila.png')
+    assert pn.inner_text('.czesc') == 'Cześć, Tomku!', pn.inner_text('.czesc')
+    assert 'Karta wróciła' in pn.inner_text('#zasada'), pn.inner_text('#zasada')
+    assert pn.evaluate('JSON.parse(localStorage.getItem("gk.karta.stan")).numer') == tomek['stan']['numer']
+    nowy = pn.evaluate('localStorage.getItem("gk.karta.token")')
+    assert nowy != tomek['token'] and f'k={nowy}' in pn.url and [x for x in ctxn.cookies() if x['name'] == 'gk_karta' and x['value'] == nowy]
+    assert B.karta_stan(tomek['token'])['ok'], 'stary klucz przestał działać'
+    assert not B.karta_odzyskaj(kod)['ok'], 'kod zadziałał drugi raz'
+    pn.reload(); pn.wait_for_selector('#ramka'); ctxn.close()
+    # druga droga: aparat telefonu na kod z ekranu obsługi, czyli adres z ?o=
+    kod2 = B.karta_obsluga_odzysk(urz, 'ola@example.com')['kod']
+    ctxn = b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=2, locale='pl-PL')
+    pn = ctxn.new_page(); nasluch(pn, 'nowy-telefon-qr')
+    pn.goto(f'{BASE}/?o={kod2}'); pn.wait_for_selector('#ramka'); pn.wait_for_timeout(300)
+    assert pn.inner_text('.czesc') == 'Cześć, Olu!', pn.inner_text('.czesc')
+    assert 'o=' not in pn.url and 'k=' in pn.url, pn.url
+    pn.goto(f'{BASE}/?nowa=1'); pn.wait_for_selector('#zapis')
+    pn.goto(f'{BASE}/?o={kod2}'); pn.wait_for_selector('#odzysk'); pn.wait_for_timeout(200)    # kod zużyty: ekran z polem na nowy
+    assert 'nie działa' in pn.inner_text('#blad') and 'o=' not in pn.url, (pn.inner_text('#blad'), pn.url)
+    pn.screenshot(path=f'{OUT}/g-mam-04-kod-z-adresu-zuzyty.png')
+    ctxn.close()
+    pg.click('#zgotowe'); pg.wait_for_selector('#wideo'); pg.wait_for_timeout(600)
+    print('zguba OK |', uklad_zguby)
     stopka = pg.inner_text('#dzis')
     uklad = pg.evaluate('({ sh: document.documentElement.scrollHeight, ch: document.documentElement.clientHeight })')
     print('obsluga OK |', stopka, '|', uklad)
@@ -95,6 +150,9 @@ with sync_playwright() as p:
     b.close()
 
     # 3) panel
+    # powroty: Ania była też trzy dni temu, więc jedna z dwóch osób z wizytą wróciła innego dnia
+    B.kid += 1
+    B.kroki.append({'id': B.kid, 'gosc': B.znajdz(ania['stan']['kod']), 'zrodlo': 'wizyta', 'lokal': 'centrum', 'urz': None, 'kiedy': time.time() - 3 * 86400, 'cofniety': False})
     b = p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox'])
     ctx = b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=2, locale='pl-PL', timezone_id='Europe/Warsaw')
     pg = ctx.new_page(); nasluch(pg, 'panel')
@@ -108,7 +166,9 @@ with sync_playwright() as p:
     assert '10 znaków' in pg.inner_text('#blad')
     pg.fill('#h1', 'bardzo-dlugie-haslo'); pg.fill('#h2', 'bardzo-dlugie-haslo'); shot(2, 'ustaw-haslo'); pg.click('#f button')
     pg.wait_for_selector('.kafle'); pg.wait_for_timeout(300); shot(3, 'panel')
-    assert pg.inner_text('.kafel b') == '3', pg.inner_text('.kafel b')
+    assert pg.inner_text('.kafel.powroty b') == '50%', pg.inner_text('.kafel.powroty b')
+    assert 'goście z wizytą: 2 · wrócili innego dnia: 1' in pg.inner_text('.kafel.powroty small'), pg.inner_text('.kafel.powroty small')
+    assert pg.inner_text('.kafel:not(.powroty) b') == '3', pg.inner_text('.kafel:not(.powroty) b')
     # kod dla Nova Park
     nova = pg.locator('[data-lokal="nova-park"]')
     nova.locator('input').fill('12'); nova.locator('form button').click(); pg.wait_for_selector('[data-lokal="nova-park"] .uwaga.zle'); 

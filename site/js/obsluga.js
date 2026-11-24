@@ -1,6 +1,7 @@
-// Ekran obsługi: skan kodu gościa, krok, wydanie nagrody, cofnięcie pomyłki.
+// Ekran obsługi: skan kodu gościa, krok, wydanie nagrody, cofnięcie pomyłki, witryna, zgubiona karta.
 import { rpc, pamiec, esc } from './api.js';
 import { ladnie } from './wolacz.js';
+import { svgQr } from './qr.js';
 import QrScanner from '/vendor/qr-scanner.min.js';
 
 const app = document.getElementById('app');
@@ -25,14 +26,22 @@ let blokadaEkranu = null;
 let widok = 'skan';
 let witryna = null;
 
+const ZAKLADKI = [
+  ['skan', 'Skan'],
+  ['witryna', 'Witryna'],
+  ['zguba', 'Zguba'],
+];
 const zakladki = (tu) =>
-  `<nav class="zakladki" aria-label="Zakładki"><button type="button" data-z="skan"${tu === 'skan' ? ' class="tu" aria-current="page"' : ''}>Skan</button><button type="button" data-z="witryna"${tu === 'witryna' ? ' class="tu" aria-current="page"' : ''}>Witryna</button></nav>`;
+  `<nav class="zakladki" aria-label="Zakładki">${ZAKLADKI.map(
+    ([z, nazwa]) => `<button type="button" data-z="${z}"${tu === z ? ' class="tu" aria-current="page"' : ''}>${nazwa}</button>`,
+  ).join('')}</nav>`;
 
 function podlaczZakladki() {
   app.querySelectorAll('.zakladki button').forEach((b) =>
     b.addEventListener('click', () => {
       odblokujDzwiek();
       if (b.dataset.z === 'witryna') pokazWitryne();
+      else if (b.dataset.z === 'zguba') pokazZgube();
       else pokazSkaner();
     }),
   );
@@ -116,6 +125,7 @@ async function paruj(ev) {
 
 function pokazSkaner() {
   widok = 'skan';
+  clearTimeout(zegarWyniku);
   app.innerHTML = `${pasek(esc(lokal ? lokal.nazwa : ''))}
     ${zakladki('skan')}
     <section class="kamera"><video id="wideo" playsinline muted></video><p class="kamera-info" id="kinfo">Uruchamiam aparat…</p></section>
@@ -385,6 +395,65 @@ async function pokazWitryne() {
   if (!o) return;
   witryna = o.ok ? o : null;
   if (widok === 'witryna') rysujWitryne();
+}
+
+// ===== Zguba: gość nie ma karty w telefonie =====
+
+function pokazZgube() {
+  widok = 'zguba';
+  zatrzymaj();
+  clearTimeout(zegarWyniku);
+  app.innerHTML = `${pasek(esc(lokal ? lokal.nazwa : ''))}
+    ${zakladki('zguba')}
+    <section class="tekst"><h1>Karta zniknęła z telefonu?</h1><p>Wpisz e-mail, na który gość założył kartę. Pokażesz mu kod, którym przywróci ją u siebie.</p></section>
+    <form class="formularz" id="zguba" novalidate>
+      <label class="pole" for="zemail">E-mail gościa</label>
+      <input id="zemail" name="email" type="email" inputmode="email" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="254" placeholder="np. ania@example.com">
+      <p class="blad" id="zblad" role="alert"></p>
+      <button class="guzik" type="submit">Szukaj karty</button>
+    </form>`;
+  podlaczZakladki();
+  document.getElementById('zguba').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const f = ev.currentTarget;
+    const blad = document.getElementById('zblad');
+    const guzik = f.querySelector('button');
+    const email = f.email.value.trim();
+    blad.textContent = '';
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s.]{2,}$/.test(email)) {
+      blad.textContent = 'Sprawdź e-mail, coś się w nim nie zgadza.';
+      return;
+    }
+    guzik.disabled = true;
+    const o = await wywolaj('karta_obsluga_odzysk', { p_email: email });
+    if (!o || widok !== 'zguba') return; // urządzenie odłączone albo obsługa wyszła z zakładki
+    if (o.wynik === 'kod') return pokazKodZguby(o);
+    guzik.disabled = false;
+    blad.textContent =
+      {
+        nieznany: 'Nie ma karty na ten e-mail. Sprawdź literówki albo załóżcie nową kartę.',
+        limit: 'Za dużo wyszukiwań z tego urządzenia. Spróbuj za godzinę.',
+      }[o.wynik] || 'Brak połączenia. Spróbuj jeszcze raz.';
+    sygnal('zle');
+  });
+}
+
+function pokazKodZguby(o) {
+  const imie = esc(ladnie(o.imie || '').split(' ')[0]);
+  const kod = String(o.kod).replace(/\D/g, '');
+  app.innerHTML = `${pasek(esc(lokal ? lokal.nazwa : ''))}
+    ${zakladki('zguba')}
+    <section class="wynik dobrze zguba-kto"><p class="kto">${imie}</p><p class="co">Karta nr ${Number(o.numer)}</p>${kropki(o.stan.n)}</section>
+    <section class="kod-karta zguba-kod">
+      <div class="qr">${svgQr(`${location.origin}/?o=${kod}`, 'Kod QR do przywrócenia karty')}</div>
+      <div class="podpis"><b>${kod.slice(0, 4)} ${kod.slice(4)}</b></div>
+    </section>
+    <p class="wstan">Zgadza się imię? Gość kieruje aparat telefonu na ten kod. Może też otworzyć stronę karty, stuknąć „Mam już kartę” i wpisać cyfry. Kod działa 10 minut.</p>
+    <div class="wstopka"><button class="guzik" id="zgotowe" type="button">Gotowe</button></div>`;
+  podlaczZakladki();
+  document.getElementById('zgotowe').addEventListener('click', pokazSkaner);
+  sygnal('ok');
+  zegarWyniku = setTimeout(() => widok === 'zguba' && pokazSkaner(), 600000); // kod i tak przestał działać
 }
 
 // ===== Dźwięk i ekran =====
