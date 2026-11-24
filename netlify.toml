@@ -1,0 +1,4 @@
+# Karta gościa Górka & Kulka: strona statyczna, bez kroku budowania.
+# Nagłówki bezpieczeństwa są w site/_headers.
+[build]
+  publish = "site"

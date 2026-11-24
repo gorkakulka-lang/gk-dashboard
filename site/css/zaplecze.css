@@ -1,0 +1,97 @@
+/* Obsługa i panel właściciela: te same kroje i kolory, ale układ roboczy. */
+
+body.zaplecze, body.zaplecze html { background: var(--krem); }
+body.zaplecze { background: var(--krem); }
+.zaplecze .ekran { max-width: 560px; padding-top: calc(10px + env(safe-area-inset-top)); }
+.zaplecze h1 { font-size: clamp(28px, 8vw, 36px); }
+.zaplecze h2 { margin: 26px 0 10px; font-family: 'Reglo PL', 'Fragment Mono', monospace; font-size: 22px; line-height: 1.05; text-transform: uppercase; }
+
+.pasek { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; flex: none; }
+.pasek span { font-size: 13px; text-align: right; }
+
+/* ----- parowanie i logowanie ----- */
+.lokale { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.lokal { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px; border: 2px solid var(--tusz); border-radius: 16px; background: var(--bialy); font-size: 16px; cursor: pointer; }
+.lokal input { width: 20px; height: 20px; margin: 0; accent-color: var(--rubin); flex: none; }
+.lokal.wyl { opacity: .5; cursor: default; }
+.formularz input.kod6 { letter-spacing: .3em; font-size: 22px; text-align: center; -webkit-text-security: disc; }
+.formularz input[type=password] {
+  width: 100%; height: 52px; margin: 0 0 12px; border: 2px solid var(--tusz); border-radius: 16px; padding: 0 16px;
+  font-family: 'Fragment Mono', ui-monospace, monospace; font-size: 16px; background: var(--bialy); color: var(--tusz);
+  -webkit-appearance: none; appearance: none;
+}
+
+/* ----- skaner ----- */
+.kamera { position: relative; margin-top: 8px; border-radius: 22px; overflow: hidden; background: var(--tusz); aspect-ratio: 1 / 1; max-height: 46vh; width: 100%; flex: none; }
+.kamera video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.kamera-info { position: absolute; left: 16px; right: 16px; top: 50%; transform: translateY(-50%); color: var(--bialy); text-align: center; font-size: 14px; }
+.kamera-info:empty { display: none; }
+.kamera .scan-region-highlight-svg, .kamera .code-outline-highlight { stroke: var(--roz) !important; }
+
+.wynik { margin-top: 12px; border-radius: 22px; padding: 16px 18px; min-height: 128px; border: 2px solid var(--tusz); background: var(--bialy); display: flex; flex-direction: column; gap: 6px; justify-content: center; flex: none; }
+.wynik .kto { font-family: 'Reglo PL', 'Fragment Mono', monospace; font-size: 34px; line-height: 1; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wynik .co { font-size: 20px; line-height: 1.25; }
+.wynik .cicho { font-size: 14px; }
+.wynik.dobrze { background: var(--tusz); color: var(--bialy); }
+.wynik.nagroda { background: #FFE295; }
+.wynik.zle { background: var(--rubin); color: var(--bialy); border-color: var(--rubin); }
+.wynik .link { color: inherit; align-self: flex-start; }
+.wynik .rzad { display: flex; gap: 8px; margin-top: 6px; }
+.wynik .rzad button { flex: 1 1 0; min-height: 56px; border: 2px solid var(--tusz); border-radius: 16px; background: var(--bialy); color: var(--tusz); font-family: 'Reglo PL', 'Fragment Mono', monospace; font-size: 17px; text-transform: uppercase; cursor: pointer; padding: 6px 8px; }
+.wynik.dobrze .rzad button { border-color: var(--bialy); }
+.mkropki { display: flex; gap: 6px; margin: 4px 0 2px; }
+.mkropki span { width: 16px; height: 16px; border-radius: 50%; border: 2px dashed currentColor; flex: none; }
+.mkropki span.jest { border: 0; background: var(--roz); }
+.wynik.nagroda .mkropki span.jest, .wynik.info .mkropki span.jest { background: var(--rubin); }
+
+.recznie { margin-top: 12px; display: flex; gap: 8px; flex: none; }
+.recznie input { flex: 1 1 auto; min-width: 0; height: 52px; border: 2px solid var(--tusz); border-radius: 16px; padding: 0 16px; font-family: 'Fragment Mono', ui-monospace, monospace; font-size: 16px; background: var(--bialy); color: var(--tusz); -webkit-appearance: none; appearance: none; }
+.maly { flex: none; height: 52px; padding: 0 18px; border: 0; border-radius: 16px; background: var(--tusz); color: var(--bialy); font-family: 'Reglo PL', 'Fragment Mono', monospace; font-size: 16px; text-transform: uppercase; cursor: pointer; }
+.maly.jasny { background: var(--bialy); color: var(--tusz); border: 2px solid var(--tusz); }
+.stopka { margin-top: auto; padding-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; flex: none; }
+
+/* ----- panel ----- */
+.kafle { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 12px; }
+.kafel { background: var(--bialy); border: 2px solid var(--tusz); border-radius: 20px; padding: 14px 16px; display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: baseline; }
+.kafel b { font-family: 'Reglo PL', 'Fragment Mono', monospace; font-size: 44px; line-height: 1; grid-row: span 2; align-self: center; min-width: 1.6ch; }
+.kafel span { font-size: 16px; }
+.kafel small { font-size: 12.5px; line-height: 1.4; }
+.lokal-panel { background: var(--bialy); border: 2px solid var(--tusz); border-radius: 20px; padding: 14px 16px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+.lokal-panel.nieczynny { border-style: dashed; }
+.lokal-panel .nazwa { font-family: 'Reglo PL', 'Fragment Mono', monospace; font-size: 22px; text-transform: uppercase; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.lokal-panel .nazwa small { font-family: 'Fragment Mono', ui-monospace, monospace; font-size: 12px; text-transform: none; }
+.lokal-panel .liczby { font-size: 13.5px; line-height: 1.5; }
+.lokal-panel .akcje { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.lokal-panel form { display: flex; gap: 8px; }
+.lokal-panel form input { width: 9.5em; height: 46px; border: 2px solid var(--tusz); border-radius: 14px; padding: 0 12px; font-family: 'Fragment Mono', ui-monospace, monospace; font-size: 16px; letter-spacing: .12em; background: var(--bialy); -webkit-appearance: none; appearance: none; }
+.lokal-panel form .maly { height: 46px; font-size: 15px; }
+.uwaga { font-size: 13px; line-height: 1.45; }
+.uwaga.ok { color: var(--tusz); }
+.uwaga.zle { color: var(--rubin); }
+.zdarzenia { list-style: none; margin: 0; padding: 0; font-size: 13.5px; line-height: 1.45; }
+.zdarzenia li { display: grid; grid-template-columns: 5.4em 1fr; gap: 8px; padding: 7px 0; border-top: 1px solid rgba(17, 17, 17, .14); }
+.zdarzenia li:first-child { border-top: 0; }
+.zdarzenia time { color: var(--szary); }
+
+@media (min-width: 520px) {
+  .kafle { grid-template-columns: repeat(3, 1fr); }
+  .kafel { grid-template-columns: 1fr; }
+  .kafel b { grid-row: auto; }
+}
+
+/* ----- zakładki obsługi i witryna ----- */
+.zakladki { display: flex; gap: 8px; margin-top: 6px; flex: none; }
+.zakladki button { flex: 1 1 0; min-height: 46px; border: 2px solid var(--tusz); border-radius: 16px; background: var(--bialy); color: var(--tusz); font-family: 'Reglo PL', 'Fragment Mono', monospace; font-size: 16px; text-transform: uppercase; cursor: pointer; }
+.zakladki button.tu { background: var(--tusz); color: var(--bialy); }
+.wstan { margin-top: 12px; font-size: 14px; line-height: 1.45; flex: none; }
+.wlista { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; flex: none; }
+.wsmak { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 54px; padding: 8px 16px; border: 2px solid var(--tusz); border-radius: 16px; background: var(--bialy); color: var(--tusz); font-family: 'Fragment Mono', ui-monospace, monospace; font-size: 16px; text-align: left; cursor: pointer; }
+.wsmak small { font-size: 12px; flex: none; }
+.wsmak.jest { background: var(--tusz); color: var(--bialy); }
+.wstopka { position: sticky; bottom: 0; margin-top: 14px; padding: 10px 0 calc(4px + env(safe-area-inset-bottom)); background: var(--krem); flex: none; }
+
+/* ----- panel: smaki ----- */
+.smaki-panel li { grid-template-columns: 1fr; gap: 2px; }
+.smaki-panel .akcje { display: flex; flex-wrap: wrap; gap: 0 16px; }
+.smaki-panel .link { min-height: 36px; font-size: 13px; }
+.smaki-panel .ukryty { color: var(--szary); }
