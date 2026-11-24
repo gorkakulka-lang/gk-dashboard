@@ -2810,7 +2810,7 @@ const CSS_B = [
     ".gk2-kok-ogon { transform-origin: 49.7% 33%; }",
     ".gk2-kok-wezel { transform-origin: 49.7% 28.2%; }",
 
-    "/* 5. Wigilie firmowe */",
+    "/* 5. Dla firm */",
     ".gk2-firmy { position: relative; background: var(--maslo); padding: calc(var(--vh) * 18) var(--m) calc(var(--vh) * 16); display: grid; grid-template-columns: 1.08fr .92fr; grid-template-areas: 'glowa foto' 'tresc foto'; column-gap: 6vw; align-items: start; overflow: clip; }",
     ".gk2-firmy-glowa { grid-area: glowa; }",
     ".gk2-firmy-tresc { grid-area: tresc; }",
@@ -4186,8 +4186,8 @@ export default function KonceptFunduszWitryna(props: Props) {
                     {[
                         ["Kawiarnia Centrum", "ul. Sikorskiego 126", "Kawiarnia, lody, ciasta · codziennie 10–19", "Górka & Kulka Sikorskiego 126 Gorzów Wielkopolski"],
                         ["Nova Park", "Centrum handlowe Nova Park", "Lodziarnia · godziny galerii", "Górka & Kulka Nova Park Gorzów Wielkopolski"],
-                        ["Górczyn", "Lodziarnia sezonowa", "Otwarta w sezonie, wiosna–lato", "Górka & Kulka Górczyn Gorzów Wielkopolski"],
-                        ["Pracownia", "ul. Słoneczna 62", "Tu robimy lody i ciasta · okienko", "ul. Słoneczna 62, 66-400 Gorzów Wielkopolski"],
+                        ["Górczyn", "Park Górczyński", "Lodziarnia · 1.04–15.09 · 12–20", "Park Górczyński Gorzów Wielkopolski"],
+                        ["Pracownia", "ul. Słoneczna 62", "Okienko z lodami · 1.04–15.09 · 12–20", "ul. Słoneczna 62, 66-400 Gorzów Wielkopolski"],
                     ].map((l) => (
                         <li key={l[0]}>
                             <span className="gk2-d gk2-lista-nazwa">{l[0]}</span>
