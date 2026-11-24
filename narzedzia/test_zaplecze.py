@@ -132,6 +132,10 @@ with sync_playwright() as p:
     pn.goto(f'{BASE}/?o={kod2}'); pn.wait_for_selector('#ramka'); pn.wait_for_timeout(300)
     assert pn.inner_text('.czesc') == 'Cześć, Olu!', pn.inner_text('.czesc')
     assert 'o=' not in pn.url and 'k=' in pn.url, pn.url
+    # zużyty kod, pusta pamięć przeglądarki, ale karta jest w ciasteczku: gość widzi kartę, nie błąd
+    pn.evaluate('localStorage.clear()')
+    pn.goto(f'{BASE}/?o={kod2}'); pn.wait_for_selector('#ramka'); pn.wait_for_timeout(300)
+    assert pn.inner_text('.czesc') == 'Cześć, Olu!' and 'o=' not in pn.url, (pn.inner_text('.czesc'), pn.url)
     pn.goto(f'{BASE}/?nowa=1'); pn.wait_for_selector('#zapis')
     pn.goto(f'{BASE}/?o={kod2}'); pn.wait_for_selector('#odzysk'); pn.wait_for_timeout(200)    # kod zużyty: ekran z polem na nowy
     assert 'nie działa' in pn.inner_text('#blad') and 'o=' not in pn.url, (pn.inner_text('#blad'), pn.url)

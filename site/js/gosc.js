@@ -694,23 +694,26 @@ async function start() {
   const zAdresu = nowa ? null : adres.searchParams.get('k');
   const zPamieci = pamiec(K_TOKEN);
   token = zAdresu && WZOR_KLUCZA.test(zAdresu) ? zAdresu : zPamieci;
+  let bladKodu = '';
   if (kodObslugi && /^[0-9]{8}$/.test(kodObslugi)) {
     // gość skierował aparat na kod z ekranu obsługi: wymieniamy go na kartę, zanim cokolwiek pokażemy
-    history.replaceState(null, '', location.pathname + (token ? `?k=${token}` : '#mam'));
+    history.replaceState(null, '', location.pathname + (token ? `?k=${token}` : ''));
     app.innerHTML = `${gora()}<section class="tekst"><h1>Przywracam kartę…</h1></section>`;
     const kodBledu = await odzyskaj(kodObslugi);
     if (!kodBledu) return;
-    if (!token) {
-      pokazMam(BLEDY_ODZYSKU[kodBledu] || BLEDY_ODZYSKU.siec);
-      return;
-    }
-    // kod nie zadziałał, ale w tym telefonie jest już karta: pokazujemy ją
+    // kod nie zadziałał: jeśli w tym telefonie jest już karta (w pamięci albo w ciasteczku), pokażemy ją
+    bladKodu = BLEDY_ODZYSKU[kodBledu] || BLEDY_ODZYSKU.siec;
   }
   if (!token && !nowa) {
     // pamięć przeglądarki pusta: może klucz przetrwał w ciasteczku
     if (location.hash === '#dzis') trasa();
-    else app.innerHTML = gora();
+    else if (!bladKodu) app.innerHTML = gora();
     token = await zeStrony();
+  }
+  if (!token && bladKodu) {
+    history.replaceState(null, '', location.pathname + '#mam');
+    pokazMam(bladKodu);
+    return;
   }
   if (token) {
     if (token === zPamieci) {
