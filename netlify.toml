@@ -2,3 +2,9 @@
 # Nagłówki bezpieczeństwa są w site/_headers.
 [build]
   publish = "site"
+
+# Pamięć karty: /api/karta obsługuje funkcja brzegowa netlify/edge-functions/karta.js.
+# Adres jest też zapisany w samej funkcji; tutaj powtórzony, żeby nie zależał od jednego miejsca.
+[[edge_functions]]
+  path = "/api/karta"
+  function = "karta"
