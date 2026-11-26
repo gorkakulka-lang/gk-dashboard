@@ -76,6 +76,13 @@ function rozmowa(slowo: string): Watek[] {
         {
             nr: "06",
             kw: [
+                ["sd", "Przyjdziesz na lato, a jesienią pewnie wyjedziesz na studia. Znam\u00a0to."],
+                ["k", "Wiemy. Dlatego każda osoba z letniej ekipy może dostać dwie rozmowy o swoich mocnych stronach: na start i na koniec sezonu. Wyjedziesz, wiedząc o sobie więcej. A latem wracaj."],
+            ],
+        },
+        {
+            nr: "07",
+            kw: [
                 [
                     "sd",
                     "I jeszcze jedno, tylko dla tych, którzy czytają, a nie przewijają: odpowiedź na pytanie „Czego chcesz się u nas nauczyć?” zacznij od słowa „" +
